@@ -98,7 +98,6 @@ export default function Navbar() {
 
   const sellPageState = useProfilePageState((state) => state.state)
   const isSmallScreen = !useScreenSize()['sm']
-  const isMediumScreen = !useScreenSize()['md']
   const areTabsVisible = useTabsVisible()
   const collapseSearchBar = !useScreenSize()['lg']
   const account = useAccount()
@@ -130,9 +129,6 @@ export default function Navbar() {
           {!account.isConnected && !account.isConnecting && <PreferenceMenu />}
           {!hideChainSelector && <ChainSelector />}
           <Web3Status />
-          {!isSignInExperimentControl && !isSignInExperimentControlLoading && !account.address && !isMediumScreen && (
-            <NewUserCTAButton />
-          )}
         </Right>
       </NavContents>
     </Nav>

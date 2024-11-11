@@ -8,7 +8,7 @@ import { useCallback, useState } from 'react'
 import { AnimateTransition, Popover } from 'ui/src'
 import { Global } from 'ui/src/components/icons/Global'
 
-export function getSettingsViewIndex(view: PreferencesView) {
+function getSettingsViewIndex(view: PreferencesView) {
   if (view === PreferencesView.SETTINGS) {
     return 0
   } else if (view === PreferencesView.LANGUAGE) {

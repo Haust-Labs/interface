@@ -7,8 +7,6 @@ import SwapHeader, { PathnameToTab } from 'components/swap/SwapHeader'
 import { PageWrapper, SwapWrapper } from 'components/swap/styled'
 import { PrefetchBalancesWrapper } from 'graphql/data/apollo/AdaptiveTokenBalancesProvider'
 import { useScreenSize } from 'hooks/screenSize/useScreenSize'
-import { BuyForm } from 'pages/Swap/Buy/BuyForm'
-import { LimitFormWrapper } from 'pages/Swap/Limit/LimitForm'
 import { SendForm } from 'pages/Swap/Send/SendForm'
 import { SwapForm } from 'pages/Swap/SwapForm'
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
@@ -142,7 +140,6 @@ export function Swap({
 }) {
   const isDark = useIsDarkMode()
   const screenSize = useScreenSize()
-  const forAggregatorEnabled = useFeatureFlag(FeatureFlags.ForAggregator)
 
   const universalSwapFlow = useFeatureFlag(FeatureFlags.UniversalSwap)
   const { isTestnetModeEnabled } = useEnabledChains()
@@ -213,11 +210,9 @@ export function Swap({
                     disableTokenInputs={disableTokenInputs}
                   />
                 )}
-                {currentTab === SwapTab.Limit && <LimitFormWrapper onCurrencyChange={onCurrencyChange} />}
                 {currentTab === SwapTab.Send && (
                   <SendForm disableTokenInputs={disableTokenInputs} onCurrencyChange={onCurrencyChange} />
                 )}
-                {currentTab === SwapTab.Buy && forAggregatorEnabled && <BuyForm disabled={disableTokenInputs} />}
               </SwapWrapper>
               <SwapBottomCard />
             </Flex>
@@ -228,13 +223,11 @@ export function Swap({
   )
 }
 
-const SWAP_TABS = [SwapTab.Swap, SwapTab.Limit, SwapTab.Send, SwapTab.Buy]
+const SWAP_TABS = [SwapTab.Swap, SwapTab.Send]
 
 const TAB_TYPE_TO_LABEL = {
   [SwapTab.Swap]: (t: AppTFunction) => t('swap.form.header'),
-  [SwapTab.Limit]: (t: AppTFunction) => t('swap.limit'),
   [SwapTab.Send]: (t: AppTFunction) => t('send.title'),
-  [SwapTab.Buy]: (t: AppTFunction) => t('common.buy.label'),
 }
 
 function UniversalSwapFlow({
@@ -262,7 +255,6 @@ function UniversalSwapFlow({
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const forAggregatorEnabled = useFeatureFlag(FeatureFlags.ForAggregator)
   const swapCallback = useSwapCallback()
   const wrapCallback = useWrapCallback()
 
@@ -382,11 +374,9 @@ function UniversalSwapFlow({
             prefilledState={prefilledState}
           />
         )}
-        {currentTab === SwapTab.Limit && <LimitFormWrapper onCurrencyChange={onCurrencyChange} />}
         {currentTab === SwapTab.Send && (
           <SendForm disableTokenInputs={disableTokenInputs} onCurrencyChange={onCurrencyChange} />
         )}
-        {currentTab === SwapTab.Buy && forAggregatorEnabled && <BuyForm disabled={disableTokenInputs} />}
       </Flex>
     </>
   )

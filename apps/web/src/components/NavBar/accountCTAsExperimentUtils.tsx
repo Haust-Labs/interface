@@ -18,7 +18,7 @@ export function ConnectWalletButtonText(): JSX.Element {
   return isSignIn ? (
     <Trans i18nKey="nav.signIn.button" />
   ) : isLogIn ? (
-    <Trans i18nKey="nav.logIn.button" />
+    <Trans i18nKey="common.connectWallet.button" />
   ) : (
     <Trans i18nKey="common.connectWallet.button" />
   )

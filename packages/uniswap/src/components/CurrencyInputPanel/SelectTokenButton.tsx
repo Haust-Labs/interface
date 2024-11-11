@@ -40,7 +40,7 @@ export const SelectTokenButton = memo(function _SelectTokenButton({
     )
   }
 
-  const textColor = selectedCurrencyInfo ? '$neutral1' : '$white'
+  const textColor = selectedCurrencyInfo ? '$white' : '$surface2'
   const chevronColor = selectedCurrencyInfo ? '$neutral2' : textColor
 
   return (

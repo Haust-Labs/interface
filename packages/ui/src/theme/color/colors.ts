@@ -3,9 +3,9 @@ import { opacifyRaw } from 'ui/src/theme/color/utils'
 const accentColors = {
   pinkLight: '#FEF4FF',
   pinkPastel: '#FDAFF0',
-  pinkBase: '#FC74FE',
+  pinkBase: '#46FFF4',
   pinkVibrant: '#F50DB4',
-  pinkDark: '#361A37',
+  pinkDark: 'rgba(70, 255, 244, 0.2)',
 
   redLight: '#FFF2F1',
   redPastel: '#FDCFC4',
@@ -91,7 +91,7 @@ export const DEP_accentColors = {
   green400: '#209853',
   magenta100: '#FAD8F8',
   magenta50: '#FFF1FE',
-  magentaVibrant: '#FC72FF',
+  magentaVibrant: '#46FFF4',
   red200: '#FEA79B',
   red300: '#FD766B',
   red400: '#FA2B39',
@@ -162,7 +162,7 @@ const sporeLight = {
   scrim: colors.scrim,
 
   neutral1: '#222222',
-  neutral1Hovered: '#131313',
+  neutral1Hovered: '#000000',
   neutral2: '#7D7D7D',
   neutral2Hovered: '#6B6B6B',
   neutral3: '#BFBFBF',
@@ -177,14 +177,14 @@ const sporeLight = {
   surface4: 'rgba(255,255,255,0.64)',
   surface5: 'rgba(0,0,0,0.04)',
 
-  accent1: '#FC72FF',
-  accent1Hovered: '#FD3CFE',
+  accent1: '#46FFF4',
+  accent1Hovered: '#46FFF4',
   accent2: '#FEF4FF',
   accent2Hovered: '#FEEBFC',
   accent3: '#222222',
   accent3Hovered: colors.black,
 
-  DEP_accentSoft: '#FC72FF33', //33 = 20%
+  DEP_accentSoft: '#46FFF4', //33 = 20%
   DEP_blue400: '#4C82FB',
 
   statusSuccess: '#21C95E',
@@ -214,23 +214,23 @@ const sporeDark = {
   neutral3: '#5E5E5E',
   neutral3Hovered: '#6B6B6B',
 
-  surface1: '#131313',
+  surface1: '#000000',
   surface1Hovered: 'rgba(24,24,24,1.00)',
-  surface2: '#1B1B1B',
+  surface2: '#121417',
   surface2Hovered: 'rgba(36,36,36,1.00)',
   surface3: 'rgba(255,255,255,0.12)',
   surface3Hovered: 'rgba(255,255,255,0.16)',
   surface4: 'rgba(255,255,255,0.20)',
   surface5: 'rgba(0,0,0,0.04)',
 
-  accent1: '#FC72FF',
-  accent1Hovered: '#FD3CFE',
-  accent2: '#361A37',
-  accent2Hovered: '#510D43',
+  accent1: '#46FFF4',
+  accent1Hovered: '#46FFF4',
+  accent2: 'rgba(70, 255, 244, 0.2)',
+  accent2Hovered: 'rgba(70, 255, 244, 0.1)',
   accent3: colors.white,
   accent3Hovered: '#F5F5F5',
 
-  DEP_accentSoft: '#FC72FF33', //33 = 20%
+  DEP_accentSoft: '#46FFF4', //33 = 20%
   DEP_blue400: '#4C82FB',
 
   statusSuccess: '#21C95E',

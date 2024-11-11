@@ -107,7 +107,7 @@ export const onRequest: PagesFunction = async ({ params, request }) => {
       (
         <div
           style={{
-            backgroundColor: '#1B1B1B',
+            backgroundColor: '#121417',
             display: 'flex',
             width: '1200px',
             height: '630px',
@@ -116,7 +116,7 @@ export const onRequest: PagesFunction = async ({ params, request }) => {
           <div
             style={{
               display: 'flex',
-              backgroundColor: `#1B1B1B`,
+              backgroundColor: `#121417`,
               alignItems: 'center',
               height: '100%',
               padding: '96px',
