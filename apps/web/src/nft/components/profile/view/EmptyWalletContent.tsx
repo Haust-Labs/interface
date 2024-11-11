@@ -1,5 +1,5 @@
 import styled from 'lib/styled-components'
-import { EmptyActivityIcon, EmptyNftsIcon, EmptyPoolsIcon, EmptyTokensIcon } from 'nft/components/profile/view/icons'
+import { EmptyActivityIcon, EmptyPoolsIcon, EmptyTokensIcon } from 'nft/components/profile/view/icons'
 import { headlineMedium } from 'nft/css/common.css'
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -51,15 +51,8 @@ type EmptyWalletContent = {
   urlPath?: string
   icon: React.ReactNode
 }
-type EmptyWalletContentType = 'nft' | 'token' | 'activity' | 'pool'
+type EmptyWalletContentType = 'token' | 'activity' | 'pool'
 const EMPTY_WALLET_CONTENT: { [key in EmptyWalletContentType]: EmptyWalletContent } = {
-  nft: {
-    title: <Trans i18nKey="nfts.noneYet" />,
-    subtitle: <Trans i18nKey="nft.buyTransferNFTToStart" />,
-    actionText: <Trans i18nKey="nft.explore" />,
-    urlPath: '/nfts',
-    icon: <EmptyNftsIcon />,
-  },
   token: {
     title: <Trans i18nKey="tokens.selector.empty.title" />,
     subtitle: <Trans i18nKey="nft.buyTransferTokensToStart" />,
@@ -86,10 +79,10 @@ interface EmptyWalletContentProps {
   onNavigateClick?: () => void
 }
 
-const EmptyWalletContent = ({ type = 'nft', onNavigateClick }: EmptyWalletContentProps) => {
+const EmptyWalletContent = ({ type = 'token', onNavigateClick }: EmptyWalletContentProps) => {
   const navigate = useNavigate()
 
-  const content = EMPTY_WALLET_CONTENT[type]
+  const content = EMPTY_WALLET_CONTENT[type as EmptyWalletContentType]
 
   const actionButtonClick = useCallback(() => {
     if (content.urlPath) {

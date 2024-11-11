@@ -7,6 +7,7 @@ import { paths } from '../src/pages/paths'
 import { transformResponse } from './utils/transformResponse'
 
 function doesMatchPath(path: string): boolean {
+  // @ts-ignore
   const regexPaths = paths.map((p) => '^' + p.replace(/:[^/]+/g, '[^/]+').replace(/\*/g, '.*') + '$')
 
   return regexPaths.some((regex) => new RegExp(regex).test(path))

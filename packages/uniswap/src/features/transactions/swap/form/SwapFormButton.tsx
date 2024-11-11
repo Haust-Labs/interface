@@ -125,7 +125,6 @@ export function SwapFormButton({ wrapCallback }: { wrapCallback?: WrapCallback }
 
   const accountsCTAExperimentGroup = useExperimentGroupName(Experiments.AccountCTAs)
   const isSignIn = accountsCTAExperimentGroup === AccountCTAsExperimentGroup.SignInSignUp
-  const isLogIn = accountsCTAExperimentGroup === AccountCTAsExperimentGroup.LogInCreateAccount
 
   // TODO(WEB-5090): Simplify logic, deduplicate disabled vs reviewButtonDisabled
   const disabled = !!activeAccount && reviewButtonDisabled && !isViewOnlyWallet && !swapRedirectCallback
@@ -135,7 +134,7 @@ export function SwapFormButton({ wrapCallback }: { wrapCallback?: WrapCallback }
       return t('common.getStarted')
     }
     if (!activeAccount) {
-      return isSignIn ? t('nav.signIn.button') : isLogIn ? t('nav.logIn.button') : t('common.connectWallet.button')
+      return isSignIn ? t('nav.signIn.button') : t('common.connectWallet.button')
     }
     if (blockingWarning?.buttonText) {
       return blockingWarning.buttonText

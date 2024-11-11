@@ -1,6 +1,5 @@
 import { InterfaceElementName } from '@uniswap/analytics-events'
 import { GooglePlayStoreLogo } from 'components/Icons/GooglePlayStoreLogo'
-import { DownloadWalletOption } from 'components/WalletModal/DownloadWalletOption'
 import { DetectedBadge } from 'components/WalletModal/shared'
 import { useConnectorWithId } from 'components/WalletModal/useOrderedConnections'
 import Column from 'components/deprecated/Column'
@@ -71,9 +70,6 @@ export function UniswapWalletOptions() {
             </Row>
             <DetectedBadge />
           </OptionContainer>
-        ) : // If not on a mobile web browser show the download wallet modal (includes link to download extension)
-        !isMobileWeb ? (
-          <DownloadWalletOption />
         ) : null}
         <OptionContainer gap="md" onClick={() => connect({ connector: uniswapWalletConnectConnector })}>
           {isMobileWeb ? (

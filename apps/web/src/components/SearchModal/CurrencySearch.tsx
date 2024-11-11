@@ -65,7 +65,6 @@ export function CurrencySearch({ currencyField, onCurrencySelect, onDismiss }: C
       <Flex width="100%" flexGrow={1} flexShrink={1} flexBasis="auto">
         <TokenSelectorContent
           activeAccountAddress={account.address!}
-          isLimits={currentTab === SwapTab.Limit}
           chainId={!multichainUXEnabled || isUserSelectedToken ? chainId : undefined}
           chainIds={chains}
           currencyField={currencyField}

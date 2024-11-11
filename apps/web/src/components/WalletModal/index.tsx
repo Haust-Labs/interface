@@ -85,7 +85,11 @@ export default function WalletModal() {
       <ConnectionErrorView />
       <AutoRow justify="space-between" width="100%">
         <Text variant="subheading2">
-          {isSignIn ? t('nav.signIn.button') : isLogIn ? t('nav.logIn.button') : t('common.connectAWallet.button')}
+          {isSignIn
+            ? t('nav.signIn.button')
+            : isLogIn
+              ? t('common.connectWallet.button')
+              : t('common.connectAWallet.button')}
         </Text>
       </AutoRow>
       <UniswapWalletOptions />

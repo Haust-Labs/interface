@@ -7,11 +7,9 @@ import { shouldDisableNFTRoutesAtom } from 'state/application/atoms'
 import { t } from 'uniswap/src/i18n'
 import { isBrowserRouterEnabled } from 'utils/env'
 // High-traffic pages (index and /swap) should not be lazy-loaded.
-import Landing from 'pages/Landing'
 import { CreatePosition } from 'pages/Pool/Positions/create/CreatePosition'
 import Swap from 'pages/Swap'
 
-const NftExplore = lazy(() => import('nft/pages/explore'))
 const Collection = lazy(() => import('nft/pages/collection'))
 const Profile = lazy(() => import('nft/pages/profile'))
 const Asset = lazy(() => import('nft/pages/asset/Asset'))
@@ -101,11 +99,7 @@ function createRouteDefinition(route: Partial<RouteDefinition>): RouteDefinition
 export const routes: RouteDefinition[] = [
   createRouteDefinition({
     path: '/',
-    getTitle: () => StaticTitlesAndDescriptions.UniswapTitle,
-    getDescription: () => StaticTitlesAndDescriptions.SwapDescription,
-    getElement: (args) => {
-      return args.browserRouterEnabled && args.hash ? <Navigate to={args.hash.replace('#', '')} replace /> : <Landing />
-    },
+    getElement: () => <Navigate to="/swap" replace />,
   }),
   createRouteDefinition({
     path: '/explore',
@@ -173,29 +167,9 @@ export const routes: RouteDefinition[] = [
     getElement: () => <Navigate to="/vote/create-proposal" replace />,
   }),
   createRouteDefinition({
-    path: '/buy',
-    getElement: () => <Swap />,
-    getTitle: () => StaticTitlesAndDescriptions.SwapTitle,
-  }),
-  createRouteDefinition({
     path: '/send',
     getElement: () => <Swap />,
     getTitle: () => t('title.sendTokens'),
-  }),
-  createRouteDefinition({
-    path: '/limits',
-    getElement: () => <Navigate to="/limit" replace />,
-    getTitle: () => t('title.placeLimit'),
-  }),
-  createRouteDefinition({
-    path: '/limit',
-    getElement: () => <Swap />,
-    getTitle: () => t('title.placeLimit'),
-  }),
-  createRouteDefinition({
-    path: '/buy',
-    getElement: () => <Swap />,
-    getTitle: () => StaticTitlesAndDescriptions.SwapTitle,
   }),
   createRouteDefinition({
     path: '/swap',
@@ -336,17 +310,6 @@ export const routes: RouteDefinition[] = [
     getElement: () => <MigrateV2Pair />,
     getTitle: () => StaticTitlesAndDescriptions.MigrateTitle,
     getDescription: () => StaticTitlesAndDescriptions.MigrateDescription,
-  }),
-  createRouteDefinition({
-    path: '/nfts',
-    getElement: () => (
-      <Suspense fallback={null}>
-        <NftExplore />
-      </Suspense>
-    ),
-    enabled: (args) => !args.shouldDisableNFTRoutes,
-    getTitle: () => t('title.exploreNFTs'),
-    getDescription: () => t('title.betterPricesMoreListings'),
   }),
   createRouteDefinition({
     path: '/nfts/asset/:contractAddress/:tokenId',

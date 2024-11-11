@@ -8,7 +8,6 @@ import FiatOnrampModal from 'components/FiatOnrampModal'
 import { GetTheAppModal } from 'components/NavBar/DownloadApp/Modal'
 import { PrivacyPolicyModal } from 'components/PrivacyPolicy'
 import { ReceiveCryptoModal } from 'components/ReceiveCryptoModal'
-import { ExtensionLaunchModal } from 'components/TopLevelModals/ExtensionLaunchModal'
 import { UkDisclaimerModal } from 'components/TopLevelModals/UkDisclaimerModal'
 import AddressClaimModal from 'components/claim/AddressClaimModal'
 import DevFlagsBox from 'dev/DevFlagsBox'
@@ -54,7 +53,6 @@ export default function TopLevelModals() {
       <PrivacyPolicyModal />
       <FeatureFlagModal />
       {shouldShowDevFlags && <DevFlagsBox />}
-      <ExtensionLaunchModal />
 
       {isAddLiquidityModalOpen && <IncreaseLiquidityModal />}
       {isRemoveLiquidityModalOpen && <RemoveLiquidityModal />}
