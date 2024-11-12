@@ -1,16 +1,12 @@
-FROM node:latest AS build
+FROM node:18.12.1 AS build
 
 WORKDIR /app
 
-COPY package.json yarn.lock ./
-
-COPY . .
+COPY . ./
 
 RUN yarn install --immutable
 
-RUN yarn turbo run @uniswap/interface#prepare
-
-RUN yarn turbo run uniswap#prepare
+RUN yarn turbo run @uniswap/interface#prepare && yarn turbo run uniswap#prepare
 
 RUN yarn web build:production
 
