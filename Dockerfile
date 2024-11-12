@@ -6,7 +6,11 @@ COPY package.json yarn.lock ./
 
 COPY . .
 
-RUN yarn install --frozen-lockfile
+RUN yarn install --immutable
+
+RUN yarn turbo run @uniswap/interface#prepare
+
+RUN yarn turbo run uniswap#prepare
 
 RUN yarn web build:production
 
