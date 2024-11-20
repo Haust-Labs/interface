@@ -116,7 +116,7 @@ function WrapSummary({ info: { chainId, currencyAmountRaw, unwrapped } }: { info
           decimals={18}
           sigFigs={6}
         />{' '}
-        to {native?.symbol ?? 'BNB'}
+        to {native?.symbol ?? 'HST'}
       </Trans>
     )
   } else {
@@ -125,7 +125,7 @@ function WrapSummary({ info: { chainId, currencyAmountRaw, unwrapped } }: { info
         Wrap{' '}
         <FormattedCurrencyAmount
           rawAmount={currencyAmountRaw}
-          symbol={native?.symbol ?? 'BNB'}
+          symbol={native?.symbol ?? 'HST'}
           decimals={18}
           sigFigs={6}
         />{' '}

@@ -27,7 +27,7 @@ import { getActivityTitle } from '../constants'
 import { Activity, ActivityMap } from './types'
 
 function getCurrency(currencyId: string, chainId: SupportedChainId, tokens: TokenAddressMap): Currency | undefined {
-  if (currencyId === 'BNB') {
+  if (currencyId === 'HST') {
     return nativeOnChain(chainId)
   }
   if (tokens[chainId]?.[currencyId]?.token) return tokens[chainId]?.[currencyId].token

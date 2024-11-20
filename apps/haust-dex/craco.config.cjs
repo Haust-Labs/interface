@@ -5,7 +5,14 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 const { DefinePlugin, IgnorePlugin } = require('webpack')
 
-const commitHash = execSync('git rev-parse HEAD').toString().trim()
+let commitHash = 'unknown' // Default value if Git repo is not found
+
+try {
+  commitHash = execSync('git rev-parse HEAD').toString().trim()
+} catch (error) {
+  console.warn('Git repository not found. Using default commit hash "unknown".')
+}
+
 const isProduction = process.env.NODE_ENV === 'production'
 
 // Linting and type checking are only necessary as part of development and testing.

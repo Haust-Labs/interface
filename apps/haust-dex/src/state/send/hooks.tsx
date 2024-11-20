@@ -148,7 +148,7 @@ function parseCurrencyFromURLParameter(urlParam: ParsedQs[string]): string {
     const valid = isAddress(urlParam)
     if (valid) return valid
     const upper = urlParam.toUpperCase()
-    if (upper === 'BNB') return 'BNB'
+    if (upper === 'HST') return 'HST'
     if (upper in TOKEN_SHORTHANDS) return upper
   }
   return ''

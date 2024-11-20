@@ -50,7 +50,7 @@ const CurrencySelect = styled(ButtonGray)<{
   background: ${({ theme }) => theme.backgroundInput};
   opacity: ${({ disabled }) => (!disabled ? 1 : 0.4)};
   box-shadow: ${({ selected }) => (selected ? 'none' : '0px 6px 10px rgba(0, 0, 0, 0.075)')};
-  color: ${({ selected, theme }) => (selected ? theme.textPrimary : theme.buttonSecondaryText)};
+  color: ${({ selected, theme }) => (selected ? theme.textPrimary : theme.textSecondary)};
   cursor: pointer;
   border-top: 1px solid ${({ theme }) => theme.black};
   border-top-left-radius: 0px;
@@ -59,7 +59,7 @@ const CurrencySelect = styled(ButtonGray)<{
   border-bottom-right-radius: 16px;
   outline: none;
   user-select: none;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   padding: 8px;
   gap: 8px;
@@ -119,12 +119,13 @@ const StyledDropDown = styled(DropDown)<{ selected: boolean }>`
 `
 
 const StyledTokenName = styled.span<{ active?: boolean }>`
-  ${({ active }) => (active ? '  margin: 0 0.25rem 0 0.25rem;' : '  margin: 0 0.25rem 0 0.25rem;')}
+  ${({ active }) => (active ? '  margin: 0 0.25rem 0 0.25rem;' : '  margin: 0;')}
+  ${({ active }) => (active ? '  flex-direction: column;' : '  margin: 0;')}
   display: flex;
-  font-size: 18px;
-  font-weight: 600;
-  flex-direction: column;
+  font-size: 16px;
+  font-weight: 400;
   align-items: flex-start;
+  justify-content: center;
 `
 
 const StyledBalanceMax = styled.button<{ disabled?: boolean }>`
@@ -158,18 +159,6 @@ const StyledNumericalInput = styled(Input)<{ $loading: boolean }>`
   line-height: 60px;
   font-variant: small-caps;
   height: 134px;
-`
-
-const StyledAddressInput = styled(Input)<{ $loading: boolean }>`
-  ${loadingOpacityMixin};
-  background-color: ${({ theme }) => theme.backgroundInput};
-  border-radius: 18px;
-  text-align: center;
-  font-weight: 400;
-  font-size: 63px;
-  line-height: 60px;
-  font-variant: small-caps;
-  height: 64px;
 `
 const GroupContainer = styled.div`
   display: flex;
@@ -247,7 +236,6 @@ export default function SendCurrencyInputPanel({
   showCommonBases,
   showCurrencyAmount,
   disableNonToken,
-  renderBalance,
   fiatValue,
   priceImpact,
   hideBalance = false,

@@ -329,11 +329,11 @@ function AddLiquidity() {
       } else {
         // prevent weth + eth
         const isETHOrWETHNew =
-          currencyIdNew === 'BNB' ||
+          currencyIdNew === 'HST' ||
           (chainId !== undefined && currencyIdNew === WRAPPED_NATIVE_CURRENCY[chainId]?.address)
         const isETHOrWETHOther =
           currencyIdOther !== undefined &&
-          (currencyIdOther === 'BNB' ||
+          (currencyIdOther === 'HST' ||
             (chainId !== undefined && currencyIdOther === WRAPPED_NATIVE_CURRENCY[chainId]?.address))
 
         if (isETHOrWETHNew && isETHOrWETHOther) {

@@ -50,7 +50,7 @@ export const useTabsContent = (): TabsSection[] => {
     },
     {
       title:'Explore',
-      href: '/explore',
+      href: '/explore/tokens',
       isActive: pathname.startsWith('/explore'),
       items: [
         { label: 'Tokens', quickKey: 'T', href: '/explore/tokens', internal: true },

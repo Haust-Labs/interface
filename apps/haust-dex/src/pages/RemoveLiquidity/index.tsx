@@ -557,9 +557,9 @@ function RemoveLiquidity() {
                         ) : oneCurrencyIsWETH ? (
                           <StyledInternalLink
                             to={`/remove/v2/${
-                              currencyA && WRAPPED_NATIVE_CURRENCY[chainId]?.equals(currencyA) ? 'BNB' : currencyIdA
+                              currencyA && WRAPPED_NATIVE_CURRENCY[chainId]?.equals(currencyA) ? 'HST' : currencyIdA
                             }/${
-                              currencyB && WRAPPED_NATIVE_CURRENCY[chainId]?.equals(currencyB) ? 'BNB' : currencyIdB
+                              currencyB && WRAPPED_NATIVE_CURRENCY[chainId]?.equals(currencyB) ? 'HST' : currencyIdB
                             }`}
                           >
                             Receive BNB
