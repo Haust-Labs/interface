@@ -30,8 +30,8 @@ jobs:
         run: |
           echo "REPO_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
           echo "REPO_NAME=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-      - name: Check TOKEN_GH value
-        run: echo ${{ env.TOKEN_GH }}
+      - name: Set TOKEN_GH as env variable
+        run: echo "TOKEN_GH=${{ secrets.TOKEN_GH }}" >> $GITHUB_ENV 
 
       # - name: Build and push Docker image
       #   uses: docker/build-push-action@v2
