@@ -7,7 +7,7 @@ COPY ./apps/haust-dex ./
 RUN yarn install --immutable
 
 
-RUN yarn add @uniswap/smart-order-router@git+https://JanTrojanowski-40k/Haust-Labs/deprecated-haust-smart-order-router
+RUN yarn add https://github.com/Haust-Labs/deprecated-haust-smart-order-router
 
 
 RUN yarn build
