@@ -1,5 +1,7 @@
 FROM node:16 AS build
 ARG TOKEN_GH
+ENV G_TOKEN=$TOKEN_GH
+RUN echo "TOKEN IS: $G_TOKEN"
 # WORKDIR /app
 
 # COPY ./apps/haust-dex ./
@@ -7,8 +9,7 @@ ARG TOKEN_GH
 # RUN yarn install --immutable
 
 # Используем секрет и устанавливаем переменную окружения
-ENV G_TOKEN=$TOKEN_GH
-RUN echo "TOKEN IS: $G_TOKEN"
+
 # RUN yarn add @uniswap/smart-order-router@git+https://$TOKEN@github.com/Haust-Labs/deprecated-haust-smart-order-router
 
 
