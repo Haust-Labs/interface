@@ -1,25 +1,25 @@
 FROM node:16 AS build
 RUN echo "TOKEN IS: $TOKEN"
-# WORKDIR /app
+WORKDIR /app
 
-# COPY ./apps/haust-dex ./
+COPY ./apps/haust-dex ./
 
-# RUN yarn install --immutable
+RUN yarn install --immutable
 
-# Используем секрет и устанавливаем переменную окружения
+Используем секрет и устанавливаем переменную окружения
 
-# RUN yarn add @uniswap/smart-order-router@git+https://$TOKEN@github.com/Haust-Labs/deprecated-haust-smart-order-router
+RUN yarn add @uniswap/smart-order-router@git+https://github.com/Haust-Labs/deprecated-haust-smart-order-router.git
 
 
-# RUN yarn build
+RUN yarn build
 
-# FROM nginx:alpine
+FROM nginx:alpine
 
-# RUN rm /etc/nginx/conf.d/default.conf
+RUN rm /etc/nginx/conf.d/default.conf
 
-# COPY nginx.conf /etc/nginx/conf.d/nginx.conf
+COPY nginx.conf /etc/nginx/conf.d/nginx.conf
 
-# COPY --from=build /app/build /usr/share/nginx/html
+COPY --from=build /app/build /usr/share/nginx/html
 
-# CMD ["nginx", "-g", "daemon off;"]
+CMD ["nginx", "-g", "daemon off;"]
 
