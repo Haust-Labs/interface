@@ -2,11 +2,10 @@ name: Build and Push Docker Image
 
 on:
   push:
-    # tags:
-    #   - "dev-v*.*.*"
-    #   - "release-v*.*.*"
-    branches:
-      - arg
+    tags:
+      - "dev-v*.*.*"
+      - "release-v*.*.*"
+
 jobs:
   build:
     environment: dev
