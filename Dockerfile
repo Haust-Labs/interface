@@ -7,8 +7,9 @@ COPY ./apps/haust-dex ./
 RUN yarn install --immutable
 
 RUN --mount=type=secret,id=GITHUB_TOKEN \
-    git config --global url."https://$(cat /run/secrets/GITHUB_TOKEN)@github.com/".insteadOf "https://github.com/" && \
-    yarn add @uniswap/smart-order-router@git+https://github.com/Haust-Labs/deprecated-haust-smart-order-router.git
+    git config --global url."https://$(cat /run/secrets/GITHUB_TOKEN)@github.com/".insteadOf "https://github.com/" 
+    
+RUN yarn add @uniswap/smart-order-router@git+https://github.com/Haust-Labs/deprecated-haust-smart-order-router.git
 
 
 RUN yarn build
