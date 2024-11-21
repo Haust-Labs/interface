@@ -14,7 +14,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-
+      - name: Set TOKEN_GH as env variable
+        run: echo "TOKEN=${{ secrets.TOKEN }}" >> $GITHUB_ENV 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
         with:
@@ -31,7 +32,7 @@ jobs:
           echo "REPO_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
           echo "REPO_NAME=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
       - name: Set TOKEN_GH as env variable
-        run: echo "TOKEN=${{ secrets.TOKEN }}" >> $GITHUB_ENV 
+        run: echo "TOKEN_GH=${{ env.TOKEN_GH }}" >> $GITHUB_ENV 
 
       # - name: Build and push Docker image
       #   uses: docker/build-push-action@v2
