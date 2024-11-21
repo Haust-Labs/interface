@@ -10,7 +10,8 @@ jobs:
   build:
     environment: dev
     runs-on: ubuntu-latest
-
+    env: 
+      TOKEN_GH: ${{ env.TOKEN_GH }}      
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
