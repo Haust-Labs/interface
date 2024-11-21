@@ -7,7 +7,7 @@ ARG TOKEN
 # RUN yarn install --immutable
 
 # Используем секрет и устанавливаем переменную окружения
-ENV G_TOKEN
+ENV G_TOKEN=$TOKEN
 RUN echo $G_TOKEN
 # RUN yarn add @uniswap/smart-order-router@git+https://$TOKEN@github.com/Haust-Labs/deprecated-haust-smart-order-router
 
