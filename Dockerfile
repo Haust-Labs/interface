@@ -1,12 +1,11 @@
 FROM node:16 AS build
-RUN echo "TOKEN IS: $TOKEN"
+
 WORKDIR /app
 
 COPY ./apps/haust-dex ./
 
 RUN yarn install --immutable
 
-Используем секрет и устанавливаем переменную окружения
 
 RUN yarn add @uniswap/smart-order-router@git+https://github.com/Haust-Labs/deprecated-haust-smart-order-router.git
 
