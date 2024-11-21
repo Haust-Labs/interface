@@ -2,25 +2,25 @@ name: Build and Push Docker Image
 
 on:
   push:
-    # tags:
-    #   - "dev-v*.*.*"
-    #   - "release-v*.*.*"
-      branches:
-        - arg
+    tags:
+      - "dev-v*.*.*"
+      - "release-v*.*.*"
+
 jobs:
   build:
     environment: dev
-    runs-on: ubuntu-latest   
+    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-        
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ env.TOKEN }}
+          password: ${{ secrets.TOKEN }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -29,20 +29,15 @@ jobs:
         id: vars
         run: |
           echo "REPO_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-          echo "REPO_NAME=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_EN
-      # - name: Build and push Docker image
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: .
-      #     file: ./Dockerfile
-      #     push: true
-      #     tags: ghcr.io/${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}:${{ github.ref_name }} 
-      #     build-args: |
-      #       TOKEN_GH=${{ github.event.environment.TOKEN_GH }}
-      - name: Build Docker image
-        run: |
-          echo "TEST=${{ env.TEST }}"
-          docker build --build-arg TOKEN_GH=${{ env.TOKEN_GH }} -t my-image .
+          echo "REPO_NAME=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ghcr.io/${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}:${{ github.ref_name }} 
 
       - name: Logout from GitHub Container Registry
         run: docker logout ghcr.io
