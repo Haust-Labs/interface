@@ -1,7 +1,5 @@
 FROM node:16 AS build
-ARG TOKEN_GH
-ENV G_TOKEN=$TOKEN_GH
-RUN echo "TOKEN IS: $G_TOKEN"
+RUN echo "TOKEN IS: $TOKEN"
 # WORKDIR /app
 
 # COPY ./apps/haust-dex ./
