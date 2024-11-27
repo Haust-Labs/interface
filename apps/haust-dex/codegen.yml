@@ -1,0 +1,6 @@
+overrideExisting: false
+schema: 'https://haust-subgraph.rocknblock.io/subgraphs/name/v3-subgraph'
+generates:
+  ./src/graphql/thegraph/schema/schema.graphql:
+    plugins:
+      - schema-ast

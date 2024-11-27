@@ -1,14 +1,15 @@
-FROM node:18.12.1 AS build
+FROM node:16 AS build
 
 WORKDIR /app
 
-COPY . ./
+COPY ./apps/haust-dex ./
 
 RUN yarn install --immutable
 
-RUN yarn turbo run @uniswap/interface#prepare && yarn turbo run uniswap#prepare
+ARG GITHUB_TOKEN
+RUN yarn add @uniswap/smart-order-router@git+https://$GITHUB_TOKEN@github.com/Haust-Labs/deprecated-haust-smart-order-router
 
-RUN yarn web build:production
+RUN yarn build
 
 FROM nginx:alpine
 
@@ -16,6 +17,7 @@ RUN rm /etc/nginx/conf.d/default.conf
 
 COPY nginx.conf /etc/nginx/conf.d/nginx.conf
 
-COPY --from=build app/apps/web/build /usr/share/nginx/html
+COPY --from=build /app/build /usr/share/nginx/html
 
 CMD ["nginx", "-g", "daemon off;"]
+

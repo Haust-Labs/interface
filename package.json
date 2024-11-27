@@ -22,17 +22,11 @@
     "turbo": "1.10.16",
     "turbo-ignore": "^1.11.3"
   },
-  "engines": {
-    "node": "=18.12.1",
-    "yarn": ">=3.2.3",
-    "npm": "please-use-yarn"
-  },
   "manypkg": {
     "ignoredRules": [
       "INTERNAL_MISMATCH"
     ]
   },
-  "packageManager": "yarn@3.2.3",
   "private": true,
   "resolutionsComments": {
     "immer": "this fixes yarn typecheck in mobile app, see https://github.com/reduxjs/redux-toolkit/issues/1806",
@@ -136,7 +130,7 @@
     "upgrade:tamagui": "yarn up '*tamagui*' '@tamagui/*'",
     "upgrade:tamagui:canary": "yarn up '*tamagui*'@canary '@tamagui/*'@canary",
     "wallet": "yarn workspace wallet",
-    "web": "yarn workspace @uniswap/interface",
+    "web": "yarn workspace haust-dex",
     "uniswap": "yarn workspace uniswap",
     "utilities": "yarn workspace utilities"
   },
