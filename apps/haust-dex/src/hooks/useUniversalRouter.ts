@@ -3,16 +3,13 @@ import { BigNumber } from '@ethersproject/bignumber'
 import { t } from '@lingui/macro'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
-import { SwapRouter } from '@uniswap/universal-router-sdk'
-import { FeeOptions, toHex } from '@uniswap/v3-sdk'
+import { FeeOptions, Pool } from '@uniswap/v3-sdk'
 import { useWeb3React } from '@web3-react/core'
 import { UNIVERSAL_ROUTER_ADDRESS } from 'constants/addresses'
+import { ethers } from 'ethers'
 import { useCallback } from 'react'
 import { trace } from 'tracing'
-import { calculateGasMargin } from 'utils/calculateGasMargin'
-import isZero from 'utils/isZero'
 import { didUserReject, swapErrorToUserReadableMessage } from 'utils/swapErrorToUserReadableMessage'
-
 import { PermitSignature } from './usePermitAllowance'
 
 /** Thrown when gas estimation fails. This class of error usually requires an emulator to determine the root cause. */
@@ -41,6 +38,10 @@ interface SwapOptions {
   feeOptions?: FeeOptions
 }
 
+const swaprouterABI = [
+  'function exactInputSingle((address tokenIn, address tokenOut, uint24 fee, address recipient, uint256 amountIn, uint256 amountOutMinimum, uint160 sqrtPriceLimitX96) params) payable returns (uint256 amountOut)'
+];
+
 export function useUniversalRouterSwapCallback(
   trade: Trade<Currency, Currency, TradeType> | undefined,
   fiatValues: { amountIn: number | undefined; amountOut: number | undefined },
@@ -58,62 +59,45 @@ export function useUniversalRouterSwapCallback(
           if (!provider) throw new Error('missing provider')
           if (!trade) throw new Error('missing trade')
           setTraceData('slippageTolerance', options.slippageTolerance.toFixed(2))
-          const { calldata: data, value } = SwapRouter.swapERC20CallParameters(trade, {
-            slippageTolerance: options.slippageTolerance,
-            deadlineOrPreviousBlockhash: options.deadline?.toString(),
-            inputTokenPermit: options.permit,
-            fee: options.feeOptions,
-          })
 
-          const tx = {
-            from: account,
-            to: UNIVERSAL_ROUTER_ADDRESS[chainId],
-            data,
-            ...(value && !isZero(value) ? { value: toHex(value) } : {}),
-          }
+      const signer = provider.getSigner();
+      const swapRouterContract = new ethers.Contract(UNIVERSAL_ROUTER_ADDRESS[chainId], swaprouterABI, signer);
 
-          let gasEstimate: BigNumber
-          try {
-            gasEstimate = await provider.estimateGas(tx)
-          } catch (gasError) {
-            setTraceStatus('failed_precondition')
-            setTraceError(gasError)
-            console.warn(gasError)
-            throw new GasEstimationError()
-          }
-          const gasLimit = calculateGasMargin(gasEstimate)
-          setTraceData('gasLimit', gasLimit.toNumber())
-          return await provider
-            .getSigner()
-            .sendTransaction({ ...tx, gasLimit })
-            .then((response) => {
-              if (tx.data !== response.data) {
-                throw new ModifiedSwapError()
-              }
-              return response
-            })
-        } catch (swapError: unknown) {
-          if (swapError instanceof ModifiedSwapError) throw swapError
+      const params = {
+        tokenIn: trade.inputAmount.currency.wrapped.address,
+        tokenOut: trade.outputAmount.currency.wrapped.address, 
+        fee: (trade.routes[0].pools[0] as Pool).fee,
+        recipient: account,
+        amountIn: trade.inputAmount.quotient.toString(),
+        amountOutMinimum: 0,
+        sqrtPriceLimitX96: 0
+      };
+      const txD = await swapRouterContract.exactInputSingle(params);
+      console.log('Transaction hash:', txD.hash);
 
-          // Cancellations are not failures, and must be accounted for as 'cancelled'.
-          if (didUserReject(swapError)) setTraceStatus('cancelled')
+      const receipt = await txD.wait();
+      console.log('Transaction was mined in block:', receipt.blockNumber);
 
-          // GasEstimationErrors are already traced when they are thrown.
-          if (!(swapError instanceof GasEstimationError)) setTraceError(swapError)
+        return txD
+      } catch (swapError: unknown) {
+        if (swapError instanceof ModifiedSwapError) throw swapError
 
-          throw new Error(swapErrorToUserReadableMessage(swapError))
-        }
-      },
-      { tags: { is_widget: false } }
-    )
-  }, [
-    account,
-    chainId,
-    options.deadline,
-    options.feeOptions,
-    options.permit,
-    options.slippageTolerance,
-    provider,
-    trade,
-  ])
+        // Cancellations are not failures, and must be accounted for as 'cancelled'.
+        if (didUserReject(swapError)) setTraceStatus('cancelled')
+
+        // GasEstimationErrors are already traced when they are thrown.
+        if (!(swapError instanceof GasEstimationError)) setTraceError(swapError)
+
+        throw new Error(swapErrorToUserReadableMessage(swapError))
+      }
+    },
+    { tags: { is_widget: false } }
+  )
+}, [
+  account,
+  chainId,
+  options.slippageTolerance,
+  provider,
+  trade,
+])
 }

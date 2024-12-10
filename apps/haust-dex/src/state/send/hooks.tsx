@@ -28,8 +28,6 @@ export function useSendActionHandlers(): {
   const dispatch = useAppDispatch()
   const onCurrencySelection = useCallback(
     (field: Field, currency: Currency) => {
-      console.log({field, currency}, 'sssss');
-      
       dispatch(
         selectCurrency({
           field,

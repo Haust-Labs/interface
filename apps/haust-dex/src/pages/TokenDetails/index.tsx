@@ -35,23 +35,6 @@ export default function TokenDetailsPage() {
   }, [parsedQs])
 
   const { data: tokenQuery, tokenPriceQuery } = useTokenApi(isNative ? getNativeTokenDBAddress(chain) : tokenAddress, duration);
-  // const { data: tokenQuery2 } = useTokenQuery({
-  //   variables: {
-  //     address: detailedTokenAddress,
-  //     chain,
-  //   },
-  //   errorPolicy: 'all',
-  // })
-  //
-  // const { data: tokenPriceQuery2 } = useTokenPriceQuery({
-  //   variables: {
-  //     address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-  //     chain: Chain.Ethereum,
-  //     duration,
-  //   },
-  //   errorPolicy: 'all',
-  // })
-  // console.log({ tokenPriceQuery2 })
 
   // Saves already-loaded chart data into state to display while tokenPriceQuery is undefined timePeriod input changes
   const [currentPriceQuery, setCurrentPriceQuery] = useState(tokenPriceQuery)

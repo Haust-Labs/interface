@@ -294,7 +294,7 @@ export default function SwapForm({ className }: { className?: string }) {
     invariant(allowance.state === AllowanceState.REQUIRED)
     setIsAllowancePending(true)
     try {
-      await allowance.approveAndPermit()
+      await allowance.approve()
     } catch (e) {
       console.error(e)
     } finally {
