@@ -1,10 +1,9 @@
-name: Build and Push Docker Image
+name: Build and Push Docker Image dev 
 
 on:
   push:
     tags:
-      - "dev-v*.*.*"
-      - "release-v*.*.*"
+      - "dev-v*"
 
 jobs:
   build:
