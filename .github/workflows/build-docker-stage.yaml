@@ -1,14 +1,13 @@
-name: Build and Push Docker Image
+name: Build and Push Docker Image stage 
 
 on:
   push:
     tags:
-      - "dev-v*.*.*"
-      - "release-v*.*.*"
+      - "stage-v*"
 
 jobs:
   build:
-    environment: dev
+    environment: stage
     runs-on: ubuntu-latest
 
     steps:
@@ -41,3 +40,13 @@ jobs:
             
       - name: Logout from GitHub Container Registry
         run: docker logout ghcr.io
+        
+      - name: Notify in Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage \
+          -d chat_id=${TELEGRAM_CHAT_ID} \
+          -d parse_mode=Markdown \
+          -d text="📦 *Новая версия*: \`${{ github.ref_name }}\`%0A🗂 *Репозиторий*: \`${{ github.repository }}\`%0A🔗 [Docker Image](https://ghcr.io/${{ github.repository }})"
