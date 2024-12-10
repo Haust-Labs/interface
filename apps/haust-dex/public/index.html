@@ -2,18 +2,19 @@
 <html translate="no">
   <head>
     <meta charset="utf-8" />
+    <title>Haust Dex - Decentralized Exchange</title>
+    <meta
+      name="description"
+      content="Haust Decentralized Exchange operating on the Haust blockchain. It allows users anywhere in the world to trade crypto without an intermediary."
+    />
 
-    <title>Haust DEX</title>
-    <meta name="description" content="Swap on the Haust DEX" />
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="%PUBLIC_URL%/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="%PUBLIC_URL%/favicon.svg" />
+    <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="192x192" href="%PUBLIC_URL%/apple-touch-icon.png" />
 
-    <!--
-      %PUBLIC_URL% will be replaced with the URL of the `public` folder during build.
-      Only files inside the `public` folder can be referenced from the HTML.
-    -->
-    <link rel="shortcut icon" type="image/png" href="%PUBLIC_URL%/favicon.svg" />
-    <link rel="apple-touch-icon" sizes="192x192" href="%PUBLIC_URL%/images/192x192_App_Icon.png" />
-    <link rel="apple-touch-icon" sizes="512x512" href="%PUBLIC_URL%/images/512x512_App_Icon.png" />
-
+    <!-- Meta Tags -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#121212" />
     <meta
@@ -21,14 +22,13 @@
       content="script-src 'self' https://www.google-analytics.com https://www.googletagmanager.com 'unsafe-inline' 'unsafe-eval'"
     />
 
-    <!--
-      manifest.json provides metadata used when the app is installed as a PWA.
-      See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <!-- Manifest -->
+    <link rel="manifest" href="%PUBLIC_URL%/site.webmanifest" />
 
+    <!-- Preconnect -->
     <link rel="preconnect" href="https://www.google-analytics.com/" />
 
+    <!-- Font Preload -->
     <link rel="preload" href="%PUBLIC_URL%/fonts/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="%PUBLIC_URL%/fonts/Inter-Medium.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="%PUBLIC_URL%/fonts/Inter-SemiBold.woff2" as="font" type="font/woff2" crossorigin />
@@ -37,12 +37,40 @@
     <link rel="preload" href="%PUBLIC_URL%/fonts/Satoshi-Medium.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="%PUBLIC_URL%/fonts/Satoshi-Bold.woff2" as="font" type="font/woff2" crossorigin />
 
+    <!-- Styles -->
     <style>
+      /* Global Styles */
       * {
         font-family: 'Inter', sans-serif;
         box-sizing: border-box;
       }
 
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        background-color: #121212;
+        font-size: 16px;
+        font-smooth: always;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      }
+
+      html,
+      body,
+      #root {
+        min-height: 100%;
+      }
+
+      button {
+        user-select: none;
+      }
+
+      /* Font Faces */
       @font-face {
         font-family: 'Inter';
         font-weight: 400;
@@ -92,38 +120,11 @@
         font-display: block;
         src: url(%PUBLIC_URL%/fonts/Satoshi-Bold.woff2) format('woff2');
       }
-
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-      }
-
-      button {
-        user-select: none;
-      }
-
-      html {
-        background-color: #121212;
-        font-size: 16px;
-        font-variant: none;
-        font-smooth: always;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-      }
-
-      html,
-      body,
-      #root {
-        min-height: 100%;
-      }
     </style>
   </head>
 
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-
     <div id="root">
       <!-- Triggers the font to load immediately and then is replaced by the app -->
       <div>&emsp;</div>

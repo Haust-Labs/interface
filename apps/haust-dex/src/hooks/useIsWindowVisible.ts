@@ -5,7 +5,7 @@ function isVisibilityStateSupported() {
 }
 
 function isWindowVisible() {
-  return !isVisibilityStateSupported() || document.visibilityState !== 'hidden'
+  return true || !isVisibilityStateSupported() || document.visibilityState !== 'hidden'
 }
 
 /**

@@ -70,6 +70,7 @@ export const routingApi = createApi({
             try {
               await queryFulfilled
             } catch (error: unknown) {
+              console.error('Error during query fulfillment:', error);
               if (error && typeof error === 'object' && 'error' in error) {
                 const queryError = (error as Record<'error', FetchBaseQueryError>).error
                 if (typeof queryError.status === 'number') {
@@ -94,8 +95,7 @@ export const routingApi = createApi({
       async queryFn(args, _api, _extraOptions, fetch) {
         const { tokenInAddress, tokenInChainId, tokenOutAddress, tokenOutChainId, amount, routerPreference, type } =
           args
-
-        try {
+          try {
           if (routerPreference === RouterPreference.API) {
             const query = qs.stringify({
               ...API_QUERY_PARAMS,
@@ -107,7 +107,7 @@ export const routingApi = createApi({
               type,
             })
             return (await fetch(`quote?${query}`)) as { data: GetQuoteResult } | { error: FetchBaseQueryError }
-          } else {
+          } else {            
             const router = getRouter(args.tokenInChainId)
             return await getClientSideQuote(
               args,
@@ -116,6 +116,7 @@ export const routingApi = createApi({
             )
           }
         } catch (error) {
+          console.error('Error in query function:', error);
           return { error: { status: 'CUSTOM_ERROR', error: error.toString(), data: error } }
         }
       },

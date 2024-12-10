@@ -1,7 +1,7 @@
 import { SupportedChainId } from 'constants/chains'
 
 const BLOCK_EXPLORER_PREFIXES: { [chainId: number]: string } = {
-  [SupportedChainId.HAUST_TESTNET]: 'https://testnet.bscscan.com',
+  [SupportedChainId.HAUST_TESTNET]: 'https://explorer-test.haust.network/',
   [SupportedChainId.HAUST]: 'https://bscscan.com',
 }
 

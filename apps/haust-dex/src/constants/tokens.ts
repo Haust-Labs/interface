@@ -11,16 +11,16 @@ export const DEFAULT_ERC20_DECIMALS = 18
 //TODO
 export const USDT_HAUST_TESTNET = new Token(
   SupportedChainId.HAUST_TESTNET,
-  '0xB9FdFAD79cD511bf5aD103174B396818cfD88F46',
-  18,
+  '0xf7FDb9d99Ff104dB82cc98DFd43602CCA4bB7c90',
+  6,
   'USDT',
   'Tether'
 )
 
 export const USDC_HAUST_TESTNET = new Token(
   SupportedChainId.HAUST_TESTNET,
-  '0x94a8EFd7344Cd4eb8DDbCa213CB2BC4Ee9Fa5d91',
-  18,
+  '0xC33299bb1Beb4DD431A4CC8f4174395F0d1d29E7',
+  6,
   'USDC',
   'USD Coin'
 )
@@ -35,10 +35,10 @@ export const WRAPPED_NATIVE_CURRENCY: { [chainId: number]: Token | undefined } =
   ),
   [SupportedChainId.HAUST_TESTNET]: new Token(
     SupportedChainId.HAUST_TESTNET,
-    '0x845e4145F7de2822d16FE233Ecd0181c61f1d65F',
+    '0x314e5d40a123F4Efdb096bB716767C905A7DcA97',
     18,
-    'WETH',
-    'Wrapped ETH'
+    'WHAUST',
+    'Wrapped Haust'
   ),
 }
 

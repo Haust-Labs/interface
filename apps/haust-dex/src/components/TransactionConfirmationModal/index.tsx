@@ -153,14 +153,9 @@ function TransactionSubmittedContent({
               )}
             </ButtonLight>
           )}
-          <ButtonPrimary onClick={onDismiss} style={{ margin: '20px 0 0 0' }}>
-            <Text fontWeight={600} fontSize={20} color={theme.accentTextLightPrimary}>
-              {inline ? <Trans>Return</Trans> : <Trans>Close</Trans>}
-            </Text>
-          </ButtonPrimary>
           {chainId && hash && (
             <ExternalLink href={getExplorerLink(chainId, hash, ExplorerDataType.TRANSACTION)}>
-              <Text fontWeight={600} fontSize={14} color={theme.accentAction}>
+              <Text fontWeight={600} fontSize={14} color={theme.accentAction} marginTop="12px">
                 <Trans>View on {chainId === SupportedChainId.HAUST ? 'BscScan' : 'Block Explorer'}</Trans>
               </Text>
             </ExternalLink>

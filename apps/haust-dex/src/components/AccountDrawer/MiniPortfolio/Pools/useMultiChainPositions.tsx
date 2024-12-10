@@ -132,7 +132,7 @@ export default function useMultiChainPositions(account: string, chains = DEFAULT
             tokenA,
             tokenB,
             fee: details.fee,
-            initCodeHashManualOverride: '0x56b18efe15e1c2147cb76980b82af9abdb11804d1023cea47ed03a9482bd30d3'
+            initCodeHashManualOverride: '0xa9cb11ffa1b1bf9a9a2b70b66f6a22db3e8328b37ec44e6ce602749081efdb6d'
           })
           poolAddressCache.set(details, chainId, poolAddress)
         }

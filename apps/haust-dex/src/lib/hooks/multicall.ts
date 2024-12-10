@@ -13,7 +13,7 @@ type SkipFirstTwoParams<T extends (...args: any) => any> = SkipFirst<Parameters<
 export function useMultipleContractSingleData(
   ...args: SkipFirstTwoParams<typeof multicall.hooks.useMultipleContractSingleData>
 ) {
-  const { chainId, latestBlock } = useCallContext()
+  const { chainId, latestBlock } = useCallContext()  
   return multicall.hooks.useMultipleContractSingleData(chainId, latestBlock, ...args)
 }
 

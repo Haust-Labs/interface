@@ -1,10 +1,10 @@
 import { useWeb3React } from '@web3-react/core'
-import { Unicon } from 'components/Unicon'
 import { Connection, ConnectionType } from 'connection'
 import useENSAvatar from 'hooks/useENSAvatar'
 import styled from 'styled-components/macro'
 import { useIsDarkMode } from 'theme/components/ThemeToggle'
 import { flexColumnNoWrap } from 'theme/styles'
+import walletSvg from 'assets/svg/wallet.svg'
 
 import Identicon from '../Identicon'
 
@@ -48,6 +48,11 @@ const MiniImg = styled.img`
   height: 16px;
 `
 
+const WalletImg = styled.img`
+  width: 16px;
+  height: 16px;
+`
+
 const MiniWalletIcon = ({ connection, side }: { connection: Connection; side: 'left' | 'right' }) => {
   const isDarkMode = useIsDarkMode()
   return (
@@ -66,7 +71,7 @@ const MainWalletIcon = ({ connection, size }: { connection: Connection; size: nu
   } else if (avatar || (connection.type === ConnectionType.INJECTED && connection.getName() === 'MetaMask')) {
     return <Identicon size={size} />
   } else {
-    return <Unicon address={account} size={size} />
+    return <WalletImg src={walletSvg} size={size} />
   }
 }
 
