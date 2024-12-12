@@ -47,7 +47,7 @@ jobs:
           repository: Haust-Labs/haust-wallet-infra
           token: ${{ secrets.TOKEN }}
           path: haust-wallet-infra
-          ref: test
+          ref: master
             
       - name: Update image tag in dev-values.yaml
         run: |
