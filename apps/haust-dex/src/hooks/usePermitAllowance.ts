@@ -52,7 +52,7 @@ export interface PermitSignature extends Permit {
 }
 
 export function useUpdatePermitAllowance(
-  token: Token | undefined,
+  amount: CurrencyAmount<Token> | undefined,
   spender: string | undefined,
   nonce: number | undefined,
   onPermitSignature: (signature: PermitSignature) => void
@@ -63,16 +63,16 @@ export function useUpdatePermitAllowance(
     try {
       if (!chainId) throw new Error('missing chainId')
       if (!provider) throw new Error('missing provider')
-      if (!token) throw new Error('missing token')
+      if (!amount) throw new Error('missing token')
       if (!spender) throw new Error('missing spender')
       if (nonce === undefined) throw new Error('missing nonce')
 
       const permit: Permit = {
         details: {
-          token: token.address,
-          amount: MaxAllowanceTransferAmount,
+          token: amount.currency.address,
+          amount: amount.quotient.toString(),
           expiration: toDeadline(PERMIT_EXPIRATION),
-          nonce,
+          nonce
         },
         spender,
         sigDeadline: toDeadline(PERMIT_SIG_EXPIRATION),
@@ -84,8 +84,8 @@ export function useUpdatePermitAllowance(
       onPermitSignature?.({ ...permit, signature })
       return
     } catch (e: unknown) {
-      const symbol = token?.symbol ?? 'Token'
+      const symbol = amount?.currency?.symbol ?? 'Token'
       throw new Error(`${symbol} permit allowance failed: ${e instanceof Error ? e.message : e}`)
     }
-  }, [account, chainId, nonce, onPermitSignature, provider, spender, token])
+  }, [account, chainId, onPermitSignature, provider, spender, amount])
 }

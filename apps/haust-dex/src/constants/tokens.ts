@@ -25,6 +25,23 @@ export const USDC_HAUST_TESTNET = new Token(
   'USD Coin'
 )
 
+export const WETH_HAUST_TESTNET = new Token(
+  SupportedChainId.HAUST_TESTNET,
+  '0x1a1aF9C78704D3a0Ab9e031C92E7bd808711A582',
+  18,
+  'WETH',
+  'Wrapped ETH'
+)
+
+export const WBTC_HAUST_TESTNET = new Token(
+  SupportedChainId.HAUST_TESTNET,
+  '0x25527108071D56bCBe025711CD93eE1E364b03ea',
+  8,
+  'WBTC',
+  'Wrapped BTC'
+)
+
+
 export const WRAPPED_NATIVE_CURRENCY: { [chainId: number]: Token | undefined } = {
   [SupportedChainId.HAUST]: new Token(
     SupportedChainId.HAUST,
@@ -40,6 +57,14 @@ export const WRAPPED_NATIVE_CURRENCY: { [chainId: number]: Token | undefined } =
     'WHAUST',
     'Wrapped Haust'
   ),
+}
+
+export const TOKEN_ADDRESSES = {
+  'WETH': WETH_HAUST_TESTNET,
+  'USDT': USDT_HAUST_TESTNET,
+  'USDC': USDC_HAUST_TESTNET,
+  'WBTC': WBTC_HAUST_TESTNET,
+  'WHAUST': WRAPPED_NATIVE_CURRENCY[SupportedChainId.HAUST_TESTNET]
 }
 
 function isHaust(chainId: number): chainId is SupportedChainId.HAUST {

@@ -32,7 +32,6 @@ export function useBestTrade(
     debouncedAmount,
     debouncedOtherCurrency
   );
-
   // only return gas estimate from api if routing api trade is used
   return useMemo(
     () => ({

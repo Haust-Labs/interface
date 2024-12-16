@@ -71,7 +71,7 @@ const MainWalletIcon = ({ connection, size }: { connection: Connection; size: nu
   } else if (avatar || (connection.type === ConnectionType.INJECTED && connection.getName() === 'MetaMask')) {
     return <Identicon size={size} />
   } else {
-    return <WalletImg src={walletSvg} size={size} />
+    return <WalletImg src={walletSvg} />
   }
 }
 

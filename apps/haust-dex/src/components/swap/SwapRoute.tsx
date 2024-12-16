@@ -135,7 +135,7 @@ function getTokenPath(trade: InterfaceTrade<Currency, Currency, TradeType>): Rou
       const entry: RoutingDiagramEntry['path'][0] = [
         tokenIn,
         tokenOut,
-        nextPool instanceof Pair ? V2_DEFAULT_FEE_TIER : nextPool.fee,
+        nextPool instanceof Pair ? FeeAmount.LOW as FeeAmount : nextPool.fee,
       ]
       path.push(entry)
     }

@@ -294,7 +294,7 @@ export default function SwapForm({ className }: { className?: string }) {
     invariant(allowance.state === AllowanceState.REQUIRED)
     setIsAllowancePending(true)
     try {
-      await allowance.approve()
+      await allowance.approveAndPermit()
     } catch (e) {
       console.error(e)
     } finally {
@@ -423,7 +423,7 @@ export default function SwapForm({ className }: { className?: string }) {
 
   const showDetailsDropdown = Boolean(
     !showWrap && userHasSpecifiedInputOutput && (trade || routeIsLoading || routeIsSyncing)
-  )
+  )  
 
   return (
     <>
