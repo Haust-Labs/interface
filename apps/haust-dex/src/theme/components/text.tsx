@@ -115,4 +115,7 @@ export const ThemedText = {
   DeprecatedError({ error, ...props }: { error: boolean } & TextProps) {
     return <TextWrapper fontWeight={500} color={error ? 'accentFailure' : 'textSecondary'} {...props} />
   },
+  LabelMicro(props: TextProps) {
+    return <TextWrapper fontWeight={485} fontSize={12} color="neutral2" {...props} />
+  },
 }

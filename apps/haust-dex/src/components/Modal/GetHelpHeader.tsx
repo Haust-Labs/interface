@@ -1,3 +1,4 @@
+import GetHelp from 'components/Button/GetHelp'
 import { Flex } from 'components/layout/Flex'
 import { Text } from 'components/Text/Text'
 import { ReactNode } from 'react'
@@ -19,7 +20,7 @@ interface GetHelpHeaderProps {
   className?: string
 }
 
-export function GetHelpHeader({ title, goBack, closeModal, closeDataTestId, className }: GetHelpHeaderProps) {
+export function GetHelpHeader({ title, goBack, closeModal, link, closeDataTestId, className }: GetHelpHeaderProps) {
   return (
     <Flex row align-items="center" width="100%" className={className} justify-content="space-between">
       {title && (
@@ -29,6 +30,7 @@ export function GetHelpHeader({ title, goBack, closeModal, closeDataTestId, clas
       )}
       <Flex row align-items="center" gap="10px">
         {goBack && <BackButton size="24px" onClick={goBack} />}
+        {link && <GetHelp url={link} />}
         <CloseIcon data-testid={closeDataTestId} onClick={closeModal} />
       </Flex>
     </Flex>

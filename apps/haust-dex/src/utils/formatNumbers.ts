@@ -132,3 +132,23 @@ export const formatTransactionAmount = (num: number | undefined | null, maxDigit
   }
   return `${Number(num.toFixed(2)).toLocaleString(DEFAULT_LOCALE, { minimumFractionDigits: 2 })}`
 }
+interface FormattedBalance {
+  value: string
+  unit: string
+  isLarge: boolean
+}
+
+export const formatLargeBalance = (balance: number): FormattedBalance => {
+  if (balance >= 100000000) {
+    return {
+      value: (balance / 1000000).toFixed(2),
+      unit: 'M',
+      isLarge: true
+    }
+  }
+  return {
+    value: balance.toString(),
+    unit: '',
+    isLarge: false
+  }
+}

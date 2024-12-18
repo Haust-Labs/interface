@@ -2,42 +2,43 @@ import { t } from '@lingui/macro'
 import { Position } from '@uniswap/v3-sdk'
 import { useWeb3React } from '@web3-react/core'
 import { useToggleAccountDrawer } from 'components/AccountDrawer'
+import RangeBadge from 'components/Badge/RangeBadge'
 import Row from 'components/Row'
-import { MouseoverTooltip } from 'components/Tooltip'
-import { formatNumber, NumberType } from 'conedison/format'
+import { SupportedChainId } from 'constants/chains'
+import { useToken } from 'hooks/Tokens'
+import { usePool } from 'hooks/usePools'
+import { useV3Positions } from 'hooks/useV3Positions'
 import { EmptyWalletModule } from 'nft/components/profile/view/EmptyWalletContent'
-import { useCallback, useMemo, useReducer } from 'react'
+import { useCallback, useReducer } from 'react'
 import { useNavigate } from 'react-router-dom'
-import styled from 'styled-components/macro'
 import { ThemedText } from 'theme'
-import { switchChain } from 'utils/switchChain'
+import { PositionDetails } from 'types/position'
+import { unwrappedToken } from 'utils/unwrappedToken'
 import { hasURL } from 'utils/urlChecks'
 
 import { ExpandoRow } from '../ExpandoRow'
 import { PortfolioLogo } from '../PortfolioLogo'
 import PortfolioRow, { PortfolioSkeleton, PortfolioTabWrapper } from '../PortfolioRow'
-import { PositionInfo } from './cache'
-import { useFeeValues } from './hooks'
-import useMultiChainPositions from './useMultiChainPositions'
 
 export default function Pools({ account }: { account: string }) {
-  const { positions, loading } = useMultiChainPositions(account)
+  const { positions, loading: positionsLoading } = useV3Positions(account)
   const [showClosed, toggleShowClosed] = useReducer((showClosed) => !showClosed, false)
 
-  const [openPositions, closedPositions] = useMemo(() => {
-    const openPositions: PositionInfo[] = []
-    const closedPositions: PositionInfo[] = []
-    positions?.forEach((position) => (position.closed ? closedPositions : openPositions).push(position))
-    return [openPositions, closedPositions]
-  }, [positions])
+  const [openPositions, closedPositions] = positions?.reduce<[PositionDetails[], PositionDetails[]]>(
+    (acc, p) => {
+      acc[p.liquidity?.isZero() ? 1 : 0].push(p)
+      return acc
+    },
+    [[], []]
+  ) ?? [[], []]
 
   const toggleWalletDrawer = useToggleAccountDrawer()
 
-  if (!positions || loading) {
+  if (positionsLoading) {
     return <PortfolioSkeleton />
   }
 
-  if (positions?.length === 0) {
+  if (!positions) {
     return <EmptyWalletModule type="pool" onNavigateClick={toggleWalletDrawer} />
   }
 
@@ -45,7 +46,7 @@ export default function Pools({ account }: { account: string }) {
     <PortfolioTabWrapper>
       {openPositions.map((positionInfo) => (
         <PositionListItem
-          key={positionInfo.details.tokenId.toString() + positionInfo.chainId}
+          key={positionInfo.tokenId.toString()}
           positionInfo={positionInfo}
         />
       ))}
@@ -57,7 +58,7 @@ export default function Pools({ account }: { account: string }) {
       >
         {closedPositions.map((positionInfo) => (
           <PositionListItem
-            key={positionInfo.details.tokenId.toString() + positionInfo.chainId}
+            key={positionInfo.tokenId.toString()}
             positionInfo={positionInfo}
           />
         ))}
@@ -65,16 +66,6 @@ export default function Pools({ account }: { account: string }) {
     </PortfolioTabWrapper>
   )
 }
-
-const ActiveDot = styled.span<{ closed: boolean; outOfRange: boolean }>`
-  background-color: ${({ theme, closed, outOfRange }) =>
-    closed ? theme.textSecondary : outOfRange ? theme.accentWarning : theme.accentSuccess};
-  border-radius: 50%;
-  height: 8px;
-  width: 8px;
-  margin-left: 4px;
-  margin-top: 1px;
-`
 
 function calculcateLiquidityValue(price0: number | undefined, price1: number | undefined, position: Position) {
   if (!price0 || !price1) return undefined
@@ -84,22 +75,33 @@ function calculcateLiquidityValue(price0: number | undefined, price1: number | u
   return value0 + value1
 }
 
-function PositionListItem({ positionInfo }: { positionInfo: PositionInfo }) {
-  const { chainId, position, pool, details, inRange, closed } = positionInfo
+function PositionListItem({ positionInfo }: { positionInfo: PositionDetails }) {
+  const {   token0: token0Address,
+    token1: token1Address,
+    tokenId,
+    fee: feeAmount,
+    liquidity,
+    tickLower,
+    tickUpper, } = positionInfo
+    const { chainId } = useWeb3React()
 
-  const { priceA, priceB, fees: feeValue } = useFeeValues(positionInfo)
-  const liquidityValue = calculcateLiquidityValue(priceA, priceB, position)
+  const token0 = useToken(token0Address)
+  const token1 = useToken(token1Address)
+
+  const currency0 = token0 ? unwrappedToken(token0) : undefined
+  const currency1 = token1 ? unwrappedToken(token1) : undefined
+  const [, pool] = usePool(currency0 ?? undefined, currency1 ?? undefined, feeAmount)
+
+  const outOfRange: boolean = pool ? pool.tickCurrent < tickLower || pool.tickCurrent >= tickUpper : false
 
   const navigate = useNavigate()
   const toggleWalletDrawer = useToggleAccountDrawer()
-  const { chainId: walletChainId, connector } = useWeb3React()
   const onClick = useCallback(async () => {
-    if (walletChainId !== chainId) await switchChain(connector, chainId)
     toggleWalletDrawer()
-    navigate('/pool/' + details.tokenId)
-  }, [walletChainId, chainId, connector, toggleWalletDrawer, navigate, details.tokenId])
+    navigate('/pool/' + tokenId)
+  }, [toggleWalletDrawer, navigate, tokenId])
 
-  const shouldHidePosition = hasURL(pool.token0.symbol) || hasURL(pool.token1.symbol)
+  const shouldHidePosition = hasURL(token0?.symbol) || hasURL(token1?.symbol)
 
   if (shouldHidePosition) {
     return null
@@ -108,41 +110,16 @@ function PositionListItem({ positionInfo }: { positionInfo: PositionInfo }) {
   return (
     <PortfolioRow
       onClick={onClick}
-      left={<PortfolioLogo chainId={chainId} currencies={[pool.token0, pool.token1]} />}
+      left={<PortfolioLogo chainId={chainId as SupportedChainId} currencies={[currency0, currency1]} />}
       title={
         <Row>
           <ThemedText.SubHeader fontWeight={500}>
-            {pool.token0.symbol} / {pool.token1?.symbol}
+            {token0?.symbol} / {token1?.symbol}
           </ThemedText.SubHeader>
         </Row>
       }
-      descriptor={<ThemedText.Caption>{`${pool.fee / 10000}%`}</ThemedText.Caption>}
-      right={
-        <>
-          <MouseoverTooltip
-            placement="left"
-            text={
-              <div style={{ padding: '4px 0px' }}>
-                <ThemedText.Caption>{`${formatNumber(
-                  liquidityValue,
-                  NumberType.PortfolioBalance
-                )} (liquidity) + ${formatNumber(feeValue, NumberType.PortfolioBalance)} (fees)`}</ThemedText.Caption>
-              </div>
-            }
-          >
-            <ThemedText.SubHeader fontWeight={500}>
-              {formatNumber((liquidityValue ?? 0) + (feeValue ?? 0), NumberType.PortfolioBalance)}
-            </ThemedText.SubHeader>
-          </MouseoverTooltip>
-
-          <Row justify="flex-end">
-            <ThemedText.Caption color="textSecondary">
-              {closed ? t`Closed` : inRange ? t`In range` : t`Out of range`}
-            </ThemedText.Caption>
-            <ActiveDot closed={closed} outOfRange={!inRange} />
-          </Row>
-        </>
-      }
+      descriptor={<ThemedText.Caption>{`${feeAmount / 10000}%`}</ThemedText.Caption>}
+      right={<RangeBadge removed={liquidity?.eq(0)} inRange={!outOfRange} />}
     />
   )
 }

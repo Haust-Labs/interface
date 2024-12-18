@@ -52,7 +52,7 @@ export const ethNumberStandardFormatter = (
   if (!amount) return '-'
 
   const amountInDecimals = parseFloat(amount.toString())
-  const conditionalDollarSign = includeDollarSign ? '$' : ''
+  const conditionalDollarSign = includeDollarSign ? '' : ''
 
   if (amountInDecimals <= 0) return '-'
   if (amountInDecimals < 0.0001) return `< ${conditionalDollarSign}0.00001`

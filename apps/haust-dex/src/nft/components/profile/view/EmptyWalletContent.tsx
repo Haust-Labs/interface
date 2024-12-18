@@ -59,8 +59,6 @@ const EMPTY_WALLET_CONTENT: { [key in EmptyWalletContentType]: EmptyWalletConten
   token: {
     title: <Trans>No tokens yet</Trans>,
     subtitle: <Trans>Buy or transfer tokens to this wallet to get started.</Trans>,
-    actionText: <Trans>Explore tokens</Trans>,
-    urlPath: '/tokens',
   },
   activity: {
     title: <Trans>No activity yet</Trans>,

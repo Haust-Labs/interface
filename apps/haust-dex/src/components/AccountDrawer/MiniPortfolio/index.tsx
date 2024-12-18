@@ -52,7 +52,7 @@ const PageWrapper = styled.div`
 interface Page {
   title: React.ReactNode
   key: string
-  component: ({ account }: { account: string }) => JSX.Element
+  component: ({ account, totalBalance }: { account: string, totalBalance?: number }) => JSX.Element
 }
 
 const Pages: Array<Page> = [
@@ -73,7 +73,7 @@ const Pages: Array<Page> = [
   },
 ]
 
-export function MiniPortfolio({ account }: { account: string }) {
+export function MiniPortfolio({ account, totalBalance }: { account: string, totalBalance?: number }) {
   const isNftPage = useIsNftPage()
   const [currentPage, setCurrentPage] = useState(isNftPage ? 1 : 0)
 
@@ -95,7 +95,7 @@ export function MiniPortfolio({ account }: { account: string }) {
         })}
       </Nav>
       <PageWrapper>
-        <Page account={account} />
+        <Page account={account} totalBalance={totalBalance} />
       </PageWrapper>
     </Wrapper>
   )

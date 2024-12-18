@@ -92,7 +92,7 @@ export function PortfolioLogo({
   size = '40px',
   style,
 }: MultiLogoProps) {
-  const { squareLogoUrl, logoUrl } = getChainInfo(chainId)
+  const { squareLogoUrl, logoUrl } = getChainInfo(SupportedChainId.HAUST_TESTNET)
   const chainLogo = squareLogoUrl ?? logoUrl
   const { avatar, loading } = useENSAvatar(accountAddress, false)
   const theme = useTheme()

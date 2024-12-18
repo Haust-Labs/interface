@@ -37,6 +37,7 @@ export const colors = {
   deepCove: '#05113B',
   deepCove42: 'rgba(5, 17, 59, 0.42)',
   deepCove80: 'rgba(5, 17, 59, 0.8)',
+  grayHelp: '#9B9B9B',
   gray50: '#F5F6FC',
   gray100: '#E8ECFB',
   gray150: '#D2D9EE',
@@ -170,6 +171,7 @@ export const darkTheme = {
   background: colors.neutralBase,
   backgroundBackdrop: colors.neutralBase,
   backgroundSurface: colors.gray900,
+  backgroundGray: colors.gray850,
   backgroundModule: colors.neutralDark,
   backgroundInteractive: colors.neutralLight,
   backgroundInput: colors.neutralDark,
@@ -225,6 +227,7 @@ export const lightTheme: Theme = {
   background: '#faf9fa', //INTENTIONALLY OFF THEME TO GIVE WHITE BG A SOFTER VISUAL
   backgroundBackdrop: colors.white,
   backgroundSurface: colors.white,
+  backgroundGray: colors.gray850,
   backgroundModule: colors.gray50,
   backgroundInteractive: colors.gray100,
   backgroundInput: colors.gray750,

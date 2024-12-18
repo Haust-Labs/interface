@@ -1,78 +1,46 @@
+import { NativeCurrency, Token } from '@uniswap/sdk-core'
 import Row from 'components/Row'
+import { DeltaArrow } from 'components/Tokens/Delta'
 import { formatDelta } from 'components/Tokens/TokenDetails/PriceChart'
 import { formatNumber, NumberType } from 'conedison/format'
-import { PortfolioBalancesQuery, usePortfolioBalancesQuery } from 'graphql/data/__generated__/types-and-hooks'
-import { getTokenDetailsURL, gqlToCurrency } from 'graphql/data/util'
+import { TOKEN_ADDRESSES } from 'constants/tokens'
+import { useDefaultActiveTokens } from 'hooks/Tokens'
+import { useTokenBalance } from 'hooks/useTokenBalance'
 import { useAtomValue } from 'jotai/utils'
+import useNativeCurrency from 'lib/hooks/useNativeCurrency'
 import { EmptyWalletModule } from 'nft/components/profile/view/EmptyWalletContent'
-import { useCallback, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components/macro'
 import { EllipsisStyle, ThemedText } from 'theme'
 
 import { useToggleAccountDrawer } from '../..'
-import { PortfolioArrow } from '../../AuthenticatedHeader'
 import { hideSmallBalancesAtom } from '../../SmallBalanceToggle'
-import { ExpandoRow } from '../ExpandoRow'
 import { PortfolioLogo } from '../PortfolioLogo'
-import PortfolioRow, { PortfolioSkeleton, PortfolioTabWrapper } from '../PortfolioRow'
+import PortfolioRow, { PortfolioTabWrapper } from '../PortfolioRow'
 
-const HIDE_SMALL_USD_BALANCES_THRESHOLD = 1
-function meetsThreshold(tokenBalance: TokenBalance, hideSmallBalances: boolean) {
-  return !hideSmallBalances || (tokenBalance.denominatedValue?.value ?? 0) > HIDE_SMALL_USD_BALANCES_THRESHOLD
-}
-export default function Tokens({ account }: { account: string }) {
+const HIDE_SMALL_USD_BALANCES_THRESHOLD = 0.1
+
+export default function Tokens({ totalBalance }: { totalBalance?: number }) {
   const toggleWalletDrawer = useToggleAccountDrawer()
   const hideSmallBalances = useAtomValue(hideSmallBalancesAtom)
-  const [showHiddenTokens, setShowHiddenTokens] = useState(false)
+  const tokens = useDefaultActiveTokens()
+  const nativeCurrency = useNativeCurrency()
 
-  const { data } = usePortfolioBalancesQuery({
-    variables: { ownerAddress: account },
-    fetchPolicy: 'cache-only', // PrefetchBalancesWrapper handles balance fetching/staleness; this component only reads from cache
-    errorPolicy: 'all',
-  })
-
-  const visibleTokens = useMemo(() => {
-    return !hideSmallBalances
-      ? data?.portfolios?.[0].tokenBalances ?? []
-      : data?.portfolios?.[0].tokenBalances?.filter((tokenBalance) =>
-          meetsThreshold(tokenBalance, hideSmallBalances)
-        ) ?? []
-  }, [data?.portfolios, hideSmallBalances])
-
-  const hiddenTokens = useMemo(() => {
-    return !hideSmallBalances
-      ? []
-      : data?.portfolios?.[0].tokenBalances?.filter(
-          (tokenBalance) => !meetsThreshold(tokenBalance, hideSmallBalances)
-        ) ?? []
-  }, [data?.portfolios, hideSmallBalances])
-
-  if (!data) {
-    return <PortfolioSkeleton />
-  }
-
-  if (data?.portfolios?.[0].tokenBalances?.length === 0) {
+  const tokensList = [nativeCurrency, ...Object.values(tokens), TOKEN_ADDRESSES.WHAUST]
+  console.log(totalBalance, 'totalBalance');
+  
+  if (!totalBalance && totalBalance === 0) {
     return <EmptyWalletModule type="token" onNavigateClick={toggleWalletDrawer} />
   }
 
-  const toggleHiddenTokens = () => setShowHiddenTokens((showHiddenTokens) => !showHiddenTokens)
-
   return (
     <PortfolioTabWrapper>
-      {visibleTokens.map(
-        (tokenBalance) =>
-          tokenBalance.token &&
-          meetsThreshold(tokenBalance, hideSmallBalances) && (
-            <TokenRow key={tokenBalance.id} {...tokenBalance} token={tokenBalance.token} />
-          )
-      )}
-      <ExpandoRow isExpanded={showHiddenTokens} toggle={toggleHiddenTokens} numItems={hiddenTokens.length}>
-        {hiddenTokens.map(
-          (tokenBalance) =>
-            tokenBalance.token && <TokenRow key={tokenBalance.id} {...tokenBalance} token={tokenBalance.token} />
-        )}
-      </ExpandoRow>
+      {tokensList.map((token) => (
+        token && <TokenRow 
+          key={token instanceof Token ? token.address : token.symbol} 
+          token={token} 
+          hideSmallBalances={hideSmallBalances}
+        />
+      ))}
     </PortfolioTabWrapper>
   )
 }
@@ -81,44 +49,39 @@ const TokenBalanceText = styled(ThemedText.BodySecondary)`
   ${EllipsisStyle}
 `
 
-type TokenBalance = NonNullable<
-  NonNullable<NonNullable<PortfolioBalancesQuery['portfolios']>[number]>['tokenBalances']
->[number]
+function TokenRow({ 
+  token, 
+  hideSmallBalances,
+}: { 
+  token: Token | NativeCurrency
+  hideSmallBalances: boolean
+}) {
+  const balance = useTokenBalance(token)
+  const tokenBalance = balance?.balance?.balance
+  const percentChange = 0.0;
 
-type PortfolioToken = NonNullable<TokenBalance['token']>
+  if (hideSmallBalances && balance?.balance?.balance && Number(balance.balance.balance) < HIDE_SMALL_USD_BALANCES_THRESHOLD) {
+    return null
+  }
 
-function TokenRow({ token, quantity, denominatedValue, tokenProjectMarket }: TokenBalance & { token: PortfolioToken }) {
-  const percentChange = tokenProjectMarket?.pricePercentChange?.value ?? 0
-
-  const navigate = useNavigate()
-  const toggleWalletDrawer = useToggleAccountDrawer()
-  const navigateToTokenDetails = useCallback(async () => {
-    navigate(getTokenDetailsURL(token))
-    toggleWalletDrawer()
-  }, [navigate, token, toggleWalletDrawer])
-
-  const currency = gqlToCurrency(token)
   return (
     <PortfolioRow
-      left={<PortfolioLogo chainId={currency.chainId} currencies={[currency]} size="40px" />}
-      title={<ThemedText.SubHeader fontWeight={500}>{token?.name}</ThemedText.SubHeader>}
+      left={<PortfolioLogo chainId={token.chainId} currencies={[token]} size="40px" />}
+      title={<ThemedText.SubHeader fontSize='14px' fontWeight={500}>{token.name}</ThemedText.SubHeader>}
       descriptor={
-        <TokenBalanceText>
-          {formatNumber(quantity, NumberType.TokenNonTx)} {token?.symbol}
+        <TokenBalanceText fontSize='13px'>
+          {token.symbol}
         </TokenBalanceText>
       }
-      onClick={navigateToTokenDetails}
       right={
-        denominatedValue && (
-          <>
-            <ThemedText.SubHeader fontWeight={500}>
-              {formatNumber(denominatedValue?.value, NumberType.PortfolioBalance)}
-            </ThemedText.SubHeader>
-            <Row justify="flex-end">
-              <PortfolioArrow change={percentChange} size={20} strokeWidth={1.75} />
-              <ThemedText.BodySecondary>{formatDelta(percentChange)}</ThemedText.BodySecondary>
-            </Row>
-          </>
+        tokenBalance && (
+          <><ThemedText.SubHeader  fontSize='13px' fontWeight={500}>
+            {formatNumber(Number(tokenBalance), NumberType.TokenNonTx)}
+          </ThemedText.SubHeader>
+          <Row justify="flex-end">
+              <DeltaArrow delta={percentChange} size={20} />
+              <ThemedText.BodySecondary  fontSize='13px'>{formatDelta(percentChange)}</ThemedText.BodySecondary>
+            </Row></>
         )
       }
     />

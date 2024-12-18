@@ -1,6 +1,8 @@
 import { useWeb3React } from '@web3-react/core'
+import { AddressQRModal } from 'components/AccountDrawer/AddressQRModal'
 import ConnectedAccountBlocked from 'components/ConnectedAccountBlocked'
 import FiatOnrampModal from 'components/FiatOnrampModal'
+import { ReceiveCryptoModal } from 'components/ReceiveCryptoModal'
 import useAccountRiskCheck from 'hooks/useAccountRiskCheck'
 import { lazy } from 'react'
 import { useModalIsOpen } from 'state/application/hooks'
@@ -19,6 +21,8 @@ export default function TopLevelModals() {
       <ConnectedAccountBlocked account={account} isOpen={accountBlocked} />
       <Bag />
       <FiatOnrampModal />
+      {account && <ReceiveCryptoModal />}
+      {account && <AddressQRModal accountAddress={account} />}
     </>
   )
 }
