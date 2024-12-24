@@ -11,13 +11,14 @@ import useNativeCurrency from 'lib/hooks/useNativeCurrency'
 import { EmptyWalletModule } from 'nft/components/profile/view/EmptyWalletContent'
 import styled from 'styled-components/macro'
 import { EllipsisStyle, ThemedText } from 'theme'
+import { useEffect } from 'react'
 
 import { useToggleAccountDrawer } from '../..'
 import { hideSmallBalancesAtom } from '../../SmallBalanceToggle'
 import { PortfolioLogo } from '../PortfolioLogo'
 import PortfolioRow, { PortfolioTabWrapper } from '../PortfolioRow'
 
-const HIDE_SMALL_USD_BALANCES_THRESHOLD = 0.1
+const HIDE_SMALL_USD_BALANCES_THRESHOLD = 0
 
 export default function Tokens({ totalBalance }: { totalBalance?: number }) {
   const toggleWalletDrawer = useToggleAccountDrawer()
@@ -26,7 +27,6 @@ export default function Tokens({ totalBalance }: { totalBalance?: number }) {
   const nativeCurrency = useNativeCurrency()
 
   const tokensList = [nativeCurrency, ...Object.values(tokens), TOKEN_ADDRESSES.WHAUST]
-  console.log(totalBalance, 'totalBalance');
   
   if (!totalBalance && totalBalance === 0) {
     return <EmptyWalletModule type="token" onNavigateClick={toggleWalletDrawer} />
@@ -56,11 +56,19 @@ function TokenRow({
   token: Token | NativeCurrency
   hideSmallBalances: boolean
 }) {
-  const balance = useTokenBalance(token)
-  const tokenBalance = balance?.balance?.balance
+  const { balance, refetch } = useTokenBalance(token)
+  const tokenBalance = balance?.balance
   const percentChange = 0.0;
 
-  if (hideSmallBalances && balance?.balance?.balance && Number(balance.balance.balance) < HIDE_SMALL_USD_BALANCES_THRESHOLD) {
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetch?.()
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [refetch])
+
+  if (hideSmallBalances && balance?.balance && Number(balance.balance) <= HIDE_SMALL_USD_BALANCES_THRESHOLD) {
     return null
   }
 

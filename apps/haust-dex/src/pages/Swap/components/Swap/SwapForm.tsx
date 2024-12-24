@@ -12,6 +12,7 @@ import Loader from 'components/Icons/LoadingSpinner'
 import { AutoRow } from 'components/Row'
 import confirmPriceImpactWithoutFee from 'components/swap/confirmPriceImpactWithoutFee'
 import ConfirmSwapModal from 'components/swap/ConfirmSwapModal'
+import ConfirmWrapModal from 'components/swap/ConfirmWrapModal'
 import PriceImpactWarning from 'components/swap/PriceImpactWarning'
 import { ArrowWrapper, SwapCallbackError } from 'components/swap/styleds'
 import SwapDetailsDropdown from 'components/swap/SwapDetailsDropdown'
@@ -425,6 +426,60 @@ export default function SwapForm({ className }: { className?: string }) {
     !showWrap && userHasSpecifiedInputOutput && (trade || routeIsLoading || routeIsSyncing)
   )  
 
+  // Add new state for wrap modal
+  const [{ showWrapConfirm, attemptingWrapTxn, wrapErrorMessage, wrapTxHash }, setWrapState] = useState<{
+    showWrapConfirm: boolean
+    attemptingWrapTxn: boolean
+    wrapErrorMessage: string | undefined
+    wrapTxHash: string | undefined
+  }>({
+    showWrapConfirm: false,
+    attemptingWrapTxn: false,
+    wrapErrorMessage: undefined,
+    wrapTxHash: undefined,
+  })
+
+  // Update wrap handler
+  const handleWrap = useCallback(() => {
+    if (!onWrap) return
+    
+    setWrapState({
+      showWrapConfirm: true,
+      attemptingWrapTxn: true,
+      wrapErrorMessage: undefined,
+      wrapTxHash: undefined
+    })
+
+    onWrap()
+      .then((hash) => {
+        setWrapState({
+          showWrapConfirm: true,
+          attemptingWrapTxn: false,
+          wrapErrorMessage: undefined,
+          wrapTxHash: hash
+        })
+        onUserInput(Field.INPUT, '')
+      })
+      .catch((error) => {
+        setWrapState({
+          showWrapConfirm: true,
+          attemptingWrapTxn: false,
+          wrapErrorMessage: error.message,
+          wrapTxHash: undefined
+        })
+      })
+  }, [onWrap, onUserInput])
+
+  // Add handlers for wrap modal
+  const handleWrapConfirmDismiss = useCallback(() => {
+    setWrapState({
+      showWrapConfirm: false,
+      attemptingWrapTxn: false,
+      wrapErrorMessage: undefined,
+      wrapTxHash: undefined
+    })
+  }, [])
+
   return (
     <>
       <TokenSafetyModal
@@ -549,15 +604,19 @@ export default function SwapForm({ className }: { className?: string }) {
                   <Trans>Connect Wallet</Trans>
                 </ButtonPrimary>
               ) : showWrap ? (
-                <ButtonPrimary disabled={Boolean(wrapInputError)} onClick={onWrap} fontWeight={600}>
-                  {wrapInputError ? (
-                    <WrapErrorText wrapInputError={wrapInputError} />
-                  ) : wrapType === WrapType.WRAP ? (
-                    <Trans>Wrap</Trans>
-                  ) : wrapType === WrapType.UNWRAP ? (
-                    <Trans>Unwrap</Trans>
-                  ) : null}
-                </ButtonPrimary>
+                <ButtonPrimary 
+                disabled={Boolean(wrapInputError)} 
+                onClick={handleWrap}
+                fontWeight={600}
+              >
+                {wrapInputError ? (
+                  <WrapErrorText wrapInputError={wrapInputError} />
+                ) : wrapType === WrapType.WRAP ? (
+                  <Trans>Wrap</Trans>
+                ) : wrapType === WrapType.UNWRAP ? (
+                  <Trans>Unwrap</Trans>
+                ) : null}
+              </ButtonPrimary>
               ) : routeNotFound && userHasSpecifiedInputOutput && !routeIsLoading && !routeIsSyncing ? (
                 <GrayCard style={{ textAlign: 'center' }}>
                   <ThemedText.DeprecatedMain mb="4px">
@@ -647,6 +706,19 @@ export default function SwapForm({ className }: { className?: string }) {
           show={swapIsUnsupported}
           currencies={[currencies[Field.INPUT], currencies[Field.OUTPUT]]}
         />
+      )}
+      {showWrap && (
+        <ConfirmWrapModal
+        isOpen={showWrapConfirm}
+        onDismiss={handleWrapConfirmDismiss}
+        attemptingTxn={attemptingWrapTxn}
+        txHash={wrapTxHash}
+        onConfirm={handleWrap}
+        wrapErrorMessage={wrapErrorMessage}
+        isWrap={wrapType === WrapType.WRAP}
+        inputAmount={parsedAmounts[Field.INPUT]}
+        fiatValue={fiatValueInput}
+      />
       )}
     </>
   )

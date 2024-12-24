@@ -8,7 +8,7 @@ import { formatDelta } from 'components/Tokens/TokenDetails/PriceChart'
 import { formatNumber, NumberType } from 'conedison/format'
 import {useGetConnection} from 'connection'
 import {shortenAddress} from 'nft/utils/address'
-import {useCallback} from 'react'
+import {useCallback, useEffect} from 'react'
 import {ArrowDownRight, ArrowUpRight, Copy, IconProps, Power, Settings} from 'react-feather'
 import { useOpenModal } from 'state/application/hooks'
 import { ApplicationModal } from 'state/application/reducer'
@@ -106,7 +106,7 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
 
   const absoluteChange = 0;
   const percentChange = 0;
-  const { totalBalance, loading } = useWalletBalance()
+  const { totalBalance, loading, refetch } = useWalletBalance()
 
   const getConnection = useGetConnection()
   const connection = getConnection(connector)
@@ -117,6 +117,14 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
     connector.resetState()
     dispatch(updateSelectedWallet({ wallet: undefined }))
   }, [connector, dispatch])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetch?.()
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [refetch])
 
   return (
     <AuthenticatedHeaderWrapper>

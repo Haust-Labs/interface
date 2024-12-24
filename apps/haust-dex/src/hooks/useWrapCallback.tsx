@@ -56,7 +56,7 @@ export default function useWrapCallback(
   inputCurrency: Currency | undefined | null,
   outputCurrency: Currency | undefined | null,
   typedValue: string | undefined
-): { wrapType: WrapType; execute?: undefined | (() => Promise<void>); inputError?: WrapInputError } {
+): { wrapType: WrapType; execute?: undefined | (() => Promise<string>); inputError?: WrapInputError } {
   const { chainId, account } = useWeb3React()
   const wethContract = useWETHContract()
   const balance = useCurrencyBalance(account ?? undefined, inputCurrency ?? undefined)
@@ -104,8 +104,10 @@ Please file a bug detailing how this happened - https://github.com/Uniswap/inter
                     currencyAmountRaw: inputAmount?.quotient.toString(),
                     chainId,
                   })
+                  return txReceipt.hash
                 } catch (error) {
                   console.error('Could not deposit', error)
+                  throw error
                 }
               }
             : undefined,
@@ -129,8 +131,10 @@ Please file a bug detailing how this happened - https://github.com/Uniswap/inter
                     currencyAmountRaw: inputAmount?.quotient.toString(),
                     chainId,
                   })
+                  return txReceipt.hash
                 } catch (error) {
                   console.error('Could not withdraw', error)
+                  throw error
                 }
               }
             : undefined,
