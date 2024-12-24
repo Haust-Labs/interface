@@ -51,6 +51,7 @@ import { currencyAmountToPreciseFloat, formatTransactionAmount } from 'utils/for
 import { maxAmountSpend } from 'utils/maxAmountSpend'
 import { computeRealizedPriceImpact, warningSeverity } from 'utils/prices'
 import { supportedChainId } from 'utils/supportedChainId'
+import { didUserReject } from 'utils/swapErrorToUserReadableMessage'
 
 const ArrowContainer = styled.div`
   display: inline-flex;
@@ -464,7 +465,7 @@ export default function SwapForm({ className }: { className?: string }) {
         setWrapState({
           showWrapConfirm: true,
           attemptingWrapTxn: false,
-          wrapErrorMessage: error.message,
+          wrapErrorMessage: didUserReject(error) ? 'Transaction rejected' : error.message,
           wrapTxHash: undefined
         })
       })

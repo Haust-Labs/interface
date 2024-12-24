@@ -86,7 +86,6 @@ export default function useWrapCallback(
         execute:
           sufficientBalance && inputAmount
             ? async () => {
-                try {
                   const network = await wethContract.provider.getNetwork()
                   if (
                     network.chainId !== chainId ||
@@ -105,10 +104,6 @@ Please file a bug detailing how this happened - https://github.com/Uniswap/inter
                     chainId,
                   })
                   return txReceipt.hash
-                } catch (error) {
-                  console.error('Could not deposit', error)
-                  throw error
-                }
               }
             : undefined,
         inputError: sufficientBalance
@@ -123,7 +118,6 @@ Please file a bug detailing how this happened - https://github.com/Uniswap/inter
         execute:
           sufficientBalance && inputAmount
             ? async () => {
-                try {
                   const txReceipt = await wethContract.withdraw(`0x${inputAmount.quotient.toString(16)}`)
                   addTransaction(txReceipt, {
                     type: TransactionType.WRAP,
@@ -132,10 +126,6 @@ Please file a bug detailing how this happened - https://github.com/Uniswap/inter
                     chainId,
                   })
                   return txReceipt.hash
-                } catch (error) {
-                  console.error('Could not withdraw', error)
-                  throw error
-                }
               }
             : undefined,
         inputError: sufficientBalance

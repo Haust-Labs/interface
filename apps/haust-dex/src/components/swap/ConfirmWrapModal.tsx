@@ -1,6 +1,6 @@
 import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
-import { ReactNode, useCallback } from 'react'
+import { ReactNode, useCallback, useMemo } from 'react'
 
 import TransactionConfirmationModal, {
   ConfirmationModalContent,
@@ -31,11 +31,11 @@ export default function ConfirmWrapModal({
   fiatValue,
 }: ConfirmWrapModalProps) {
   // text to show while loading
-  const pendingText = (
-    <Trans>
+  const pendingText = useMemo(() => (
+    <div>
       {isWrap ? 'Wrapping' : 'Unwrapping'} {inputAmount?.toSignificant(6)} {inputAmount?.currency?.symbol}
-    </Trans>
-  )
+    </div>
+  ), [isWrap, inputAmount])
 
   const modalBottom = useCallback(() => {
     return (
