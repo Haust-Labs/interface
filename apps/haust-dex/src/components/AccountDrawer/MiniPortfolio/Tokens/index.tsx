@@ -18,7 +18,7 @@ import { hideSmallBalancesAtom } from '../../SmallBalanceToggle'
 import { PortfolioLogo } from '../PortfolioLogo'
 import PortfolioRow, { PortfolioSkeleton, PortfolioTabWrapper } from '../PortfolioRow'
 
-const HIDE_SMALL_USD_BALANCES_THRESHOLD = 0
+const HIDE_SMALL_USD_BALANCES_THRESHOLD = 0.00000000000000001
 
 const SkeletonOverlay = styled.div`
   position: absolute;
@@ -108,7 +108,7 @@ function TokenRow({
     return <PortfolioSkeleton />
   }
 
-  if (hideSmallBalances && balance?.balance && Number(balance.balance) <= HIDE_SMALL_USD_BALANCES_THRESHOLD) {
+  if (hideSmallBalances && Number(balance?.balance) < HIDE_SMALL_USD_BALANCES_THRESHOLD) {
     return null
   }
 

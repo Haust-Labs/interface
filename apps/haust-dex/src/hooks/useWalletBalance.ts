@@ -73,18 +73,32 @@ export function useWalletBalance() {
       setTokenBalances(tokens)
 
       let total = tokens.reduce((acc, token) => {
-        const tokenPrice = prices.find(p => p.token.address?.toLowerCase() === token.token.toLowerCase())
+        const tokenPrice = prices.find(p => 
+          (p.token.address?.toLowerCase() === token.token.toLowerCase()) ||
+          (p.token.symbol.toUpperCase() === token.symbol.toUpperCase())
+        )
+        
         if (tokenPrice) {
           const priceInUsd = Number(tokenPrice.price) / Math.pow(10, tokenPrice.price_decimals)
-          return acc + (token.balance * priceInUsd)
+          const tokenValue = token.balance * priceInUsd
+          return acc + tokenValue
         }
+        console.log(`No price found for token: ${token.symbol} (${token.token})`)
         return acc
       }, 0)
 
       const whaustPrice = prices.find(p => p.token.symbol === 'HAUST')
       if (whaustPrice) {
-        const ethPriceInUsd = Number(whaustPrice.price) / Math.pow(10, whaustPrice.price_decimals)
-        total += nativeBalanceInEth * ethPriceInUsd
+        const haustPriceInUsd = Number(whaustPrice.price) / Math.pow(10, whaustPrice.price_decimals)
+        
+        const nativeValue = nativeBalanceInEth * haustPriceInUsd
+        total += nativeValue
+        
+        const haustToken = tokens.find(t => t.token.toLowerCase() === '0x314e5d40a123F4Efdb096bB716767C905A7DcA97'.toLowerCase())
+        if (haustToken && !prices.find(p => p.token.address?.toLowerCase() === haustToken.token.toLowerCase())) {
+          const haustValue = haustToken.balance * haustPriceInUsd
+          total += haustValue
+        }
       }
 
       setTotalBalance(total)

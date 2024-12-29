@@ -8,7 +8,7 @@ import { formatDelta } from 'components/Tokens/TokenDetails/PriceChart'
 import { formatNumber, NumberType } from 'conedison/format'
 import {useGetConnection} from 'connection'
 import {shortenAddress} from 'nft/utils/address'
-import {useCallback, useEffect} from 'react'
+import {useCallback, useEffect, useState} from 'react'
 import {ArrowDownRight, ArrowUpRight, Copy, IconProps, Power, Settings} from 'react-feather'
 import { useOpenModal } from 'state/application/hooks'
 import { ApplicationModal } from 'state/application/reducer'
@@ -106,6 +106,7 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
 
   const absoluteChange = 0;
   const percentChange = 0;
+  const [initialLoading, setInitialLoading] = useState(true)
   const { totalBalance, loading, refetch } = useWalletBalance()
 
   const getConnection = useGetConnection()
@@ -125,6 +126,12 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
 
     return () => clearInterval(interval)
   }, [refetch])
+
+  useEffect(() => {
+    if (!loading && initialLoading) {
+      setInitialLoading(false)
+    }
+  }, [loading, initialLoading])
 
   return (
     <AuthenticatedHeaderWrapper>
@@ -151,10 +158,9 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
         </IconContainer>
       </HeaderWrapper>
       <PortfolioDrawerContainer>
-        {!loading ? (
+        {!initialLoading ? (
           <FadeInColumn gap="xs">
             <HeadlineText 
-              fontWeight={535} 
               data-testid="portfolio-total-balance"
               isLarge={formatLargeBalance(totalBalance).isLarge}
             >
