@@ -87,7 +87,7 @@ const CopyText = styled(CopyHelper).attrs({
 })``
 
 const HeadlineText = styled(ThemedText.HeadlineLarge)<{ isLarge: boolean }>`
-  font-size: ${({ isLarge }) => isLarge ? '24px' : '36px'};
+  font-size: ${({ isLarge }) => isLarge ? '24px' : '36px'}!important;
 `
 
 export function PortfolioArrow({ change, ...rest }: { change: number } & IconProps) {
@@ -158,7 +158,7 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
               data-testid="portfolio-total-balance"
               isLarge={formatLargeBalance(totalBalance).isLarge}
             >
-              {`${formatNumber(Number(formatLargeBalance(totalBalance).value), NumberType.TokenNonTx)}${formatLargeBalance(totalBalance).unit}`}
+              {formatNumber(totalBalance, NumberType.PortfolioBalance)}
             </HeadlineText>
             <AutoRow marginBottom="20px">
                 <>

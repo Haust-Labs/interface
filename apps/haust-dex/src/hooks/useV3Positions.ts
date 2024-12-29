@@ -23,6 +23,11 @@ function useV3PositionsFromTokenIds(tokenIds: BigNumber[] | undefined): UseV3Pos
       return results.map((call, i) => {
         const tokenId = tokenIds[i]
         const result = call.result as CallStateResult
+        
+        if (!result) {
+          return undefined
+        }
+
         return {
           tokenId,
           fee: result.fee,
@@ -38,7 +43,7 @@ function useV3PositionsFromTokenIds(tokenIds: BigNumber[] | undefined): UseV3Pos
           tokensOwed0: result.tokensOwed0,
           tokensOwed1: result.tokensOwed1,
         }
-      })
+      }).filter((position): position is NonNullable<typeof position> => position !== undefined)
     }
     return undefined
   }, [loading, error, results, tokenIds])

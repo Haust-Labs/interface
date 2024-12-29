@@ -10,7 +10,7 @@ import { InterfaceTrade } from 'state/routing/types'
 import styled, { useTheme } from 'styled-components/macro'
 
 import { Separator, ThemedText } from '../../theme'
-import { computeRealizedPriceImpact } from '../../utils/prices'
+import { computeRealizedLPFeeAmount, computeRealizedPriceImpact } from '../../utils/prices'
 import { AutoColumn } from '../Column'
 import { RowBetween, RowFixed } from '../Row'
 import { MouseoverTooltip } from '../Tooltip'
@@ -61,6 +61,8 @@ export function AdvancedSwapDetails({
       priceImpact: trade ? computeRealizedPriceImpact(trade) : undefined,
     }
   }, [trade])
+
+  const liquidityProviderFee = computeRealizedLPFeeAmount(trade)
 
   return !trade ? null : (
     <StyledCard>
@@ -136,23 +138,23 @@ export function AdvancedSwapDetails({
             </ThemedText.DeprecatedBlack>
           </TextWithLoadingPlaceholder>
         </RowBetween>
-        {!trade?.gasUseEstimateUSD || !chainId || !SUPPORTED_GAS_ESTIMATE_CHAIN_IDS.includes(chainId) ? null : (
+        {!liquidityProviderFee ? null : (
           <RowBetween>
             <MouseoverTooltip
               text={
                 <Trans>
-                  The fee paid to miners who process your transaction. This must be paid in {nativeCurrency.symbol}.
+                  Fees are applied to ensure the best experience with Haust and have already been factored into this quote.
                 </Trans>
               }
               disableHover={hideInfoTooltips}
             >
               <ThemedText.DeprecatedSubHeader color={theme.textTertiary}>
-                <Trans>Network Fee</Trans>
+                <Trans>Liquidity provider fee</Trans>
               </ThemedText.DeprecatedSubHeader>
             </MouseoverTooltip>
             <TextWithLoadingPlaceholder syncing={syncing} width={50}>
               <ThemedText.DeprecatedBlack textAlign="right" fontSize={14} color={theme.textTertiary}>
-                ~${trade.gasUseEstimateUSD.toFixed(2)}
+              {`${liquidityProviderFee?.toSignificant(6)} ${liquidityProviderFee?.currency?.symbol}`}
               </ThemedText.DeprecatedBlack>
             </TextWithLoadingPlaceholder>
           </RowBetween>

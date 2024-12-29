@@ -6,7 +6,6 @@ import { AutoColumn } from 'components/Column'
 import PositionList from 'components/PositionList'
 import { RowBetween, RowFixed } from 'components/Row'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
-import { isSupportedChain } from 'constants/chains'
 import { useV3Positions } from 'hooks/useV3Positions'
 import { useMemo } from 'react'
 import { AlertTriangle, Inbox } from 'react-feather'
@@ -159,12 +158,10 @@ function WrongNetworkCard() {
 }
 
 export default function Pool() {
-  const { account, chainId } = useWeb3React()
+  const { account } = useWeb3React()
   const toggleWalletDrawer = useToggleAccountDrawer()
-
   const theme = useTheme()
   const [userHideClosedPositions, setUserHideClosedPositions] = useUserHideClosedPositions()
-
   const { positions, loading: positionsLoading } = useV3Positions(account)
 
   const [openPositions, closedPositions] = positions?.reduce<[PositionDetails[], PositionDetails[]]>(
@@ -180,8 +177,39 @@ export default function Pool() {
     [closedPositions, openPositions, userHideClosedPositions]
   )
 
-  if (!isSupportedChain(chainId)) {
-    return <WrongNetworkCard />
+  if (!account) {
+    return (
+      <>
+        <PageWrapper>
+          <AutoColumn gap="lg" justify="center">
+            <AutoColumn gap="lg" style={{ width: '100%' }}>
+              <TitleRow padding="0">
+                <ThemedText.LargeHeader>
+                  <Trans>Pools</Trans>
+                </ThemedText.LargeHeader>
+              </TitleRow>
+              <MainContentWrapper>
+                <ErrorContainer>
+                  <ThemedText.DeprecatedBody color={theme.textTertiary} textAlign="center">
+                    <InboxIcon strokeWidth={1} style={{ marginTop: '2em' }} />
+                    <div>
+                      <Trans>Connect your wallet to view your liquidity positions</Trans>
+                    </div>
+                  </ThemedText.DeprecatedBody>
+                  <ButtonPrimary
+                    style={{ marginTop: '2em', marginBottom: '2em', padding: '8px 16px' }}
+                    onClick={toggleWalletDrawer}
+                  >
+                    <Trans>Connect a wallet</Trans>
+                  </ButtonPrimary>
+                </ErrorContainer>
+              </MainContentWrapper>
+            </AutoColumn>
+          </AutoColumn>
+        </PageWrapper>
+        <SwitchLocaleLink />
+      </>
+    )
   }
 
   const showConnectAWallet = Boolean(!account)
@@ -226,14 +254,6 @@ export default function Pool() {
                     >
                       <Trans>Show closed positions</Trans>
                     </ButtonText>
-                  )}
-                  {showConnectAWallet && (
-                    <ButtonPrimary
-                      style={{ marginTop: '2em', marginBottom: '2em', padding: '8px 16px' }}
-                      onClick={toggleWalletDrawer}
-                    >
-                      <Trans>Connect a wallet</Trans>
-                    </ButtonPrimary>
                   )}
                 </ErrorContainer>
               )}

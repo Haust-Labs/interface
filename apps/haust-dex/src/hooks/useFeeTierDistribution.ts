@@ -84,7 +84,6 @@ function usePoolTVL(token0: Token | undefined, token1: Token | undefined) {
     }
 
     if (latestBlock - (_meta?.block?.number ?? 0) > MAX_DATA_BLOCK_AGE) {
-      console.log(`Graph stale (latest block: ${latestBlock})`)
       return { isLoading, error }
     }
 

@@ -4,7 +4,9 @@ WORKDIR /app
 
 COPY ./apps/haust-dex ./
 
-RUN yarn install --immutable
+RUN yarn install
+
+RUN yarn postinstall
 
 ARG GITHUB_TOKEN
 RUN yarn add @uniswap/smart-order-router@git+https://$GITHUB_TOKEN@github.com/Haust-Labs/deprecated-haust-smart-order-router

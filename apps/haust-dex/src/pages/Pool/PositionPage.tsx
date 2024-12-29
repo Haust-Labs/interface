@@ -772,7 +772,7 @@ function PositionPageContent() {
                     <Label>
                       <Trans>Liquidity</Trans>
                     </Label>
-                    {fiatValueOfLiquidityApi?.gt('0') ? (
+                    {/* {fiatValueOfLiquidityApi?.gt('0') ? (
                       <ThemedText.DeprecatedLargeHeader fontSize="36px" fontWeight={500}>
                         <Trans>${fiatValueOfLiquidityApi?.toFormat(2)}</Trans>
                       </ThemedText.DeprecatedLargeHeader>
@@ -780,7 +780,7 @@ function PositionPageContent() {
                       <ThemedText.DeprecatedLargeHeader color={theme.textPrimary} fontSize="36px" fontWeight={500}>
                         <Trans>$-</Trans>
                       </ThemedText.DeprecatedLargeHeader>
-                    )}
+                    )} */}
                   </AutoColumn>
                   <LightCard padding="12px 16px">
                     <AutoColumn gap="md">
@@ -826,7 +826,7 @@ function PositionPageContent() {
                         <Label>
                           <Trans>Unclaimed fees</Trans>
                         </Label>
-                        {fiatValueOfFeesApi?.gt('0') ? (
+                        {/* {fiatValueOfFeesApi?.gt('0') ? (
                           <ThemedText.DeprecatedLargeHeader
                             color={theme.accentSuccess}
                             fontSize="36px"
@@ -838,7 +838,7 @@ function PositionPageContent() {
                           <ThemedText.DeprecatedLargeHeader color={theme.textPrimary} fontSize="36px" fontWeight={500}>
                             <Trans>$-</Trans>
                           </ThemedText.DeprecatedLargeHeader>
-                        )}
+                        )} */}
                       </AutoColumn>
                       {ownsNFT && (feeValue0?.greaterThan(0) || feeValue1?.greaterThan(0) || !!collectMigrationHash) ? (
                         <ResponsiveButtonConfirmed

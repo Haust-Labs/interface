@@ -72,7 +72,7 @@ function PortfolioSkeletonRow({ shrinkRight }: { shrinkRight?: boolean }) {
 export function PortfolioSkeleton({ shrinkRight = false }: { shrinkRight?: boolean }) {
   return (
     <>
-      {Array.from({ length: 5 }).map((_, i) => (
+      {Array.from({ length: 6 }).map((_, i) => (
         <PortfolioSkeletonRow shrinkRight={shrinkRight} key={`portfolio loading row${i}`} />
       ))}
     </>

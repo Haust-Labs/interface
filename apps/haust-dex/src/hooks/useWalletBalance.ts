@@ -12,6 +12,15 @@ interface TokenBalance {
   symbol: string
 }
 
+interface TokenPrice {
+  price: string
+  price_decimals: number
+  token: {
+    address: string | null
+    symbol: string
+  }
+}
+
 export function useWalletBalance() {
   const { account, provider } = useWeb3React()
   const [totalBalance, setTotalBalance] = useState<number>(0)
@@ -23,6 +32,11 @@ export function useWalletBalance() {
 
     try {
       setLoading(true)
+      
+      // Fetch token prices
+      const pricesResponse = await fetch('https://entrypoint.wdev.haust.app/v1/fiat_prices')
+      const prices: TokenPrice[] = await pricesResponse.json()
+      
       // Get native token balance
       const nativeBalance = await provider.getBalance(account)
       const nativeBalanceInEth = parseFloat(ethers.utils.formatEther(nativeBalance))
@@ -58,8 +72,21 @@ export function useWalletBalance() {
       const tokens = await Promise.all(tokenPromises)
       setTokenBalances(tokens)
 
-      // Calculate total balance (you'll need to implement price fetching)
-      const total = tokens.reduce((acc, token) => acc + token.balance, nativeBalanceInEth)
+      let total = tokens.reduce((acc, token) => {
+        const tokenPrice = prices.find(p => p.token.address?.toLowerCase() === token.token.toLowerCase())
+        if (tokenPrice) {
+          const priceInUsd = Number(tokenPrice.price) / Math.pow(10, tokenPrice.price_decimals)
+          return acc + (token.balance * priceInUsd)
+        }
+        return acc
+      }, 0)
+
+      const whaustPrice = prices.find(p => p.token.symbol === 'HAUST')
+      if (whaustPrice) {
+        const ethPriceInUsd = Number(whaustPrice.price) / Math.pow(10, whaustPrice.price_decimals)
+        total += nativeBalanceInEth * ethPriceInUsd
+      }
+
       setTotalBalance(total)
       
     } catch (error) {
