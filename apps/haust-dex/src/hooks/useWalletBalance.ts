@@ -26,6 +26,8 @@ export function useWalletBalance() {
   const [totalBalance, setTotalBalance] = useState<number>(0)
   const [tokenBalances, setTokenBalances] = useState<TokenBalance[]>([])
   const [loading, setLoading] = useState(true)
+  const [absoluteChange, setAbsoluteChange] = useState<number>(0)
+  const [percentChange, setPercentChange] = useState<number>(0)
 
   const getBalances = useCallback(async () => {
     if (!account || !provider) return
@@ -33,10 +35,46 @@ export function useWalletBalance() {
     try {
       setLoading(true)
       
-      // Fetch token prices
+      const midnightResponse = await fetch(`https://entrypoint.wdev.haust.app/v1/account/${account}/balance_midnight`)
+      const midnightData = await midnightResponse.json()
+      
       const pricesResponse = await fetch('https://entrypoint.wdev.haust.app/v1/fiat_prices')
       const prices: TokenPrice[] = await pricesResponse.json()
-      
+
+      let totalPercentChange = 0
+      let totalAbsoluteChange = 0
+      let validTokenCount = 0
+
+      for (const item of midnightData) {
+        const midnightPrice = parseInt(item.usd_price_midnight, 16) / Math.pow(10, item.usd_price_decimals)
+        
+        const currentPriceData = prices.find(p => {
+          if (item.token === null) {
+            return p.token.symbol === 'HAUST'
+          }
+          return p.token.address?.toLowerCase() === item.token.toLowerCase()
+        })
+
+        if (currentPriceData) {
+          const currentPrice = Number(currentPriceData.price) / Math.pow(10, currentPriceData.price_decimals)
+          
+          const tokenPercentChange = ((currentPrice - midnightPrice) / midnightPrice) * 100
+          totalPercentChange += tokenPercentChange
+
+          const midnightAmount = parseInt(item.amount_midnight, 16) / Math.pow(10, 18) // assuming 18 decimals
+          const midnightValue = midnightAmount * midnightPrice
+          const currentValue = midnightAmount * currentPrice
+          const tokenAbsoluteChange = currentValue - midnightValue
+
+          totalAbsoluteChange += tokenAbsoluteChange
+          validTokenCount++
+        }
+      }
+
+      const averagePercentChange = validTokenCount > 0 ? totalPercentChange / validTokenCount : 0
+      setPercentChange(averagePercentChange)
+      setAbsoluteChange(totalAbsoluteChange)
+
       // Get native token balance
       const nativeBalance = await provider.getBalance(account)
       const nativeBalanceInEth = parseFloat(ethers.utils.formatEther(nativeBalance))
@@ -119,5 +157,5 @@ export function useWalletBalance() {
     getBalances()
   }, [getBalances])
 
-  return { totalBalance, tokenBalances, loading, refetch }
+  return { totalBalance, tokenBalances, loading, refetch, absoluteChange, percentChange }
 } 

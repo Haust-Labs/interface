@@ -9,9 +9,9 @@ import { useTokenBalance } from 'hooks/useTokenBalance'
 import { useAtomValue } from 'jotai/utils'
 import useNativeCurrency from 'lib/hooks/useNativeCurrency'
 import { EmptyWalletModule } from 'nft/components/profile/view/EmptyWalletContent'
+import { useEffect, useMemo,useState } from 'react'
 import styled from 'styled-components/macro'
 import { EllipsisStyle, ThemedText } from 'theme'
-import { useEffect, useState, useMemo } from 'react'
 
 import { useToggleAccountDrawer } from '../..'
 import { hideSmallBalancesAtom } from '../../SmallBalanceToggle'
@@ -87,7 +87,7 @@ function TokenRow({
 }) {
   const { balance, refetch } = useTokenBalance(token)
   const tokenBalance = balance?.balance
-  const percentChange = 0.0;
+  const percentChange = balance?.priceChange
   const [isTokenLoaded, setIsTokenLoaded] = useState(false)
 
   useEffect(() => {

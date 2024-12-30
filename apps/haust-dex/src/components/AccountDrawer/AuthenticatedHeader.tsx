@@ -104,10 +104,8 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
   const dispatch = useAppDispatch()
   const openReceiveModal = useOpenModal(ApplicationModal.RECEIVE_CRYPTO)
 
-  const absoluteChange = 0;
-  const percentChange = 0;
   const [initialLoading, setInitialLoading] = useState(true)
-  const { totalBalance, loading, refetch } = useWalletBalance()
+  const { totalBalance, loading, refetch, absoluteChange, percentChange } = useWalletBalance()
 
   const getConnection = useGetConnection()
   const connection = getConnection(connector)

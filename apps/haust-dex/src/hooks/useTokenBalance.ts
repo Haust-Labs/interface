@@ -3,7 +3,7 @@ import { formatUnits } from "@ethersproject/units";
 import { useWeb3React } from "@web3-react/core";
 import ERC20_ABI from "abis/erc20.json";
 import useCurrencyLogoURIs from "lib/hooks/useCurrencyLogoURIs";
-import { useEffect, useState, useCallback } from "react";
+import { useCallback,useEffect, useState } from "react";
 
 export interface TokenBalance {
   chainId: number;
@@ -52,7 +52,45 @@ export function useTokenBalance(token: any) {
       );
       const prices: TokenPrice[] = await pricesResponse.json();
       let tokenPrice = 0;
-      const priceChange = 0;
+
+      const detailsResponse = await fetch(
+        "https://entrypoint.wdev.haust.app/v1/tokens/details/?lang=EN"
+      );
+      const tokenDetails = await detailsResponse.json();
+      
+      const tokenDetail = tokenDetails.find((detail: any) => {
+        if (token.symbol === "WHAUST" || token.isNative) {
+          return detail.token_id === 5;
+        }
+        return detail.token_address?.toLowerCase() === token.address.toLowerCase();
+      });
+
+      let priceChange = 0;
+      if (tokenDetail && account) {
+        const midnightResponse = await fetch(
+          `https://entrypoint.wdev.haust.app/v1/account/${account}/balance_midnight`
+        );
+        const midnightData = await midnightResponse.json();
+        
+        const midnightPrice = midnightData.find((item: any) => item.id === tokenDetail.token_id);
+        
+        if (midnightPrice) {
+          const midnightPriceValue = parseInt(midnightPrice.usd_price_midnight, 16) / 
+            Math.pow(10, midnightPrice.usd_price_decimals);
+          
+          const priceData = prices.find((p) => {
+            if (token.symbol === "WHAUST" || token.isNative) {
+              return p.token.symbol === "HAUST";
+            }
+            return p.token.address?.toLowerCase() === token.address.toLowerCase();
+          });
+
+          if (priceData) {
+            const currentPrice = Number(priceData.price) / Math.pow(10, priceData.price_decimals);
+            priceChange = ((currentPrice - midnightPriceValue) / midnightPriceValue) * 100;
+          }
+        }
+      }
 
       const priceData = prices.find((p) => {
         if (token.symbol === "WHAUST" || token.isNative) {
