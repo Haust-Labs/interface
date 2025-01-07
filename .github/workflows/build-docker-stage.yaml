@@ -41,12 +41,51 @@ jobs:
       - name: Logout from GitHub Container Registry
         run: docker logout ghcr.io
         
-      - name: Notify in Telegram
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      - name: Checkout haust-wallet-infra repository
+        uses: actions/checkout@v2
+        with:
+          repository: Haust-Labs/haust-wallet-infra
+          token: ${{ secrets.TOKEN }}
+          path: haust-wallet-infra
+          ref: master
+            
+      - name: Update image tag in stage-values.yaml
         run: |
-          curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage \
-          -d chat_id=${TELEGRAM_CHAT_ID} \
-          -d parse_mode=Markdown \
-          -d text="📦 *Новая версия*: \`${{ github.ref_name }}\`%0A🗂 *Репозиторий*: \`${{ github.repository }}\`%0A🔗 [Docker Image](https://ghcr.io/${{ github.repository }})"
+          ls
+          echo "--------------infra--------------------"
+          cd haust-wallet-infra
+          ls
+
+          NEW_TAG="${{ github.ref_name }}"
+          if [[ -z "$NEW_TAG" ]]; then
+            echo "Ошибка: тег пустой!"
+            exit 1
+          fi
+
+          echo "--------------echotag--------------------"
+          echo $NEW_TAG
+
+          if ! command -v yq &> /dev/null; then
+            echo "Installing yq..."
+            sudo apt-get update && sudo apt-get install -y jq
+            sudo wget https://github.com/mikefarah/yq/releases/download/v4.17.1/yq_linux_amd64 -O /usr/local/bin/yq
+            sudo chmod +x /usr/local/bin/yq
+          fi
+
+          # Обновляем тег в файле values-dev.yaml
+          yq eval ".image.tag = \"$NEW_TAG\"" -i k8s/apps/scw/dex/dex-frontend/values-stage.yaml
+
+          # Показываем результат
+          echo "--------------tag--------------------"
+          cat k8s/apps/scw/dex/dex-frontend/values-stage.yaml
+
+      - name: Commit and push changes
+        run: |
+          cd haust-wallet-infra
+          ls
+          pwd
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add k8s/apps/scw/dex/dex-frontend/values-stage.yaml
+          git commit -m "Update Wallet FE version to ${{ github.ref_name }}"
+          git push
