@@ -9,7 +9,7 @@ import { useToken } from 'hooks/Tokens'
 import { usePool } from 'hooks/usePools'
 import { useV3Positions } from 'hooks/useV3Positions'
 import { EmptyWalletModule } from 'nft/components/profile/view/EmptyWalletContent'
-import { useCallback, useReducer } from 'react'
+import { useCallback, useMemo, useReducer } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ThemedText } from 'theme'
 import { PositionDetails } from 'types/position'
@@ -19,6 +19,7 @@ import { hasURL } from 'utils/urlChecks'
 import { ExpandoRow } from '../ExpandoRow'
 import { PortfolioLogo } from '../PortfolioLogo'
 import PortfolioRow, { PortfolioSkeleton, PortfolioTabWrapper } from '../PortfolioRow'
+import { getPriceOrderingFromPositionForUI } from 'components/PositionListItem'
 
 export default function Pools({ account }: { account: string }) {
   const { positions, loading: positionsLoading } = useV3Positions(account)
@@ -83,7 +84,7 @@ function PositionListItem({ positionInfo }: { positionInfo: PositionDetails }) {
     liquidity,
     tickLower,
     tickUpper, } = positionInfo
-    const { chainId } = useWeb3React()
+  const { chainId } = useWeb3React()
 
   const token0 = useToken(token0Address)
   const token1 = useToken(token1Address)
@@ -91,6 +92,17 @@ function PositionListItem({ positionInfo }: { positionInfo: PositionDetails }) {
   const currency0 = token0 ? unwrappedToken(token0) : undefined
   const currency1 = token1 ? unwrappedToken(token1) : undefined
   const [, pool] = usePool(currency0 ?? undefined, currency1 ?? undefined, feeAmount)
+  const position = useMemo(() => {
+    if (pool) {
+      return new Position({ pool, liquidity: liquidity.toString(), tickLower, tickUpper })
+    }
+    return undefined
+  }, [liquidity, pool, tickLower, tickUpper])
+
+  const { quote, base } = getPriceOrderingFromPositionForUI(position)
+
+  const currencyQuote = quote && unwrappedToken(quote)
+  const currencyBase = base && unwrappedToken(base)
 
   const outOfRange: boolean = pool ? pool.tickCurrent < tickLower || pool.tickCurrent >= tickUpper : false
 
@@ -110,11 +122,11 @@ function PositionListItem({ positionInfo }: { positionInfo: PositionDetails }) {
   return (
     <PortfolioRow
       onClick={onClick}
-      left={<PortfolioLogo chainId={chainId as SupportedChainId} currencies={[currency0, currency1]} />}
+      left={<PortfolioLogo chainId={chainId as SupportedChainId} currencies={[currencyQuote, currencyBase]} />}
       title={
         <Row>
           <ThemedText.SubHeader fontWeight={500}>
-            {token0?.symbol} / {token1?.symbol}
+            {currencyQuote?.symbol} / {currencyBase?.symbol}
           </ThemedText.SubHeader>
         </Row>
       }
