@@ -41,19 +41,19 @@ jobs:
       - name: Logout from GitHub Container Registry
         run: docker logout ghcr.io
         
-      - name: Checkout haust-wallet-infra repository
+      - name: Checkout haust-infra repository
         uses: actions/checkout@v2
         with:
-          repository: Haust-Labs/haust-wallet-infra
+          repository: Haust-Labs/haust-infra
           token: ${{ secrets.TOKEN }}
-          path: haust-wallet-infra
+          path: haust-infra
           ref: master
             
       - name: Update image tag in dev-values.yaml
         run: |
           ls
           echo "--------------infra--------------------"
-          cd haust-wallet-infra
+          cd haust-infra
           ls
 
           NEW_TAG="${{ github.ref_name }}"
@@ -73,19 +73,19 @@ jobs:
           fi
 
           # Обновляем тег в файле values-dev.yaml
-          yq eval ".image.tag = \"$NEW_TAG\"" -i k8s/apps/charts/dex/dex-frontend/values-dev.yaml
+          yq eval ".image.tag = \"$NEW_TAG\"" -i k8s/apps/scw/dex/dex-frontend/values-dev.yaml
 
           # Показываем результат
           echo "--------------tag--------------------"
-          cat k8s/apps/charts/dex/dex-frontend/values-dev.yaml
+          cat k8s/apps/scw/dex/dex-frontend/values-dev.yaml
 
       - name: Commit and push changes
         run: |
-          cd haust-wallet-infra
+          cd haust-infra
           ls
           pwd
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          git add k8s/apps/charts/dex/dex-frontend/values-dev.yaml
-          git commit -m "Update Wallet FE version to ${{ github.ref_name }}"
+          git add k8s/apps/scw/dex/dex-frontend/values-dev.yaml
+          git commit -m "Update Dex FE version to ${{ github.ref_name }}"
           git push
