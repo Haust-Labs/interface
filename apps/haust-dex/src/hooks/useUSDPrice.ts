@@ -24,7 +24,7 @@ export function useUSDPrice(currencyAmount?: CurrencyAmount<Currency>): {
   useEffect(() => {
     async function fetchPrices() {
       try {
-        const pricesResponse = await fetch('https://entrypoint.wdev.haust.app/v1/fiat_prices')
+        const pricesResponse = await fetch('https://entrypoint.stage.haust.app/v1/fiat_prices')
         const prices: PriceResponse[] = await pricesResponse.json()
         
         // Find matching token price based on symbol or address

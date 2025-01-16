@@ -52,7 +52,7 @@ export function useWalletBalance() {
       
       let prices: TokenPrice[] = []
       try {
-        const pricesResponse = await fetch('https://entrypoint.wdev.haust.app/v1/fiat_prices')
+        const pricesResponse = await fetch('https://entrypoint.stage.haust.app/v1/fiat_prices')
         prices = await pricesResponse.json()
       } catch (error) {
         console.error('Error fetching prices:', error)

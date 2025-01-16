@@ -54,7 +54,7 @@ export function useTokenBalance(token: any) {
       let prices: TokenPrice[] = [];
       try {
         const pricesResponse = await fetch(
-          "https://entrypoint.wdev.haust.app/v1/fiat_prices"
+          "https://entrypoint.stage.haust.app/v1/fiat_prices"
         );
         prices = await pricesResponse.json();
       } catch (error) {
@@ -65,7 +65,7 @@ export function useTokenBalance(token: any) {
       let tokenDetails = [];
       try {
         const detailsResponse = await fetch(
-          "https://entrypoint.wdev.haust.app/v1/tokens/details/?lang=EN"
+          "https://entrypoint.stage.haust.app/v1/tokens/details/?lang=EN"
         );
         tokenDetails = await detailsResponse.json();
       } catch (error) {
