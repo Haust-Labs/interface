@@ -22,13 +22,18 @@ import { RowBetween, RowFixed } from '../Row'
 import Toggle from '../Toggle'
 import TransactionSettings from '../TransactionSettings'
 
-const StyledMenuIcon = styled(Settings)`
-  height: 20px;
-  width: 20px;
+const StyledMenuIcon = styled(Settings)<{ $isOpen: boolean }>`
+  height: 24px;
+  width: 24px;
 
   > * {
-    stroke: ${({ theme }) => theme.iconPrimary};
-    fill: ${({ theme }) => theme.iconPrimary};
+    stroke: ${({ theme, $isOpen }) => $isOpen ? theme.buttonTextDisabled : theme.iconPrimary};
+    fill: ${({ theme, $isOpen }) => $isOpen ? theme.buttonTextDisabled : theme.iconPrimary};
+  }
+
+  &:active > * {
+    stroke: ${({ theme }) => theme.buttonTextDisabled};
+    fill: ${({ theme }) => theme.buttonTextDisabled};
   }
 `
 
@@ -84,12 +89,12 @@ const StyledMenu = styled.div`
 `
 
 const MenuFlyout = styled.span`
-  min-width: 20.125rem;
-  background-color: ${({ theme }) => theme.backgroundSurface};
-  border: 1px solid ${({ theme }) => theme.backgroundOutline};
+  min-width: 22.125rem;
+  background-color: ${({ theme }) => theme.backgroundModule};
+  border: 1px solid ${({ theme }) => theme.borderLight};
   box-shadow: 0 0 1px rgba(0, 0, 0, 0.01), 0 4px 8px rgba(0, 0, 0, 0.04), 0 16px 24px rgba(0, 0, 0, 0.04),
     0 24px 32px rgba(0, 0, 0, 0.01);
-  border-radius: 12px;
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   font-size: 1rem;
@@ -185,7 +190,7 @@ export default function SettingsTab({ placeholderSlippage }: { placeholderSlippa
         id="open-settings-dialog-button"
         aria-label={t`Transaction Settings`}
       >
-        <StyledMenuIcon data-testid="swap-settings-button" />
+        <StyledMenuIcon data-testid="swap-settings-button" $isOpen={open} />
         {expertMode ? (
           <EmojiWrapper>
             <span role="img" aria-label="wizard-icon">
@@ -197,11 +202,12 @@ export default function SettingsTab({ placeholderSlippage }: { placeholderSlippa
       {open && (
         <MenuFlyout>
           <AutoColumn gap="md" style={{ padding: '1rem' }}>
-            <Text fontWeight={600} fontSize={14}>
+            <Text fontWeight={500} fontSize={14}>
               <Trans>Settings</Trans>
             </Text>
             <TransactionSettings placeholderSlippage={placeholderSlippage} />
-            <Text fontWeight={600} fontSize={14}>
+            <div style={{ height: '15px' }} />
+            <Text fontWeight={500} fontSize={14}>
               <Trans>Interface Settings</Trans>
             </Text>
             <RowBetween>

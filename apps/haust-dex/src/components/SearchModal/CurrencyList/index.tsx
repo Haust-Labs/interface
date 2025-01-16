@@ -18,6 +18,7 @@ import Row, { RowFixed } from '../../Row'
 import { MouseoverTooltip } from '../../Tooltip'
 import { LoadingRows, MenuItem } from '../styleds'
 import { scrollbarStyle } from './index.css'
+import { formatCurrencyAmount } from 'utils/formatCurrencyAmount';
 
 function currencyKey(currency: Currency): string {
   return currency.isToken ? currency.address : 'ETHER'
@@ -32,9 +33,9 @@ const CheckIcon = styled(Check)`
 
 const StyledBalanceText = styled(Text)`
   white-space: nowrap;
-  overflow: hidden;
-  max-width: 5rem;
-  text-overflow: ellipsis;
+  overflow: visible;
+  max-width: none;
+  text-overflow: unset;
 `
 
 const CurrencyName = styled(Text)`
@@ -67,7 +68,9 @@ const ListWrapper = styled.div`
 `
 
 function Balance({ balance }: { balance: CurrencyAmount<Currency> }) {
-  return <StyledBalanceText title={balance.toExact()}>{balance.toSignificant(4)}</StyledBalanceText>
+  return <StyledBalanceText title={balance.toExact()}>
+    {formatCurrencyAmount(balance, 6)}
+  </StyledBalanceText>
 }
 
 const TagContainer = styled.div`

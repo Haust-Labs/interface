@@ -122,35 +122,6 @@ export default function SwapDetailsDropdown({ trade, syncing, loading, allowedSl
       <AutoColumn gap="sm" style={{ width: '100%', marginBottom: '-8px' }}>
         <StyledHeaderRow onClick={() => setShowDetails(!showDetails)} disabled={!trade} open={showDetails}>
           <RowFixed style={{ position: 'relative' }}>
-            {loading || syncing ? (
-              <StyledPolling>
-                <StyledPollingDot>
-                  <Spinner />
-                </StyledPollingDot>
-              </StyledPolling>
-            ) : (
-              <HideSmall>
-                <MouseoverTooltipContent
-                  wrap={false}
-                  content={
-                    <ResponsiveTooltipContainer origin="top right" style={{ padding: '0' }}>
-                      <Card padding="12px">
-                        <AdvancedSwapDetails
-                          trade={trade}
-                          allowedSlippage={allowedSlippage}
-                          syncing={syncing}
-                          hideInfoTooltips={true}
-                        />
-                      </Card>
-                    </ResponsiveTooltipContainer>
-                  }
-                  placement="bottom"
-                  disableHover={showDetails}
-                >
-                  <StyledInfoIcon color={trade ? theme.textTertiary : theme.deprecated_bg3} />
-                </MouseoverTooltipContent>
-              </HideSmall>
-            )}
             {trade ? (
               <LoadingOpacityContainer $loading={syncing}>
                 <TradePrice price={trade.executionPrice} />

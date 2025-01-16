@@ -38,16 +38,11 @@ const ScrimBackground = styled.div<{ open: boolean }>`
   position: fixed;
   width: 100%;
   height: 100%;
-  background-color: ${({ theme }) => theme.backgroundScrim};
-
-  opacity: 0;
-  pointer-events: none;
-  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.sm}px`}) {
-    opacity: ${({ open }) => (open ? 1 : 0)};
-    pointer-events: ${({ open }) => (open ? 'auto' : 'none')};
-    transition: opacity ${({ theme }) => theme.transition.duration.medium} ease-in-out;
-  }
+  pointer-events: ${({ open }) => (open ? 'auto' : 'none')};
+  background-color: transparent;
+  display: ${({ open }) => (open ? 'block' : 'none')};
 `
+
 const Scrim = ({ onClick, open }: { onClick: () => void; open: boolean }) => {
   const { width } = useWindowSize()
 
@@ -58,7 +53,13 @@ const Scrim = ({ onClick, open }: { onClick: () => void; open: boolean }) => {
     }
   }, [open, width])
 
-  return <ScrimBackground onClick={onClick} open={open} />
+  const handleScrimClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClick()
+    }
+  }
+
+  return <ScrimBackground onClick={handleScrimClick} open={open} />
 }
 
 const AccountDrawerScrollWrapper = styled.div`
@@ -94,12 +95,12 @@ const Container = styled.div`
 `
 
 const AccountDrawerWrapper = styled.div<{ open: boolean }>`
+  z-index: ${Z_INDEX.modal};
   margin-right: ${({ open }) => (open ? 0 : '-' + DRAWER_WIDTH)};
   height: 100%;
   overflow: hidden;
 
   @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.sm}px`}) {
-    z-index: ${Z_INDEX.modal};
     position: absolute;
     margin-right: 0;
     top: ${({ open }) => (open ? `calc(-1 * (100% - ${DRAWER_TOP_MARGIN_MOBILE_WEB}))` : 0)};

@@ -84,11 +84,11 @@ export function AdvancedSwapDetails({
             </MouseoverTooltip>
           </RowFixed>
           <TextWithLoadingPlaceholder syncing={syncing} width={65}>
-            <ThemedText.DeprecatedBlack textAlign="right" fontSize={14}>
+            <ThemedText.BodySecondary textAlign="right" fontSize={14}>
               {expectedOutputAmount
                 ? `${expectedOutputAmount.toSignificant(6)}  ${expectedOutputAmount.currency.symbol}`
                 : '-'}
-            </ThemedText.DeprecatedBlack>
+            </ThemedText.BodySecondary>
           </TextWithLoadingPlaceholder>
         </RowBetween>
         <RowBetween>

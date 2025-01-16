@@ -28,10 +28,10 @@ const FancyButton = styled.button`
   border-radius: 36px;
   font-size: 1rem;
   width: auto;
-  min-width: 3.5rem;
+  min-width: 4rem;
   border: 1px solid ${({ theme }) => theme.deprecated_bg3};
   outline: none;
-  background: ${({ theme }) => theme.deprecated_bg1};
+  background: ${({ theme }) => theme.backgroundModule};
   :hover {
     border: 1px solid ${({ theme }) => theme.deprecated_bg4};
   }
@@ -51,8 +51,9 @@ const Option = styled(FancyButton)<{ active: boolean }>`
 `
 
 const Input = styled.input`
-  background: ${({ theme }) => theme.deprecated_bg1};
+  background: ${({ theme }) => theme.backgroundModule};
   font-size: 16px;
+  font-weight: 500;
   border-radius: 12px;
   width: auto;
   outline: none;
@@ -60,7 +61,7 @@ const Input = styled.input`
   &::-webkit-inner-spin-button {
     -webkit-appearance: none;
   }
-  color: ${({ theme, color }) => (color === 'red' ? theme.accentFailure : theme.textPrimary)};
+  color: ${({ theme, color }) => (color === 'red' ? theme.accentFailure : theme.textSecondary)};
   text-align: right;
 
   ::placeholder {
@@ -68,19 +69,25 @@ const Input = styled.input`
   }
 `
 
-const OptionCustom = styled(FancyButton)<{ active?: boolean; warning?: boolean }>`
+const OptionCustom = styled(FancyButton)<{ active?: boolean; warning?: boolean; frontrunWarning?: boolean }>`
   height: 2rem;
   position: relative;
   padding: 0 0.75rem;
   border-radius: 12px;
   flex: 1;
-  border: ${({ theme, active, warning }) =>
-    active
+  border: ${({ theme, active, warning, frontrunWarning }) =>
+    frontrunWarning
+      ? `1px solid #FFEC46`
+      : active
       ? `1px solid ${warning ? theme.accentFailure : theme.accentAction}`
-      : warning && `1px solid ${theme.accentFailure}`};
+      : warning 
+      ? `1px solid ${theme.accentFailure}` 
+      : `1px solid ${theme.deprecated_bg3}`};
   :hover {
-    border: ${({ theme, active, warning }) =>
-      active && `1px solid ${warning ? darken(0.1, theme.accentFailure) : darken(0.1, theme.accentAction)}`};
+    border: ${({ theme, active, warning, frontrunWarning }) =>
+      frontrunWarning
+        ? `1px solid ${darken(0.1, '#FFEC46')}`
+        : active && `1px solid ${warning ? darken(0.1, theme.accentFailure) : darken(0.1, theme.accentAction)}`};
   }
 
   input {
@@ -92,7 +99,7 @@ const OptionCustom = styled(FancyButton)<{ active?: boolean; warning?: boolean }
 `
 
 const SlippageEmojiContainer = styled.span`
-  color: #f3841e;
+  color: #FFEC46;
   ${({ theme }) => theme.deprecated_mediaWidth.deprecated_upToSmall`
     display: none;
   `}
@@ -167,11 +174,11 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
   const showCustomDeadlineRow = Boolean(chainId)
 
   return (
-    <AutoColumn gap="md">
+    <AutoColumn gap="32px">
       <AutoColumn gap="sm">
         <RowFixed>
           <ThemedText.DeprecatedBlack fontWeight={400} fontSize={14} color={theme.textSecondary}>
-            <Trans>Slippage tolerance</Trans>
+            <Trans>Max slippage</Trans>
           </ThemedText.DeprecatedBlack>
           <QuestionHelper
             text={
@@ -179,16 +186,13 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
             }
           />
         </RowFixed>
-        <RowBetween>
-          <Option
-            onClick={() => {
-              parseSlippageInput('')
-            }}
-            active={userSlippageTolerance === 'auto'}
+        <RowBetween gap="8px">
+          <OptionCustom 
+            active={userSlippageTolerance !== 'auto'} 
+            warning={!!slippageError} 
+            frontrunWarning={!slippageError && tooHigh}
+            tabIndex={-1}
           >
-            <Trans>Auto</Trans>
-          </Option>
-          <OptionCustom active={userSlippageTolerance !== 'auto'} warning={!!slippageError} tabIndex={-1}>
             <RowBetween>
               {tooLow || tooHigh ? (
                 <SlippageEmojiContainer>
@@ -211,18 +215,26 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
                   setSlippageInput('')
                   setSlippageError(false)
                 }}
-                color={slippageError ? 'red' : ''}
+                color={slippageError ? 'red' : '#121417'}
               />
-              %
+              <span style={{ fontWeight: '500' }}>%</span>
             </RowBetween>
           </OptionCustom>
+          <Option
+            onClick={() => {
+              parseSlippageInput('')
+            }}
+            active={userSlippageTolerance === 'auto'}
+          >
+            <Trans>Auto</Trans>
+          </Option>
         </RowBetween>
         {slippageError || tooLow || tooHigh ? (
           <RowBetween
             style={{
               fontSize: '14px',
               paddingTop: '7px',
-              color: slippageError ? 'red' : '#F3841E',
+              color: slippageError ? 'red' : '#FFEC46',
             }}
           >
             {slippageError ? (
@@ -239,7 +251,7 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
       {showCustomDeadlineRow && (
         <AutoColumn gap="sm">
           <RowFixed>
-            <ThemedText.DeprecatedBlack fontSize={14} fontWeight={400} color={theme.textSecondary}>
+            <ThemedText.DeprecatedBlack fontSize={14} fontWeight={500} color={theme.textSecondary}>
               <Trans>Transaction deadline</Trans>
             </ThemedText.DeprecatedBlack>
             <QuestionHelper

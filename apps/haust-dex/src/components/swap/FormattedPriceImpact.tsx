@@ -3,7 +3,7 @@ import { Percent } from '@uniswap/sdk-core'
 import { warningSeverity } from '../../utils/prices'
 import { ErrorText } from './styleds'
 
-export const formatPriceImpact = (priceImpact: Percent) => `${priceImpact.multiply(-1).toFixed(2)}%`
+export const formatPriceImpact = (priceImpact: Percent) => `${priceImpact.multiply(-1).toFixed(10)}%`
 
 /**
  * Formatted version of price impact text with warning colors

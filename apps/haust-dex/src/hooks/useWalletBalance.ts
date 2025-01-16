@@ -35,51 +35,76 @@ export function useWalletBalance() {
     try {
       setLoading(true)
       
-      const midnightResponse = await fetch(`https://entrypoint.wdev.haust.app/v1/account/${account}/balance_midnight`)
-      const midnightData = await midnightResponse.json()
-      
-      const pricesResponse = await fetch('https://entrypoint.wdev.haust.app/v1/fiat_prices')
-      const prices: TokenPrice[] = await pricesResponse.json()
-
-      let totalPercentChange = 0
-      let totalAbsoluteChange = 0
-      let validTokenCount = 0
-
-      for (const item of midnightData) {
-        const midnightPrice = parseInt(item.usd_price_midnight, 16) / Math.pow(10, item.usd_price_decimals)
-        
-        const currentPriceData = prices.find(p => {
-          if (item.token === null) {
-            return p.token.symbol === 'HAUST'
+      let midnightData = []
+      try {
+        const midnightResponse = await fetch(            
+          `https://entrypointv02.wdev.haust.app/v1/account/${account}/balance_midnight`,
+          {
+            headers: {
+              'X-Haust-Wallet-Version': '0.1'
+            }
           }
-          return p.token.address?.toLowerCase() === item.token.toLowerCase()
-        })
-
-        if (currentPriceData) {
-          const currentPrice = Number(currentPriceData.price) / Math.pow(10, currentPriceData.price_decimals)
-          
-          const tokenPercentChange = ((currentPrice - midnightPrice) / midnightPrice) * 100
-          totalPercentChange += tokenPercentChange
-
-          const midnightAmount = parseInt(item.amount_midnight, 16) / Math.pow(10, 18) // assuming 18 decimals
-          const midnightValue = midnightAmount * midnightPrice
-          const currentValue = midnightAmount * currentPrice
-          const tokenAbsoluteChange = currentValue - midnightValue
-
-          totalAbsoluteChange += tokenAbsoluteChange
-          validTokenCount++
-        }
+)
+        midnightData = await midnightResponse.json()
+      } catch (error) {
+        console.error('Error fetching midnight balances:', error)
+      }
+      
+      let prices: TokenPrice[] = []
+      try {
+        const pricesResponse = await fetch('https://entrypoint.wdev.haust.app/v1/fiat_prices')
+        prices = await pricesResponse.json()
+      } catch (error) {
+        console.error('Error fetching prices:', error)
       }
 
-      const averagePercentChange = validTokenCount > 0 ? totalPercentChange / validTokenCount : 0
-      setPercentChange(averagePercentChange)
-      setAbsoluteChange(totalAbsoluteChange)
+      if (!midnightData.length || !prices.length) {
+        setPercentChange(0)
+        setAbsoluteChange(0)
+      } else {
+        let totalPercentChange = 0
+        let totalAbsoluteChange = 0
+        let validTokenCount = 0
 
-      // Get native token balance
-      const nativeBalance = await provider.getBalance(account)
-      const nativeBalanceInEth = parseFloat(ethers.utils.formatEther(nativeBalance))
+        for (const item of midnightData) {
+          const midnightPrice = parseInt(item.usd_price_midnight, 16) / Math.pow(10, item.usd_price_decimals)
+          
+          const currentPriceData = prices.find(p => {
+            if (item.token === null) {
+              return p.token.symbol === 'HAUST'
+            }
+            return p.token.address?.toLowerCase() === item.token.toLowerCase()
+          })
 
-      // List of token addresses to check
+          if (currentPriceData) {
+            const currentPrice = Number(currentPriceData.price) / Math.pow(10, currentPriceData.price_decimals)
+            
+            const tokenPercentChange = ((currentPrice - midnightPrice) / midnightPrice) * 100
+            totalPercentChange += tokenPercentChange
+
+            const midnightAmount = parseInt(item.amount_midnight, 16) / Math.pow(10, 18)
+            const midnightValue = midnightAmount * midnightPrice
+            const currentValue = midnightAmount * currentPrice
+            const tokenAbsoluteChange = currentValue - midnightValue
+
+            totalAbsoluteChange += tokenAbsoluteChange
+            validTokenCount++
+          }
+        }
+
+        const averagePercentChange = validTokenCount > 0 ? totalPercentChange / validTokenCount : 0
+        setPercentChange(averagePercentChange)
+        setAbsoluteChange(totalAbsoluteChange)
+      }
+
+      let nativeBalanceInEth = 0
+      try {
+        const nativeBalance = await provider.getBalance(account)
+        nativeBalanceInEth = parseFloat(ethers.utils.formatEther(nativeBalance))
+      } catch (error) {
+        console.error('Error fetching native balance:', error)
+      }
+
       const tokenAddresses = [
         '0x314e5d40a123F4Efdb096bB716767C905A7DcA97',
         '0x1a1aF9C78704D3a0Ab9e031C92E7bd808711A582',
@@ -88,22 +113,31 @@ export function useWalletBalance() {
         '0xf7FDb9d99Ff104dB82cc98DFd43602CCA4bB7c90',
       ]
 
-      // Get ERC20 token balances
       const tokenPromises = tokenAddresses.map(async (tokenAddress) => {
-        const contract = new ethers.Contract(tokenAddress, ERC20_ABI, provider)
-        const [balance, decimals, symbol] = await Promise.all([
-          contract.balanceOf(account),
-          contract.decimals(),
-          contract.symbol(),
-        ])
-        
-        const formattedBalance = parseFloat(ethers.utils.formatUnits(balance, decimals))
-        
-        return {
-          token: tokenAddress,
-          balance: formattedBalance,
-          decimals,
-          symbol,
+        try {
+          const contract = new ethers.Contract(tokenAddress, ERC20_ABI, provider)
+          const [balance, decimals, symbol] = await Promise.all([
+            contract.balanceOf(account),
+            contract.decimals(),
+            contract.symbol(),
+          ])
+          
+          const formattedBalance = parseFloat(ethers.utils.formatUnits(balance, decimals))
+          
+          return {
+            token: tokenAddress,
+            balance: formattedBalance,
+            decimals,
+            symbol,
+          }
+        } catch (error) {
+          console.error(`Error fetching token balance for ${tokenAddress}:`, error)
+          return {
+            token: tokenAddress,
+            balance: 0,
+            decimals: 18,
+            symbol: 'UNKNOWN',
+          }
         }
       })
 

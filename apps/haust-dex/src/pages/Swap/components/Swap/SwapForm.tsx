@@ -61,7 +61,7 @@ const ArrowContainer = styled.div`
   min-width: 40px;
   min-height: 40px;
   background: #1C1F23;
-  border: 4px solid #121417;
+  border: 4px solid #000000;
   border-radius: 12px;
   :hover {
     svg > path {
@@ -73,8 +73,8 @@ const ArrowContainer = styled.div`
 const SwapSection = styled.div`
   position: relative;
   background-color: ${({ theme }) => theme.backgroundModule};
-  border-radius: 12px;
-  border: none;
+  border-radius: 16px;
+  border: 1px solid ${({ theme }) => theme.backgroundModule};
   padding: 16px;
   color: ${({ theme }) => theme.textSecondary};
   font-size: 14px;
@@ -85,11 +85,9 @@ const SwapSection = styled.div`
     box-sizing: border-box;
     background-size: 100%;
     border-radius: inherit;
-
     position: absolute;
     top: 0;
     left: 0;
-
     width: 100%;
     height: 100%;
     pointer-events: none;
@@ -101,20 +99,28 @@ const SwapSection = styled.div`
     border-color: ${({ theme }) => theme.stateOverlayHover};
   }
 
+  &:has(.token-amount-input:focus) {
+    background-color: black;
+    color: white;
+    border: 1px solid #57606B;
+  }
+
   &:focus-within:before {
     border-color: ${({ theme }) => theme.stateOverlayPressed};
   }
 `
 
-const OutputSwapSection = styled(SwapSection)<{ showDetailsDropdown: boolean }>`
-  border-bottom-left-radius: ${({ showDetailsDropdown }) => showDetailsDropdown && '0'};
-  border-bottom-right-radius: ${({ showDetailsDropdown }) => showDetailsDropdown && '0'};
-`
-
-const DetailsSwapSection = styled(SwapSection)`
-  padding: 0;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
+const DetailsSwapSection = styled.div`
+  position: relative;
+  background-color: '#000000';
+  border-radius: 10px;
+  border: 1px solid #1C1F23;
+  padding: 0px;
+  color: ${({ theme }) => theme.textTertiary};
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  margin-top: 8px;
 `
 
 function largerPercentValue(a?: Percent, b?: Percent) {
@@ -209,16 +215,16 @@ export default function SwapForm({ className }: { className?: string }) {
           },
     [independentField, parsedAmount, showWrap, trade]
   )
-  const fiatValueInput = useUSDPrice(parsedAmounts[Field.INPUT])
-  const fiatValueOutput = useUSDPrice(parsedAmounts[Field.OUTPUT])
+  const fiatValueInput = useUSDPrice(parsedAmounts[Field.INPUT]?.greaterThan(0) ? parsedAmounts[Field.INPUT] : undefined)
+  const fiatValueOutput = useUSDPrice(parsedAmounts[Field.OUTPUT]?.greaterThan(0) ? parsedAmounts[Field.OUTPUT] : undefined)
 
   const [routeNotFound, routeIsLoading, routeIsSyncing] = useMemo(
     () => [!trade?.swaps, TradeState.LOADING === tradeState, TradeState.SYNCING === tradeState],
     [trade, tradeState]
   )
 
-  const fiatValueTradeInput = useUSDPrice(trade?.inputAmount)
-  const fiatValueTradeOutput = useUSDPrice(trade?.outputAmount)
+  const fiatValueTradeInput = useUSDPrice(trade?.inputAmount?.greaterThan(0) ? trade?.inputAmount : undefined)
+  const fiatValueTradeOutput = useUSDPrice(trade?.outputAmount?.greaterThan(0) ? trade?.outputAmount : undefined)
   const stablecoinPriceImpact = useMemo(
     () =>
       routeIsSyncing || !trade
@@ -481,6 +487,27 @@ export default function SwapForm({ className }: { className?: string }) {
     })
   }, [])
 
+  const maxOutputAmount: CurrencyAmount<Currency> | undefined = useMemo(
+    () => maxAmountSpend(currencyBalances[Field.OUTPUT]),
+    [currencyBalances]
+  )
+
+  const showOutputMaxButton = Boolean(maxOutputAmount?.greaterThan(0) && !parsedAmounts[Field.OUTPUT]?.equalTo(maxOutputAmount))
+
+  const handleMaxOutput = useCallback(() => {
+    maxOutputAmount && onUserInput(Field.OUTPUT, maxOutputAmount.toExact())
+  }, [maxOutputAmount, onUserInput])
+
+  const [isTokenSwitching, setIsTokenSwitching] = useState(false)
+
+  const handleSwitchTokens = useCallback(() => {
+    setIsTokenSwitching(true)
+    onSwitchTokens()
+    setTimeout(() => {
+      setIsTokenSwitching(false)
+    }, 250)
+  }, [onSwitchTokens])
+
   return (
     <>
       <TokenSafetyModal
@@ -520,20 +547,24 @@ export default function SwapForm({ className }: { className?: string }) {
                 currency={currencies[Field.INPUT] ?? null}
                 onUserInput={handleTypeInput}
                 onMax={handleMaxInput}
-                fiatValue={fiatValueInput}
+                fiatValue={
+                  isTokenSwitching 
+                    ? { data: undefined, isLoading: true }
+                    : parsedAmounts[Field.INPUT]?.greaterThan(0) 
+                      ? fiatValueInput 
+                      : { data: undefined, isLoading: false }
+                }
                 onCurrencySelect={handleInputSelect}
                 otherCurrency={currencies[Field.OUTPUT]}
                 showCommonBases={true}
-                loading={independentField === Field.OUTPUT && routeIsSyncing}
+                loading={isTokenSwitching || (independentField === Field.OUTPUT && routeIsSyncing)}
                 id="CURRENCY_INPUT_PANEL"
               />
             </SwapSection>
             <ArrowWrapper clickable={isSupportedChain(chainId)}>
               <ArrowContainer
                 data-testid="swap-currency-button"
-                onClick={() => {
-                  onSwitchTokens()
-                }}
+                onClick={handleSwitchTokens}
                 color={theme.textPrimary}
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -547,7 +578,7 @@ export default function SwapForm({ className }: { className?: string }) {
           </div>
           <AutoColumn gap="4px">
             <div>
-              <OutputSwapSection showDetailsDropdown={showDetailsDropdown}>
+              <SwapSection>
                 <ThemedText.BodySecondary>Buy</ThemedText.BodySecondary>
                 <SwapCurrencyInputPanel
                   value={formattedAmounts[Field.OUTPUT]}
@@ -555,15 +586,22 @@ export default function SwapForm({ className }: { className?: string }) {
                   label={
                     independentField === Field.INPUT && !showWrap ? <Trans>To (at least)</Trans> : <Trans>To</Trans>
                   }
-                  showMaxButton={false}
+                  showMaxButton={showOutputMaxButton}
+                  onMax={handleMaxOutput}
                   hideBalance={false}
-                  fiatValue={fiatValueOutput}
+                  fiatValue={
+                    isTokenSwitching
+                      ? { data: undefined, isLoading: true }
+                      : parsedAmounts[Field.OUTPUT]?.greaterThan(0)
+                        ? fiatValueOutput
+                        : { data: undefined, isLoading: false }
+                  }
                   priceImpact={stablecoinPriceImpact}
                   currency={currencies[Field.OUTPUT] ?? null}
                   onCurrencySelect={handleOutputSelect}
                   otherCurrency={currencies[Field.INPUT]}
                   showCommonBases={true}
-                  loading={independentField === Field.INPUT && routeIsSyncing}
+                  loading={isTokenSwitching || (independentField === Field.INPUT && routeIsSyncing)}
                   id="CURRENCY_OUTPUT_PANEL"
                 />
 
@@ -580,17 +618,7 @@ export default function SwapForm({ className }: { className?: string }) {
                     <AddressInputPanel id="recipient" value={recipient} onChange={onChangeRecipient} />
                   </>
                 ) : null}
-              </OutputSwapSection>
-              {showDetailsDropdown && (
-                <DetailsSwapSection>
-                  <SwapDetailsDropdown
-                    trade={trade}
-                    syncing={routeIsSyncing}
-                    loading={routeIsLoading}
-                    allowedSlippage={allowedSlippage}
-                  />
-                </DetailsSwapSection>
-              )}
+              </SwapSection>
             </div>
             {showPriceImpactWarning && <PriceImpactWarning priceImpact={largerPriceImpact} />}
             <div>
@@ -679,15 +707,16 @@ export default function SwapForm({ className }: { className?: string }) {
                     routeIsSyncing ||
                     routeIsLoading ||
                     priceImpactTooHigh ||
-                    allowance.state !== AllowanceState.ALLOWED
+                    allowance.state !== AllowanceState.ALLOWED ||
+                    isTokenSwitching
                   }
                   error={isValid && priceImpactSeverity > 2 && allowance.state === AllowanceState.ALLOWED}
                 >
                   <Text fontSize={20} fontWeight={600}>
                     {swapInputError ? (
                       swapInputError
-                    ) : routeIsSyncing || routeIsLoading ? (
-                      <Trans>Swap</Trans>
+                    ) : routeIsSyncing || routeIsLoading || isTokenSwitching ? (
+                      <Trans>Loading...</Trans>
                     ) : priceImpactTooHigh ? (
                       <Trans>Price Impact Too High</Trans>
                     ) : priceImpactSeverity > 2 ? (
@@ -702,6 +731,17 @@ export default function SwapForm({ className }: { className?: string }) {
             </div>
           </AutoColumn>
       <SwitchLocaleLink />
+      {showDetailsDropdown && (
+        <DetailsSwapSection>
+          <SwapDetailsDropdown
+            trade={trade}
+            syncing={routeIsSyncing}
+            loading={routeIsLoading}
+            allowedSlippage={allowedSlippage}
+          />
+        </DetailsSwapSection>
+      )}
+
       {!swapIsUnsupported ? null : (
         <UnsupportedCurrencyFooter
           show={swapIsUnsupported}

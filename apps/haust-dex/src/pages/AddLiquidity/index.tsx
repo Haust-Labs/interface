@@ -274,19 +274,9 @@ function AddLiquidity() {
       }
 
       setAttemptingTxn(true)
-
       provider
         .getSigner()
-        .estimateGas(txn)
-        .then((estimate) => {
-          const newTxn = {
-            ...txn,
-            gasLimit: calculateGasMargin(estimate),
-          }
-
-          return provider
-            .getSigner()
-            .sendTransaction(newTxn)
+        .sendTransaction(txn)
             .then((response: TransactionResponse) => {
               setAttemptingTxn(false)
               addTransaction(response, {
@@ -299,21 +289,7 @@ function AddLiquidity() {
                 feeAmount: position.pool.fee,
               })
               setTxHash(response.hash)
-              // sendEvent({
-              //   category: 'Liquidity',
-              //   action: 'Add',
-              //   label: [currencies[Field.CURRENCY_A]?.symbol, currencies[Field.CURRENCY_B]?.symbol].join('/'),
-              // })
             })
-        })
-        .catch((error) => {
-          console.error('Failed to send transaction', error)
-          setAttemptingTxn(false)
-          // we only care if the error is something _other_ than the user rejected the tx
-          if (error?.code !== 4001) {
-            console.error(error)
-          }
-        })
     } else {
       return
     }

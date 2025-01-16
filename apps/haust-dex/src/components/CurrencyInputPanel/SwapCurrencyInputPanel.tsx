@@ -65,10 +65,10 @@ const CurrencySelect = styled(ButtonGray)<{
   cursor: pointer;
   height: 44px;
   max-width: ${({ selected }) => (selected ? 'min-content' : '162px')};
+  border: 1px solid #2F353A;
   border-radius: 22px;
   outline: none;
   user-select: none;
-  border: none;
   font-size: 18px;
   font-weight: 600;
   width: 100%;
@@ -178,13 +178,18 @@ const StyledBalanceMax = styled.button<{ disabled?: boolean }>`
 const StyledNumericalInput = styled(Input)<{ $loading: boolean }>`
   ${loadingOpacityMixin};
   background-color: ${({ theme }) => theme.backgroundInput};
-  padding-left: 16px;
   border-radius: 8px;
   text-align: left;
-  font-weight: 600;
-  font-size: 22px;
+  font-weight: 500;
+  font-size: 36px;
   line-height: 40px;
   font-variant: small-caps;
+
+  &:focus,
+  &:focus-within {
+    background-color: black;
+    color: white;
+  }
 `
 
 interface SwapCurrencyInputPanelProps {
@@ -324,7 +329,7 @@ export default function SwapCurrencyInputPanel({
                       renderBalance ? (
                         renderBalance(selectedCurrencyBalance)
                       ) : (
-                        <Trans>Balance: {formatCurrencyAmount(selectedCurrencyBalance, 6)}</Trans>
+                        <Trans>{formatCurrencyAmount(selectedCurrencyBalance, 6) + ' ' + currency?.symbol}</Trans>
                       )
                     ) : null}
                   </ThemedText.DeprecatedBody>

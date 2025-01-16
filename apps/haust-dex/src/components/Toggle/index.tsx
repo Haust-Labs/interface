@@ -4,8 +4,8 @@ import styled, { keyframes } from 'styled-components/macro'
 
 const Wrapper = styled.button<{ isActive?: boolean; activeElement?: boolean }>`
   align-items: center;
-  background: ${({ isActive, theme }) => (isActive ? theme.accentActionSoft : theme.backgroundSurface)};
-  border: ${({ theme, isActive }) => (isActive ? '1px solid transparent' : `1px solid ${theme.backgroundOutline}`)};
+  background: ${({ isActive, theme }) => (isActive ? theme.accentActionSoft : theme.backgroundModule)};
+  border: ${({ theme }) => `1px solid ${theme.neutralBorder}`};
   border-radius: 20px;
   cursor: pointer;
   display: flex;

@@ -58,7 +58,7 @@ export default function TradePrice({ price }: TradePriceProps) {
       }}
       title={text}
     >
-      <ThemedText.BodySmall>{text}</ThemedText.BodySmall>{' '}
+      <ThemedText.BodySecondary>{text}</ThemedText.BodySecondary>{' '}
       {usdPrice && (
         <ThemedText.DeprecatedDarkGray>
           <Trans>({formatNumber(usdPrice, NumberType.FiatTokenPrice)})</Trans>

@@ -1,39 +1,62 @@
-import { NetworkStatus } from '@apollo/client'
 import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
-import {Chain} from "api/util";
-import { useTokenSpotPriceQuery } from 'graphql/data/__generated__/types-and-hooks'
-import { chainIdToBackendName, isGqlSupportedChain, PollingInterval } from 'graphql/data/util'
-import { getNativeTokenDBAddress } from 'utils/nativeTokens'
+import { useEffect, useState } from 'react'
 
-import useStablecoinPrice from './useStablecoinPrice'
+interface PriceResponse {
+  price: string
+  price_decimals: number
+  timestamp: number
+  currency: string
+  token: {
+    address: string | null
+    external_id: number
+    full_name: string
+    symbol: string
+  }
+}
 
 export function useUSDPrice(currencyAmount?: CurrencyAmount<Currency>): {
   data: number | undefined
   isLoading: boolean
 } {
-  const chain = currencyAmount?.currency.chainId ? chainIdToBackendName(currencyAmount?.currency.chainId) : undefined
-  const currency = currencyAmount?.currency
+  const [price, setPrice] = useState<number>()
+  const [isLoading, setIsLoading] = useState(true)
 
-  const { data, networkStatus } = useTokenSpotPriceQuery({
-    // @ts-ignore
-    variables: { chain: chain ?? Chain.HAUST, address: getNativeTokenDBAddress(chain ?? Chain.HAUST) },
-    skip: !chain || !isGqlSupportedChain(currency?.chainId),
-    pollInterval: PollingInterval.Normal,
-    notifyOnNetworkStatusChange: true,
-    fetchPolicy: 'cache-first',
-  })
+  useEffect(() => {
+    async function fetchPrices() {
+      try {
+        const pricesResponse = await fetch('https://entrypoint.wdev.haust.app/v1/fiat_prices')
+        const prices: PriceResponse[] = await pricesResponse.json()
+        
+        // Find matching token price based on symbol or address
+        const tokenPrice = prices.find(p => {
+          if (currencyAmount?.currency.isNative) {
+            return p.token.symbol === currencyAmount.currency.symbol
+          }
+          if (!currencyAmount?.currency.isToken) {
+            return p.token.symbol === currencyAmount?.currency.symbol
+          }
+          return p.token.symbol === currencyAmount?.currency.symbol ||
+                 p.token.address?.toLowerCase() === currencyAmount.currency.address.toLowerCase()
+        })
 
-  // Use USDC price for chains not supported by backend yet
-  const stablecoinPrice = useStablecoinPrice(!isGqlSupportedChain(currency?.chainId) ? currency : undefined)
-  if (!isGqlSupportedChain(currency?.chainId) && currencyAmount && stablecoinPrice) {
-    return { data: parseFloat(stablecoinPrice.quote(currencyAmount).toSignificant()), isLoading: false }
-  }
+        if (tokenPrice) {
+          // Convert price to proper decimal places and multiply by the input amount
+          const priceValue = Number(tokenPrice.price) / Math.pow(10, tokenPrice.price_decimals)
+          const totalPrice = priceValue * Number(currencyAmount?.toExact() || 0)
+          setPrice(totalPrice)
+        }
+        
+        setIsLoading(false)
+      } catch (error) {
+        console.error('Failed to fetch prices:', error)
+        setIsLoading(false)
+      }
+    }
 
-  const isFirstLoad = networkStatus === NetworkStatus.loading
+    if (currencyAmount) {
+      fetchPrices()
+    }
+  }, [currencyAmount])
 
-  // Otherwise, get the price of the token in ETH, and then multiple by the price of ETH
-  const ethUSDPrice = data?.token?.project?.markets?.[0]?.price?.value
-  if (!ethUSDPrice) return { data: undefined, isLoading: isFirstLoad }
-
-  return { data: ethUSDPrice, isLoading: false }
+  return { data: price, isLoading }
 }

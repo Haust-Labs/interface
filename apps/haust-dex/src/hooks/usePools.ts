@@ -1,14 +1,18 @@
 import { Interface } from "@ethersproject/abi";
 import { BigintIsh, Currency, Token } from "@uniswap/sdk-core";
-import { FeeAmount, Pool } from "@uniswap/v3-sdk";
+import { computePoolAddress, FeeAmount, Pool } from "@uniswap/v3-sdk";
 import { useWeb3React } from "@web3-react/core";
-import JSBI from "jsbi";
 import { useMultipleContractSingleData } from "lib/hooks/multicall";
 import { useMemo } from "react";
 import { IUniswapV3PoolStateABI } from "sdks/v3-core";
 
 import { IUniswapV3PoolStateInterface } from "../types/v3/IUniswapV3PoolState";
-import { TOKEN_ADDRESSES } from "constants/tokens";
+import BigNumber from "bignumber.js";
+import {
+  POOL_DEPLOYER_ADDRESSES,
+  V3_CORE_FACTORY_ADDRESSES,
+  V3_INIT_POOL_CODE_HASH,
+} from "constants/addresses";
 
 const POOL_STATE_INTERFACE = new Interface(
   IUniswapV3PoolStateABI
@@ -22,6 +26,38 @@ class PoolCache {
 
   // These are FIFOs, using unshift/pop. This makes recent entries faster to find.
   private static pools: Pool[] = [];
+  private static addresses: { key: string; address: string }[] = [];
+
+  static getPoolAddress(
+    poolDeployerAddress: string,
+    initCodeHash: string,
+    tokenA: Token,
+    tokenB: Token,
+    fee: FeeAmount
+  ): string {
+    if (this.addresses.length > this.MAX_ENTRIES) {
+      this.addresses = this.addresses.slice(0, this.MAX_ENTRIES / 2);
+    }
+
+    const { address: addressA } = tokenA;
+    const { address: addressB } = tokenB;
+    const key = `${poolDeployerAddress}:${addressA}:${addressB}:${fee.toString()}`;
+    const found = this.addresses.find((address) => address.key === key);
+    if (found) return found.address;
+
+    const address = {
+      key,
+      address: computePoolAddress({
+        factoryAddress: poolDeployerAddress,
+        tokenA,
+        tokenB,
+        fee,
+        initCodeHashManualOverride: initCodeHash,
+      }),
+    };
+    this.addresses.unshift(address);
+    return address.address;
+  }
 
   static getPool(
     tokenA: Token,
@@ -40,8 +76,8 @@ class PoolCache {
         pool.token0 === tokenA &&
         pool.token1 === tokenB &&
         pool.fee === fee &&
-        JSBI.EQ(pool.sqrtRatioX96, sqrtPriceX96) &&
-        JSBI.EQ(pool.liquidity, liquidity) &&
+        BigNumber(pool.sqrtRatioX96.toString()).eq(sqrtPriceX96.toString()) &&
+        BigNumber(pool.liquidity.toString()).eq(liquidity.toString()) &&
         pool.tickCurrent === tick
     );
     if (found) return found;
@@ -59,120 +95,6 @@ export enum PoolState {
   INVALID,
 }
 
-interface PoolInfo {
-  pair: string;
-  pool: string;
-  fee: number;
-}
-
-const poolsAndFees: PoolInfo[] = [
-  {
-    pair: "WHAUST/USDT",
-    pool: "0xb785d5173ec6d8433d0858BA6364B5ed8b05E0ab",
-    fee: 15000,
-  },
-  {
-    pair: "WHAUST/USDC",
-    pool: "0x05C108C0Db67e0A7245182B3A4A855824Ca927Ad",
-    fee: 15000,
-  },
-  {
-    pair: "USDT/USDC",
-    pool: "0x30cD81eA875E03165993dEA4ad2e2778EDB942ec",
-    fee: 3000,
-  },
-  {
-    pair: "WETH/USDT",
-    pool: "0x37674B633AF14232C0a8b41AB6316d5CFC437751",
-    fee: 3000,
-  },
-  {
-    pair: "WBTC/USDC",
-    pool: "0xd922b5096059d87115E5994403233D1bA91fb7Ae",
-    fee: 3000,
-  },
-];
-
-function getPoolInfo(
-  tokenA: Currency | undefined,
-  tokenB: Currency | undefined
-): PoolInfo[] {
-  if (!tokenA || !tokenB) return [];
-
-  const symbolA = (
-    tokenA?.symbol === "HAUST" ? "WHAUST" : tokenA?.symbol
-  )?.toUpperCase();
-  const symbolB = (
-    tokenB?.symbol === "HAUST" ? "WHAUST" : tokenB?.symbol
-  )?.toUpperCase();
-
-  const pairFormat1 = `${symbolA}/${symbolB}`;
-  const pairFormat2 = `${symbolB}/${symbolA}`;
-  const directPool = poolsAndFees.find(
-    (item) =>
-      item.pair.toUpperCase() === pairFormat1 ||
-      item.pair.toUpperCase() === pairFormat2
-  );
-
-  if (directPool) {
-    return [directPool];
-  }
-
-  const paths: PoolInfo[] = [];
-
-  const poolsWithTokenA = poolsAndFees.filter((pool) => {
-    const [token0, token1] = pool.pair.split("/");
-    return token0 === symbolA || token1 === symbolA;
-  });
-
-  poolsWithTokenA.forEach((firstPool) => {
-    const [firstToken0, firstToken1] = firstPool.pair.split("/");
-    const intermediateToken1 =
-      firstToken0 === symbolA ? firstToken1 : firstToken0;
-
-    const poolsWithIntermediate1 = poolsAndFees.filter((pool) => {
-      const [token0, token1] = pool.pair.split("/");
-      return (
-        (token0 === intermediateToken1 || token1 === intermediateToken1) &&
-        pool.pair !== firstPool.pair
-      );
-    });
-
-    poolsWithIntermediate1.forEach((secondPool) => {
-      const [secondToken0, secondToken1] = secondPool.pair.split("/");
-      const intermediateToken2 =
-        secondToken0 === intermediateToken1 ? secondToken1 : secondToken0;
-
-      const thirdPool = poolsAndFees.find((pool) => {
-        const [thirdToken0, thirdToken1] = pool.pair.split("/");
-        return (
-          ((thirdToken0 === intermediateToken2 && thirdToken1 === symbolB) ||
-            (thirdToken0 === symbolB && thirdToken1 === intermediateToken2)) &&
-          pool.pair !== secondPool.pair
-        );
-      });
-
-      if (thirdPool) {
-        paths.push(firstPool, secondPool, thirdPool);
-      }
-    });
-
-    const directSecondPool = poolsAndFees.find((pool) => {
-      const [secondToken0, secondToken1] = pool.pair.split("/");
-      return (
-        ((secondToken0 === intermediateToken1 && secondToken1 === symbolB) ||
-          (secondToken0 === symbolB && secondToken1 === intermediateToken1)) &&
-        pool.pair !== firstPool.pair
-      );
-    });
-
-    if (directSecondPool) {
-      paths.push(firstPool, directSecondPool);
-    }
-  });
-
-  return paths;
-}
 
 export function usePools(
   poolKeys: [
@@ -186,32 +108,34 @@ export function usePools(
   const poolTokens: ([Token, Token, FeeAmount] | undefined)[] = useMemo(() => {
     if (!chainId) return new Array(poolKeys.length);
 
-    const [currencyA, currencyB] = poolKeys[0] || [];
-    if (!currencyA || !currencyB) return [];
+    return poolKeys.map(([currencyA, currencyB, feeAmount]) => {
+      if (currencyA && currencyB && feeAmount) {
+        const tokenA = currencyA.wrapped;
+        const tokenB = currencyB.wrapped;
+        if (tokenA.equals(tokenB)) return undefined;
 
-    const pools = getPoolInfo(currencyA, currencyB);
-    return pools.map((poolInfo) => {
-      const [token0Symbol, token1Symbol] = poolInfo.pair.split("/");
-      const token0 =
-        TOKEN_ADDRESSES[token0Symbol as keyof typeof TOKEN_ADDRESSES];
-      const token1 =
-        TOKEN_ADDRESSES[token1Symbol as keyof typeof TOKEN_ADDRESSES];
-      if (!token0 || !token1) return undefined;
-
-      const fee = poolInfo.fee as FeeAmount;
-      return token0.sortsBefore(token1)
-        ? [token0, token1, fee]
-        : [token1, token0, fee];
+        return tokenA.sortsBefore(tokenB)
+          ? [tokenA, tokenB, feeAmount]
+          : [tokenB, tokenA, feeAmount];
+      }
+      return undefined;
     });
   }, [chainId, poolKeys]);
 
-  const poolAddresses = useMemo(() => {
-    const [currencyA, currencyB] = poolKeys[0] || [];
-    if (!currencyA || !currencyB) return [];
+  const poolAddresses: (string | undefined)[] = useMemo(() => {
+    const poolDeployerAddress = chainId && POOL_DEPLOYER_ADDRESSES[chainId];
+    if (!poolDeployerAddress) return new Array(poolTokens.length);
 
-    const pools = getPoolInfo(currencyA, currencyB);
-    return pools.map((pool) => pool.pool);
-  }, [poolKeys]);
+    return poolTokens.map(
+      (value) =>
+        value &&
+        PoolCache.getPoolAddress(
+          V3_CORE_FACTORY_ADDRESSES[chainId],
+          V3_INIT_POOL_CODE_HASH[chainId],
+          ...value
+        )
+    );
+  }, [chainId, poolTokens]);
 
   const slot0s = useMultipleContractSingleData(
     poolAddresses,
