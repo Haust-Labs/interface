@@ -1,6 +1,8 @@
 import {Currency, Ether, NativeCurrency, Token} from '@uniswap/sdk-core'
 import { SupportedChainId } from 'constants/chains'
 import invariant from "tiny-invariant";
+import { Chain } from 'api/util'
+import { TokenStandard } from 'graphql/data/__generated__/types-and-hooks'
 
 export const NATIVE_CHAIN_ID = 'NATIVE'
 
@@ -107,7 +109,7 @@ class HaustTestnetNativeCurrency extends NativeCurrency {
 
   public constructor(chainId: number) {
     if (!isHaustTestnet(chainId)) throw new Error('Not haust testnet')
-    super(chainId, 18, 'HAUST', 'Haust Token')
+    super(chainId, 18, 'HAUST', 'Haust')
   }
 }
 

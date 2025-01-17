@@ -16,6 +16,7 @@ export type TabsSection = {
   isActive?: boolean
   items?: TabsItem[]
   closeMenu?: () => void
+  disabled?: boolean
 }
 
 export type TabsItem = MenuItem & {
@@ -52,6 +53,7 @@ export const useTabsContent = (): TabsSection[] => {
       title:'Explore',
       href: '/explore/tokens',
       isActive: pathname.startsWith('/explore'),
+      disabled: true,
       items: [
         { label: 'Tokens', quickKey: 'T', href: '/explore/tokens', internal: true },
         { label:'Pools', quickKey: 'P', href: '/explore/pools', internal: true },

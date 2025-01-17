@@ -20,19 +20,20 @@ const ItemContainer = styled.div`
   }
 `
 
-const TabText = styled.span<{ isActive?: boolean }>`
+const TabText = styled.span<{ isActive?: boolean; disabled?: boolean }>`
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: ${({ isActive, theme }) => (isActive ? theme.textPrimary : '#9B9B9B')};
+  color: ${({ isActive, disabled, theme }) => 
+    disabled ? '#9B9B9B' : isActive ? theme.textPrimary : '#9B9B9B'};
   font-size: 16px;
   font-weight: 485;
   border-radius: 8px;
   padding: 4px 14px;
-  cursor: pointer;
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
   &:hover {
-    color: ${({ theme }) => theme.textPrimary} !important;
+    color: ${({ theme, disabled }) => disabled ? '#9B9B9B' : theme.textPrimary} !important;
   }
 `
 
@@ -70,11 +71,13 @@ const Tab = ({
   isActive,
   path,
   items,
+  disabled,
 }: {
   label: string
   isActive?: boolean
   path: string
   items?: TabsItem[]
+  disabled?: boolean
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const parentRef = useRef<HTMLDivElement | null>(null)
@@ -108,13 +111,15 @@ const Tab = ({
     }, 100)
   }, [])
 
-  const Label = (
+  const Label = disabled ? (
+    <TabText isActive={isActive} disabled={disabled}>{label}</TabText>
+  ) : (
     <NavLink to={path} style={{ textDecoration: 'none' }}>
       <TabText isActive={isActive}>{label}</TabText>
     </NavLink>
   )
 
-  if (!items) {
+  if (!items || disabled) {
     return Label
   }
 
@@ -165,13 +170,14 @@ export function Tabs() {
   const tabsContent: TabsSection[] = useTabsContent()
   return (
     <>
-      {tabsContent.map(({ title, isActive, href, items }, index) => (
+      {tabsContent.map(({ title, isActive, href, items, disabled }, index) => (
         <Tab
           key={`${title}_${index}`}
           label={title}
           isActive={isActive}
           path={href}
           items={items}
+          disabled={disabled}
         />
       ))}
     </>

@@ -3,13 +3,12 @@ import blankTokenUrl from 'assets/svg/blank_token.svg'
 import { ReactComponent as UnknownStatus } from 'assets/svg/contract-interaction.svg'
 import { LogoImage, MissingImageLogo } from 'components/Logo/AssetLogo'
 import { Unicon } from 'components/Unicon'
-import { getChainInfo } from 'constants/chainInfo'
 import { SupportedChainId } from 'constants/chains'
 import useTokenLogoSource from 'hooks/useAssetLogoSource'
 import useENSAvatar from 'hooks/useENSAvatar'
 import React from 'react'
 import { Loader } from 'react-feather'
-import styled, { useTheme } from 'styled-components/macro'
+import styled from 'styled-components/macro'
 const UnknownContract = styled(UnknownStatus)`
   color: ${({ theme }) => theme.textSecondary};
 `
@@ -57,30 +56,6 @@ const ENSAvatarImg = styled.img`
   width: 40px;
 `
 
-const StyledChainLogo = styled.img`
-  height: 14px;
-  width: 14px;
-`
-
-const SquareChainLogo = styled.img`
-  height: 100%;
-  width: 100%;
-`
-
-const L2LogoContainer = styled.div<{ $backgroundColor?: string }>`
-  background-color: ${({ $backgroundColor }) => $backgroundColor};
-  border-radius: 50%;
-  height: 16px;
-  left: 60%;
-  position: absolute;
-  top: 60%;
-  outline: 2px solid ${({ theme }) => theme.backgroundSurface};
-  width: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`
-
 /**
  * Renders an image by prioritizing a list of sources, and then eventually a fallback triangle alert
  */
@@ -92,10 +67,7 @@ export function PortfolioLogo({
   size = '40px',
   style,
 }: MultiLogoProps) {
-  const { squareLogoUrl, logoUrl } = getChainInfo(SupportedChainId.HAUST_TESTNET)
-  const chainLogo = squareLogoUrl ?? logoUrl
   const { avatar, loading } = useENSAvatar(accountAddress, false)
-  const theme = useTheme()
 
   const [src, nextSrc] = useTokenLogoSource(currencies?.[0]?.wrapped.address, chainId, currencies?.[0]?.isNative)
   const [src2, nextSrc2] = useTokenLogoSource(currencies?.[1]?.wrapped.address, chainId, currencies?.[1]?.isNative)
@@ -141,21 +113,9 @@ export function PortfolioLogo({
     return <UnknownContract width={size} height={size} />
   }
 
-  const L2Logo =
-    chainId !== SupportedChainId.HAUST && chainLogo ? (
-      <L2LogoContainer $backgroundColor={squareLogoUrl ? theme.backgroundSurface : theme.textPrimary}>
-        {squareLogoUrl ? (
-          <SquareChainLogo src={chainLogo} alt="chainLogo" />
-        ) : (
-          <StyledChainLogo src={chainLogo} alt="chainLogo" />
-        )}
-      </L2LogoContainer>
-    ) : null
-
   return (
     <StyledLogoParentContainer>
       {component}
-      {L2Logo}
     </StyledLogoParentContainer>
   )
 }
