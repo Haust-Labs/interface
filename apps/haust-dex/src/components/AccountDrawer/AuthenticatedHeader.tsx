@@ -24,6 +24,7 @@ import { ActionTile } from './ActionTile'
 import IconButton, {IconHoverText} from './IconButton'
 import { MiniPortfolio } from './MiniPortfolio'
 import { portfolioFadeInAnimation } from './MiniPortfolio/PortfolioRow'
+import { isSupportedChain } from 'constants/chains'
 
 const AuthenticatedHeaderWrapper = styled.div`
   padding: 20px 16px;
@@ -100,7 +101,7 @@ export function PortfolioArrow({ change, ...rest }: { change: number } & IconPro
 }
 
 export default function AuthenticatedHeader({ account, openSettings }: { account: string; openSettings: () => void }) {
-  const { connector, ENSName } = useWeb3React()
+  const { connector, ENSName, chainId } = useWeb3React()
   const dispatch = useAppDispatch()
   const openReceiveModal = useOpenModal(ApplicationModal.RECEIVE_CRYPTO)
 
@@ -160,18 +161,22 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
           <FadeInColumn gap="xs">
             <HeadlineText 
               data-testid="portfolio-total-balance"
-              isLarge={formatLargeBalance(totalBalance).isLarge}
+              isLarge={!isSupportedChain(chainId) ? formatLargeBalance(totalBalance).isLarge : true}
             >
-              {formatNumber(totalBalance, NumberType.PortfolioBalance)}
+              {!isSupportedChain(chainId) 
+                ? formatNumber(0, NumberType.PortfolioBalance)
+                : formatNumber(totalBalance, NumberType.PortfolioBalance)}
             </HeadlineText>
             <AutoRow marginBottom="20px">
                 <>
-                  <DeltaArrow delta={absoluteChange} />
+                  <DeltaArrow delta={!isSupportedChain(chainId) ? absoluteChange : 0} />
                   <ThemedText.BodySecondary>
-                    {`${formatNumber(
-                      Math.abs(absoluteChange as number),
-                      NumberType.PortfolioBalance,
-                    )} (${formatDelta(percentChange)})`}
+                    {!isSupportedChain(chainId) 
+                      ? `${formatNumber(
+                          Math.abs(absoluteChange as number),
+                          NumberType.PortfolioBalance,
+                        )} (${formatDelta(percentChange)})`
+                      : `${formatNumber(0, NumberType.PortfolioBalance)} (${formatDelta(0)})`}
                   </ThemedText.BodySecondary>
                 </>
             </AutoRow>

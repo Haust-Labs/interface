@@ -1,8 +1,6 @@
 import {Currency, Ether, NativeCurrency, Token} from '@uniswap/sdk-core'
 import { SupportedChainId } from 'constants/chains'
 import invariant from "tiny-invariant";
-import { Chain } from 'api/util'
-import { TokenStandard } from 'graphql/data/__generated__/types-and-hooks'
 
 export const NATIVE_CHAIN_ID = 'NATIVE'
 
@@ -117,7 +115,7 @@ class ExtendedEther extends Ether {
   public get wrapped(): Token {
     const wrapped = WRAPPED_NATIVE_CURRENCY[this.chainId]
     if (wrapped) return wrapped
-    throw new Error(`Unsupported chain ID: ${this.chainId}`)
+    return new Token(this.chainId, '0x314e5d40a123F4Efdb096bB716767C905A7DcA97', 18, 'WHAUST', 'Wrapped Haust')
   }
 
   private static _cachedExtendedEther: { [chainId: number]: NativeCurrency } = {}

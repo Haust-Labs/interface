@@ -128,6 +128,7 @@ export const colors = {
   networkBsc: "#F0B90B",
   networkPolygonSoft: "rgba(164, 87, 255, 0.16)",
   networkEthereumSoft: "rgba(98, 126, 234, 0.16)",
+  frontrunWarning: "#FFEC46",
 };
 
 type Theme = typeof darkTheme;
@@ -225,6 +226,7 @@ export const darkTheme = {
 
   searchBackground: colors.neutralLight,
   searchOutline: `rgba(255,255,255,0.1)`,
+  attention: colors.frontrunWarning,
 };
 
 export const lightTheme: Theme = {
@@ -285,4 +287,5 @@ export const lightTheme: Theme = {
 
   searchBackground: opacify(4, colors.white),
   searchOutline: opacify(1, colors.black),
+  attention: colors.frontrunWarning,
 };

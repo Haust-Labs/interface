@@ -16,16 +16,16 @@ import { useToggleAccountDrawer } from '../..'
 import { hideSmallBalancesAtom } from '../../SmallBalanceToggle'
 import { PortfolioLogo } from '../PortfolioLogo'
 import PortfolioRow, { PortfolioSkeleton, PortfolioTabWrapper } from '../PortfolioRow'
+import { useWeb3React } from '@web3-react/core'
+import { isSupportedChain } from 'constants/chains'
 
 const HIDE_SMALL_USD_BALANCES_THRESHOLD = 0.00000000000000001
-
 interface TokenBalanceData {
   balance: number
   balanceUSD: number
   priceChange: number
   timestamp: number
 }
-
 const SkeletonOverlay = styled.div`
   position: absolute;
   top: 0;
@@ -47,6 +47,7 @@ export default function Tokens({ totalBalance }: { totalBalance?: number }) {
   const tokens = useDefaultActiveTokens()
   const nativeCurrency = useNativeCurrency()
   const [isLoading, setIsLoading] = useState(isFirstLoad)
+  const { chainId } = useWeb3React()
 
   const tokensList = useMemo(() => 
     [nativeCurrency, ...Object.values(tokens)],
@@ -69,6 +70,10 @@ export default function Tokens({ totalBalance }: { totalBalance?: number }) {
   const handleTokenLoaded = useCallback((tokenId: string) => {
     setLoadedTokens(prev => new Set([...prev, tokenId]))
   }, [])
+
+  if (chainId && !isSupportedChain(chainId)) {
+    return <EmptyWalletModule type="chain" onNavigateClick={toggleWalletDrawer} />
+  }
 
   if (!totalBalance && totalBalance === 0) {
     return <EmptyWalletModule type="token" onNavigateClick={toggleWalletDrawer} />

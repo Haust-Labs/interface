@@ -26,17 +26,11 @@ export default function FailedNetworkSwitchPopup({ chainId }: { chainId: Support
   const chainInfo = getChainInfo(chainId)
 
   return (
-    <RowNoFlex gap="12px">
-      <PopupAlertTriangle />
-      <ColumnContainer gap="sm">
-        <ThemedText.SubHeader color="textSecondary">
-          <Trans>Failed to switch networks</Trans>
-        </ThemedText.SubHeader>
-
+    <RowNoFlex gap="5px">
+        <PopupAlertTriangle />
         <ThemedText.BodySmall color="textSecondary">
           <Trans>To use Haust DEX on {chainInfo.label}, switch the network in your wallet’s settings.</Trans>
         </ThemedText.BodySmall>
-      </ColumnContainer>
     </RowNoFlex>
   )
 }

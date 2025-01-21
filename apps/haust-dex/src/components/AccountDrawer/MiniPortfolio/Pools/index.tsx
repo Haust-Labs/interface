@@ -4,7 +4,7 @@ import { useWeb3React } from '@web3-react/core'
 import { useToggleAccountDrawer } from 'components/AccountDrawer'
 import RangeBadge from 'components/Badge/RangeBadge'
 import Row from 'components/Row'
-import { SupportedChainId } from 'constants/chains'
+import { isSupportedChain, SupportedChainId } from 'constants/chains'
 import { useToken } from 'hooks/Tokens'
 import { usePool } from 'hooks/usePools'
 import { useV3Positions } from 'hooks/useV3Positions'
@@ -24,6 +24,7 @@ import { getPriceOrderingFromPositionForUI } from 'components/PositionListItem'
 export default function Pools({ account }: { account: string }) {
   const { positions, loading: positionsLoading } = useV3Positions(account)
   const [showClosed, toggleShowClosed] = useReducer((showClosed) => !showClosed, false)
+  const { chainId } = useWeb3React()
 
   const [openPositions, closedPositions] = positions?.reduce<[PositionDetails[], PositionDetails[]]>(
     (acc, p) => {
@@ -34,6 +35,10 @@ export default function Pools({ account }: { account: string }) {
   ) ?? [[], []]
 
   const toggleWalletDrawer = useToggleAccountDrawer()
+
+  if (chainId && !isSupportedChain(chainId)) {
+    return <EmptyWalletModule type="chain" onNavigateClick={toggleWalletDrawer} />
+  }
 
   if (positionsLoading) {
     return <PortfolioSkeleton />

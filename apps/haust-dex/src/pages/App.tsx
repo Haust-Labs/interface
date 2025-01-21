@@ -99,7 +99,7 @@ export default function App() {
 
   useEffect(() => {
     if (chainId && !isSupportedChain(chainId)) {
-      addPopup({ failedSwitchNetwork: SupportedChainId.HAUST_TESTNET }, '97', 5000)
+      addPopup({ failedSwitchNetwork: SupportedChainId.HAUST_TESTNET }, '97', 10000)
     }
   }, [addPopup, chainId]);
 

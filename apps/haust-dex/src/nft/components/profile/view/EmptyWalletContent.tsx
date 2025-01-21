@@ -43,12 +43,12 @@ const ActionButton = styled(ButtonPrimary)`
 `
 
 type EmptyWalletContent = {
-  title: React.ReactNode
+  title?: React.ReactNode
   subtitle: React.ReactNode
   actionText?: React.ReactNode
   urlPath?: string
 }
-type EmptyWalletContentType = 'nft' | 'token' | 'activity' | 'pool'
+type EmptyWalletContentType = 'nft' | 'token' | 'activity' | 'pool' | 'chain'
 const EMPTY_WALLET_CONTENT: { [key in EmptyWalletContentType]: EmptyWalletContent } = {
   nft: {
     title: <Trans>No NFTs yet</Trans>,
@@ -70,6 +70,9 @@ const EMPTY_WALLET_CONTENT: { [key in EmptyWalletContentType]: EmptyWalletConten
     actionText: <Trans>+ New position</Trans>,
     urlPath: '/pool',
   },
+  chain: {
+    subtitle: <Trans>To use Haust DEX switch the network in your wallet’s settings.</Trans>,
+  }
 }
 
 interface EmptyWalletContentProps {
