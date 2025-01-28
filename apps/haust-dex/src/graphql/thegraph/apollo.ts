@@ -5,9 +5,9 @@ import store from '../../state/index'
 
 const CHAIN_SUBGRAPH_URL: Record<number, string> = {
   // TODO: change subgraph path when mainnet is ready
-  [SupportedChainId.HAUST]: 'https://graph.wdev.haust.app/subgraphs/name/haust/uniswap-v3',
+  [SupportedChainId.HAUST]: 'https://graph.stage.haust.app/subgraphs/name/haust/uniswap-v3',
   [SupportedChainId.HAUST_TESTNET]:
-    'https://graph.wdev.haust.app/subgraphs/name/haust/uniswap-v3',
+    'https://graph.wdev.stage.app/subgraphs/name/haust/uniswap-v3',
 }
 
 const httpLink = new HttpLink({ uri: CHAIN_SUBGRAPH_URL[SupportedChainId.HAUST_TESTNET] })

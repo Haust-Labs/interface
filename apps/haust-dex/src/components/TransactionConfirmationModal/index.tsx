@@ -140,18 +140,20 @@ function TransactionSubmittedContent({
             <Trans>Transaction submitted</Trans>
           </ThemedText.MediumHeader>
           {currencyToAdd && connector.watchAsset && !currencyToAdd.isNative && (
-            <ButtonLight mt="12px" padding="6px 12px" width="fit-content" onClick={addToken}>
-              {!success ? (
+            !success ? (
+              <ButtonLight mt="12px" padding="6px 12px" width="fit-content" onClick={addToken}>
                 <RowFixed>
                   <Trans>Add {currencyToAdd.symbol}</Trans>
                 </RowFixed>
-              ) : (
+              </ButtonLight>
+            ) : (
+              <ThemedText.MediumHeader textAlign="center" marginTop="12px">
                 <RowFixed>
-                  <Trans>Added {currencyToAdd.symbol} </Trans>
+                  <Trans>Added {currencyToAdd.symbol}</Trans>
                   <CheckCircle size="16px" stroke={theme.accentSuccess} style={{ marginLeft: '6px' }} />
                 </RowFixed>
-              )}
-            </ButtonLight>
+              </ThemedText.MediumHeader>
+            )
           )}
           {chainId && hash && (
             <ExternalLink href={getExplorerLink(chainId, hash, ExplorerDataType.TRANSACTION)}>
