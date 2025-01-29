@@ -270,7 +270,7 @@ export function useSingleContractMultipleData(
   ? calls
   : [
       {
-        address: "0xf7FDb9d99Ff104dB82cc98DFd43602CCA4bB7c90",
+        address: "0x793c22920F95758603f8FBe14f61dC674CEe433f",
         callData:
           "0x70a082310000000000000000000000004384e516ebcd8870498be46bfbee557cba66f65c",
         gasRequired: 185000,

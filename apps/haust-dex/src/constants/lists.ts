@@ -14,7 +14,7 @@ const GEMINI_LIST = 'https://www.gemini.com/uniswap/manifest.json'
 const KLEROS_LIST = 't2crtokens.eth'
 const SET_LIST = 'https://raw.githubusercontent.com/SetProtocol/uniswap-tokenlist/main/set.tokenlist.json'
 const WRAPPED_LIST = 'wrapped.tokensoft.eth'
-export const HAUST_TOKENLIST = 'https://raw.githubusercontent.com/Haust-Labs/haust-dex-tokenlist/refs/heads/master/tokenlist.json'
+export const HAUST_TOKENLIST = 'https://raw.githubusercontent.com/Haust-Labs/haust-dex-tokenlist/test/tokenlist.json'
 
 export const UNSUPPORTED_LIST_URLS: string[] = [BA_LIST, UNI_UNSUPPORTED_LIST]
 

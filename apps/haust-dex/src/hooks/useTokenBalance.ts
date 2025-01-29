@@ -3,7 +3,8 @@ import { formatUnits } from "@ethersproject/units";
 import { useWeb3React } from "@web3-react/core";
 import ERC20_ABI from "abis/erc20.json";
 import useCurrencyLogoURIs from "lib/hooks/useCurrencyLogoURIs";
-import { useCallback,useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { generateBearerToken } from "utils/generateBearerToken";
 
 export interface TokenBalance {
   chainId: number;
@@ -30,12 +31,15 @@ export function useTokenBalance(token: any) {
   const { account, provider } = useWeb3React();
   const [balance, setBalance] = useState<TokenBalance | null>(null);
   const [loading, setLoading] = useState(true);
+  const nonce = Date.now().toString();
+  const authToken = generateBearerToken(nonce);
 
   const logoURI = useCurrencyLogoURIs(token)[0];
   const getBalance = useCallback(async () => {
     if (!account || !provider || !token) return;
 
     try {
+      // Get token balance with error handling
       let tokenBalance = "0";
       try {
         if (token.isNative) {
@@ -49,12 +53,17 @@ export function useTokenBalance(token: any) {
       } catch (error) {
         console.error("Error fetching token balance:", error);
       }
-      console.log("tokenBalance", tokenBalance, token.symbol, token.decimals)
       // Get prices with error handling
       let prices: TokenPrice[] = [];
       try {
         const pricesResponse = await fetch(
-          "https://entrypoint.stage.haust.app/v1/fiat_prices"
+          "https://entrypointv02.wdev.haust.app/v1/fiat_prices",
+          {
+            headers: {
+              "X-Haust-Wallet-Version": "0.1",
+              Authorization: authToken,
+            },
+          }
         );
         prices = await pricesResponse.json();
       } catch (error) {
@@ -65,18 +74,26 @@ export function useTokenBalance(token: any) {
       let tokenDetails = [];
       try {
         const detailsResponse = await fetch(
-          "https://entrypoint.stage.haust.app/v1/tokens/details/?lang=EN"
+          "https://entrypointv02.wdev.haust.app/v1/tokens/details/?lang=EN",
+          {
+            headers: {
+              "X-Haust-Wallet-Version": "0.1",
+              Authorization: authToken,
+            },
+          }
         );
         tokenDetails = await detailsResponse.json();
       } catch (error) {
         console.error("Error fetching token details:", error);
       }
-      
+
       const tokenDetail = tokenDetails.find((detail: any) => {
         if (token.symbol === "WHAUST" || token.isNative) {
           return detail.token_id === 5;
         }
-        return detail.token_address?.toLowerCase() === token.address.toLowerCase();
+        return (
+          detail.token_address?.toLowerCase() === token.address.toLowerCase()
+        );
       });
 
       // Get midnight data and calculate price change with error handling
@@ -87,28 +104,37 @@ export function useTokenBalance(token: any) {
             `https://entrypointv02.wdev.haust.app/v1/account/${account}/balance_midnight`,
             {
               headers: {
-                'X-Haust-Wallet-Version': '0.1'
-              }
+                "X-Haust-Wallet-Version": "0.1",
+                Authorization: authToken,
+              },
             }
           );
           const midnightData = await midnightResponse.json();
-          
-          const midnightPrice = midnightData.find((item: any) => item.id === tokenDetail.token_id);
-          
+          const midnightPrice = midnightData.find(
+            (item: any) => item.id === tokenDetail.token_id
+          );
+
           if (midnightPrice) {
-            const midnightPriceValue = parseInt(midnightPrice.usd_price_midnight, 16) / 
+            const midnightPriceValue =
+              Number(midnightPrice.usd_price_midnight) /
               Math.pow(10, midnightPrice.usd_price_decimals);
-            
             const priceData = prices.find((p) => {
               if (token.symbol === "WHAUST" || token.isNative) {
                 return p.token.symbol === "HAUST";
               }
-              return p.token.address?.toLowerCase() === token.address.toLowerCase();
+              return (
+                p.token.address?.toLowerCase() === token.address.toLowerCase()
+              );
             });
 
+
             if (priceData) {
-              const currentPrice = Number(priceData.price) / Math.pow(10, priceData.price_decimals);
-              priceChange = ((currentPrice - midnightPriceValue) / midnightPriceValue) * 100;
+              const currentPrice =
+                Number(priceData.price) /
+                Math.pow(10, priceData.price_decimals);
+              priceChange =
+                ((currentPrice - midnightPriceValue) / midnightPriceValue) *
+                100;
             }
           }
         } catch (error) {
@@ -122,11 +148,13 @@ export function useTokenBalance(token: any) {
         if (token.symbol === "WHAUST" || token.isNative) {
           return p.token.symbol === "HAUST";
         }
+        
         return p.token.address?.toLowerCase() === token.address.toLowerCase();
       });
 
       if (priceData) {
-        tokenPrice = Number(priceData.price) / Math.pow(10, priceData.price_decimals);
+        tokenPrice =
+          Number(priceData.price) / Math.pow(10, priceData.price_decimals);
       }
 
       setBalance({
@@ -159,6 +187,7 @@ export function useTokenBalance(token: any) {
     }
   }, [account, provider, token, logoURI]);
 
+  // Expose refetch function
   const refetch = useCallback(() => {
     getBalance();
   }, [getBalance]);

@@ -169,9 +169,9 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
             </HeadlineText>
             <AutoRow marginBottom="20px">
                 <>
-                  <DeltaArrow delta={!isSupportedChain(chainId) ? absoluteChange : 0} />
+                  <DeltaArrow delta={isSupportedChain(chainId) ? absoluteChange : 0} />
                   <ThemedText.BodySecondary>
-                    {!isSupportedChain(chainId) 
+                    {isSupportedChain(chainId) 
                       ? `${formatNumber(
                           Math.abs(absoluteChange as number),
                           NumberType.PortfolioBalance,

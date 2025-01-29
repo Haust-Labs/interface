@@ -7,7 +7,7 @@
  * Because this is not explicitly derived from @uniswap/sdk-core, there is a unit test to enforce conformance.
  */
 export enum SupportedChainId {
-  HAUST_TESTNET = 1570754601,
+  HAUST_TESTNET = 1523903251,
   // TODO: add chain id when mainnet is ready
   HAUST = 0,
 }
