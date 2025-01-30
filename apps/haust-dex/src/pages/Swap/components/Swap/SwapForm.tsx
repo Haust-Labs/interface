@@ -652,7 +652,7 @@ export default function SwapForm({ className }: { className?: string }) {
                     <Trans>Insufficient liquidity for this trade.</Trans>
                   </ThemedText.DeprecatedMain>
                 </GrayCard>
-              ) : isValid && allowance.state === AllowanceState.REQUIRED ? (
+              ) : isValid && allowance.state === AllowanceState.REQUIRED && trade ? (
                 <ButtonPrimary
                   onClick={updateAllowance}
                   disabled={isAllowancePending || isApprovalLoading}
