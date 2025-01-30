@@ -95,7 +95,7 @@ export const gnosisSafeConnection: Connection = {
 
 export const walletConnectV2Connection: Connection = new (class implements Connection {
   // TODO: change to mainnet when it is ready
-  private initializer = (actions: Actions, defaultChainId = ChainId.HAUST_TESTNET) =>
+  private initializer = (actions: Actions, defaultChainId = SupportedChainId.HAUST_TESTNET) =>
     new WalletConnectV2({ actions, defaultChainId, onError })
 
   type = ConnectionType.WALLET_CONNECT_V2
