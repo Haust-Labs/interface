@@ -320,13 +320,6 @@ export default function SendCurrencyInputPanel({
                   </RowFixed>
               </StyledTokenName>
             </RowFixed>
-            <FiatRow>
-              <RowBetween>
-                <LoadingOpacityContainer $loading={loading}>
-                  <FiatValue fiatValue={fiatValue} priceImpact={priceImpact} />
-                </LoadingOpacityContainer>
-              </RowBetween>
-            </FiatRow>
             <div>
               {showMaxButton && selectedCurrencyBalance ? (
                 <StyledBalanceMax

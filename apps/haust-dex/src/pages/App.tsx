@@ -54,7 +54,7 @@ const MobileBottomBar = styled.div`
   left: 0;
   width: 100vw;
   justify-content: space-between;
-  padding: 4px 8px;
+  padding: 8px 8px;
   height: ${({ theme }) => theme.mobileBottomBarHeight}px;
   background: ${({ theme }) => theme.backgroundModule};
   border-top: 1px solid ${({ theme }) => theme.backgroundOutline};

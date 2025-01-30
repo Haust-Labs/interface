@@ -87,14 +87,9 @@ export function useUniversalRouterSwapCallback(
             .getSigner()
             .sendTransaction({ ...tx, gasLimit })
             .then((response) => {
-              if (tx.data !== response.data) {
-                throw new ModifiedSwapError()
-              }
               return response
             })
         } catch (swapError: unknown) {
-          if (swapError instanceof ModifiedSwapError) throw swapError
-
           // Cancellations are not failures, and must be accounted for as 'cancelled'.
           if (didUserReject(swapError)) setTraceStatus('cancelled')
 

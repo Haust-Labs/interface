@@ -21,5 +21,5 @@ export const FALLBACK_URLS = {
  */
 export const RPC_URLS = {
   [SupportedChainId.HAUST]: ['https://bsc-dataseed.binance.org', ...FALLBACK_URLS[SupportedChainId.HAUST]],
-  [SupportedChainId.HAUST_TESTNET]: ['https://haust-testnet-rpc.eu-north-2.gateway.fm', ...FALLBACK_URLS[SupportedChainId.HAUST_TESTNET]],
+  [SupportedChainId.HAUST_TESTNET]: ['https://rpc-testnet.haust.app', ...FALLBACK_URLS[SupportedChainId.HAUST_TESTNET]],
 }
