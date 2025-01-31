@@ -20,6 +20,8 @@ import { useWeb3React } from '@web3-react/core'
 import { isSupportedChain } from 'constants/chains'
 
 const HIDE_SMALL_USD_BALANCES_THRESHOLD = 0.00000000000000001
+const PREFERRED_TOKENS_ORDER = ['HAUST', 'WHAUST', 'USDT', 'USDC', 'WBTC', 'WETH']
+
 interface TokenBalanceData {
   balance: number
   balanceUSD: number
@@ -49,11 +51,25 @@ export default function Tokens({ totalBalance }: { totalBalance?: number }) {
   const [isLoading, setIsLoading] = useState(isFirstLoad)
   const { chainId } = useWeb3React()
 
-  const tokensList = useMemo(() => 
-    [nativeCurrency, ...Object.values(tokens)],
-    [nativeCurrency, tokens]
-  )
+  const tokensList = useMemo(() => {
+    const allTokens = [nativeCurrency, ...Object.values(tokens)]
 
+    return allTokens
+      .filter(Boolean)
+      .sort((a, b) => {
+        const aSymbol = (a as Token | NativeCurrency).symbol
+        const bSymbol = (b as Token | NativeCurrency).symbol
+        const aIndex = PREFERRED_TOKENS_ORDER.indexOf(aSymbol ?? '')
+        const bIndex = PREFERRED_TOKENS_ORDER.indexOf(bSymbol ?? '')
+        
+        if (aIndex !== -1 && bIndex !== -1) {
+          return aIndex - bIndex
+        }
+        if (aIndex !== -1) return -1
+        if (bIndex !== -1) return 1
+        return 0
+      })
+  }, [nativeCurrency, tokens])
   const [loadedTokens, setLoadedTokens] = useState<Set<string>>(new Set())
   
   useEffect(() => {

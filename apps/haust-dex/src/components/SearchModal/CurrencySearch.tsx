@@ -28,7 +28,7 @@ import CurrencyList from './CurrencyList'
 import { PaddedColumn, SearchInput, Separator } from './styleds'
 
 const ContentWrapper = styled(Column)`
-  background-color: ${({ theme }) => theme.backgroundSurface};
+  background-color: ${({ theme }) => theme.backgroundModule};
   width: 100%;
   overflow: hidden;
   flex: 1 1;
@@ -47,6 +47,8 @@ interface CurrencySearchProps {
   disableNonToken?: boolean
   onlyShowCurrenciesWithBalance?: boolean
 }
+
+const PREFERRED_TOKENS_ORDER = ['HAUST', 'WHAUST', 'USDT', 'USDC', 'WBTC', 'WETH']
 
 export function CurrencySearch({
  selectedCurrency,
@@ -145,7 +147,26 @@ export function CurrencySearch({
     const natives = (
       disableNonToken || native.equals(wrapped) ? [wrapped] : shouldShowWrapped ? [native, wrapped] : [native]
     ).filter((n) => n.symbol?.toLowerCase()?.indexOf(s) !== -1 || n.name?.toLowerCase()?.indexOf(s) !== -1)
-    return sortArrayByUnique([...natives, ...tokens], JSON.stringify)
+
+    const allTokens = sortArrayByUnique([...natives, ...tokens], JSON.stringify)
+    
+    return allTokens.sort((a: Token, b: Token) => {
+      const symbolA = a.symbol?.toUpperCase() || ''
+      const symbolB = b.symbol?.toUpperCase() || ''
+      
+      const indexA = PREFERRED_TOKENS_ORDER.indexOf(symbolA)
+      const indexB = PREFERRED_TOKENS_ORDER.indexOf(symbolB)
+      
+      if (indexA !== -1 && indexB !== -1) {
+        return indexA - indexB
+      }
+      
+      if (indexA !== -1) return -1
+      
+      if (indexB !== -1) return 1
+      
+      return 0
+    })
   }, [debouncedQuery, filteredSortedTokens, onlyShowCurrenciesWithBalance, balancesAreLoading, balances, wrapped, disableNonToken, native])
 
   const handleCurrencySelect = useCallback(

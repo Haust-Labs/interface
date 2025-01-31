@@ -36,11 +36,11 @@ export const SearchInput = styled.input`
   align-items: center;
   width: 100%;
   white-space: nowrap;
-  background-color: ${({ theme }) => theme.backgroundModule};
+  background-color: ${({ theme }) => theme.backgroundFloating};
   outline: none;
-  border-radius: 12px;
+  border-radius: 20px;
   color: ${({ theme }) => theme.textPrimary};
-  border: 1px solid ${({ theme }) => theme.borderPrimary};
+  border: 1px solid ${({ theme }) => theme.neutralBorder};
   -webkit-appearance: none;
 
   font-size: 16px;
@@ -52,7 +52,7 @@ export const SearchInput = styled.input`
   transition: border 100ms;
   :focus {
     border: 1px solid ${({ theme }) => theme.accentActiveSoft};
-    background-color: ${({ theme }) => theme.backgroundSurface};
+    background-color: ${({ theme }) => theme.backgroundFloating};
     outline: none;
   }
 `

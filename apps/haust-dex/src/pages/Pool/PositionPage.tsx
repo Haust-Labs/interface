@@ -111,7 +111,7 @@ const ExtentsText = styled.span`
 
 const HoverText = styled(ThemedText.DeprecatedMain)`
   text-decoration: none;
-  color: ${({ theme }) => theme.textTertiary};
+  color: ${({ theme }) => theme.textSecondary};
   :hover {
     color: ${({ theme }) => theme.textPrimary};
     text-decoration: none;
@@ -701,7 +701,7 @@ function PositionPageContent() {
               {ownsNFT && (
                 <ActionButtonResponsiveRow>
                   {currency0 && currency1 && feeAmount && tokenId ? (
-                    <ButtonGray
+                    <SmallButtonPrimary
                       as={Link}
                       to={`/increase/${currencyId(currency0)}/${currencyId(currency1)}/${feeAmount}/${tokenId}`}
                       padding="6px 8px"
@@ -710,7 +710,7 @@ function PositionPageContent() {
                       style={{ marginRight: '8px' }}
                     >
                       <Trans>Increase Liquidity</Trans>
-                    </ButtonGray>
+                    </SmallButtonPrimary>
                   ) : null}
                   {tokenId && !removed ? (
                     <SmallButtonPrimary
