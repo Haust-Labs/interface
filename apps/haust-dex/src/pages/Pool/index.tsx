@@ -16,6 +16,7 @@ import { ThemedText } from 'theme'
 import { PositionDetails } from 'types/position'
 
 import { LoadingRows } from './styleds'
+import { isSupportedChainId } from 'lib/hooks/routing/clientSideSmartOrderRouter'
 
 const PageWrapper = styled(AutoColumn)`
   padding: 68px 8px 0;
@@ -158,11 +159,12 @@ function WrongNetworkCard() {
 }
 
 export default function Pool() {
-  const { account } = useWeb3React()
+  const { account, chainId } = useWeb3React()
   const toggleWalletDrawer = useToggleAccountDrawer()
   const theme = useTheme()
   const [userHideClosedPositions, setUserHideClosedPositions] = useUserHideClosedPositions()
   const { positions, loading: positionsLoading } = useV3Positions(account)
+  
 
   const [openPositions, closedPositions] = positions?.reduce<[PositionDetails[], PositionDetails[]]>(
     (acc, p) => {
@@ -176,6 +178,10 @@ export default function Pool() {
     () => [...openPositions, ...(userHideClosedPositions ? [] : closedPositions)],
     [closedPositions, openPositions, userHideClosedPositions]
   )
+
+  if (chainId && !isSupportedChainId(chainId)) {
+    return <WrongNetworkCard />
+  }
 
   if (!account) {
     return (
