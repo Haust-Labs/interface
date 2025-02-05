@@ -28,7 +28,7 @@ export function useUSDPrice(currencyAmount?: CurrencyAmount<Currency>): {
         const nonce = Date.now().toString();
         const authToken = generateBearerToken(nonce);
         const pricesResponse = await fetch(
-          "https://entrypointv02.wdev.haust.app/v1/fiat_prices",
+          "https://entrypointv02.stage.haust.app/v1/fiat_prices",
           {
             headers: {
               "X-Haust-Wallet-Version": "0.1",
