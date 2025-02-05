@@ -7,7 +7,7 @@ import PositionList from 'components/PositionList'
 import { RowBetween, RowFixed } from 'components/Row'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
 import { useV3Positions } from 'hooks/useV3Positions'
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import { AlertTriangle, Inbox } from 'react-feather'
 import { Link } from 'react-router-dom'
 import { useUserHideClosedPositions } from 'state/user/hooks'
@@ -163,18 +163,6 @@ export default function Pool() {
   const toggleWalletDrawer = useToggleAccountDrawer()
   const theme = useTheme()
   const [userHideClosedPositions, setUserHideClosedPositions] = useUserHideClosedPositions()
-  
-  // Добавляем состояние для принудительного обновления
-  const [, setForceUpdate] = useState(0)
-
-  // Добавляем интервал обновления
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setForceUpdate(prev => prev + 1)
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [])
 
   const { positions, loading: positionsLoading } = useV3Positions(account)
   
