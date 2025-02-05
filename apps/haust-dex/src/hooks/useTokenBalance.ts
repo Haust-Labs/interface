@@ -57,7 +57,7 @@ export function useTokenBalance(token: any) {
       let prices: TokenPrice[] = [];
       try {
         const pricesResponse = await fetch(
-          "https://entrypointv02.wdev.haust.app/v1/fiat_prices",
+          "https://entrypointv02.testnet.haust.app/v1/fiat_prices",
           {
             headers: {
               "X-Haust-Wallet-Version": "0.1",
@@ -74,7 +74,7 @@ export function useTokenBalance(token: any) {
       let tokenDetails = [];
       try {
         const detailsResponse = await fetch(
-          "https://entrypointv02.wdev.haust.app/v1/tokens/details/?lang=EN",
+          "https://entrypointv02.testnet.haust.app/v1/tokens/details/?lang=EN",
           {
             headers: {
               "X-Haust-Wallet-Version": "0.1",
@@ -101,7 +101,7 @@ export function useTokenBalance(token: any) {
       if (tokenDetail && account) {
         try {
           const midnightResponse = await fetch(
-            `https://entrypointv02.wdev.haust.app/v1/account/${account}/balance_midnight`,
+            `https://entrypointv02.testnet.haust.app/v1/account/${account}/balance_midnight`,
             {
               headers: {
                 "X-Haust-Wallet-Version": "0.1",
