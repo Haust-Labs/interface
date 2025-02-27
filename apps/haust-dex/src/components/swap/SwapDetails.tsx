@@ -108,6 +108,10 @@ export function SwapDetails({
       return {
         buttonText: 'Sign and swap',
       }
+    } else if (disabledConfirm) {
+      return {
+        buttonText: 'Finalizing quote...',
+      }
     } else {
       return {
         buttonText: 'Confirm swap',

@@ -53,7 +53,7 @@ export default function Pools({ account }: { account: string }) {
     return <PortfolioSkeleton />
   }
 
-  if (!positions) {
+  if (!openPositions.length && !closedPositions.length) {
     return <EmptyWalletModule type="pool" onNavigateClick={toggleWalletDrawer} />
   }
 
