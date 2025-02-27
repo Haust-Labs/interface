@@ -5,7 +5,6 @@ import { RowBetween, RowFixed } from '../Row';
 import SettingsTab from '../Settings';
 
 const StyledSwapHeader = styled.div`
-padding: 10px 0px;
   margin-bottom: 8px;
   width: 100%;
   color: ${({ theme }) => theme.textSecondary};

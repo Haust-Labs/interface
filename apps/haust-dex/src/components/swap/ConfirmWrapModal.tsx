@@ -32,9 +32,9 @@ export default function ConfirmWrapModal({
 }: ConfirmWrapModalProps) {
   // text to show while loading
   const pendingText = useMemo(() => (
-    <div>
+    <Trans>
       {isWrap ? 'Wrapping' : 'Unwrapping'} {inputAmount?.toSignificant(6)} {inputAmount?.currency?.symbol}
-    </div>
+    </Trans>
   ), [isWrap, inputAmount])
 
   const modalBottom = useCallback(() => {
@@ -62,7 +62,6 @@ export default function ConfirmWrapModal({
       </div>
     )
   }, [inputAmount, isWrap, onConfirm, wrapErrorMessage])
-
   const confirmationContent = useCallback(
     () =>
       wrapErrorMessage ? (
@@ -72,24 +71,12 @@ export default function ConfirmWrapModal({
           title={<Trans>Confirm {isWrap ? 'Wrap' : 'Unwrap'}</Trans>}
           onDismiss={onDismiss}
           topContent={() => (
-            <div style={{ padding: '24px' }}>
-              <div style={{ marginBottom: '8px' }}>
-                <Trans>Amount</Trans>
-              </div>
-              <div style={{ fontSize: '24px', fontWeight: 500 }}>
-                {inputAmount?.toSignificant(6)} {inputAmount?.currency?.symbol}
-              </div>
-              {fiatValue?.data && (
-                <div style={{ fontSize: '14px', color: 'textSecondary' }}>
-                  ≈ ${fiatValue.data.toFixed(2)}
-                </div>
-              )}
-            </div>
+            <></>
           )}
           bottomContent={modalBottom}
         />
       ),
-    [wrapErrorMessage, onDismiss, isWrap, inputAmount, fiatValue, modalBottom]
+    [wrapErrorMessage, onDismiss, isWrap, modalBottom]
   )
 
   return (

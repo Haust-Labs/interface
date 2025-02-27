@@ -19,15 +19,17 @@ import Option from './Option'
 
 const Wrapper = styled.div`
   ${flexColumnNoWrap};
-  background-color: ${({ theme }) => theme.backgroundSurface};
+  background-color: ${({ theme }) => theme.backgroundModule};
   width: 100%;
   padding: 14px 16px 16px;
   flex: 1;
+  border-radius: 12px;
+  border: 1px solid ${({ theme }) => theme.neutralBorder};
 `
 
 const OptionGrid = styled.div`
   display: grid;
-  grid-gap: 2px;
+  grid-gap: 4px;
   border-radius: 12px;
   overflow: hidden;
   ${({ theme }) => theme.deprecated_mediaWidth.deprecated_upToMedium`
@@ -101,27 +103,41 @@ export default function WalletModal() {
 
   const tryActivation = useCallback(
     async (connection: Connection) => {
-      // Skips wallet connection if the connection should override the default behavior, i.e. install metamask or launch coinbase app
+      // Skips wallet connection if the connection should override the default behavior
       if (connection.overrideActivate?.()) return
 
       try {
         setPendingConnection(connection)
         setPendingError(undefined)
 
+        if (!connection.connector) {
+          throw new Error('Connector not initialized')
+        }
+
         await connection.connector.activate()
         console.debug(`connection activated: ${connection.getName()}`)
         dispatch(updateSelectedWallet({ wallet: connection.type }))
         if (drawerOpenRef.current) toggleWalletDrawer()
-      } catch (error) {
-        console.debug(`web3-react connection error: ${JSON.stringify(error)}`)
-        if (didUserReject(connection, error)) {
+      } catch (error: any) {
+        console.debug('Wallet connection error:', {
+          connectionType: connection.type,
+          error: error?.message || error,
+          chainId,
+          connector: connection.connector ? 'initialized' : 'not initialized'
+        })
+
+        if (error?.message?.includes('Unsupported chain') || error === 'Unsupported chains') {
+          setPendingError(new Error('Please connect to a supported network. Check your wallet network settings.'))
+        } else if (didUserReject(connection, error)) {
           setPendingConnection(undefined)
+        } else if (!connection.connector) {
+          setPendingError(new Error('Wallet connection not initialized. Please try again.'))
         } else {
           setPendingError(error)
         }
       }
     },
-    [dispatch, setPendingError, toggleWalletDrawer]
+    [dispatch, setPendingError, toggleWalletDrawer, chainId]
   )
 
   return (

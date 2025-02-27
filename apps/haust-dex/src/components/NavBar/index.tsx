@@ -7,7 +7,7 @@ import { Row } from 'nft/components/Flex'
 import { HaustDexLogo} from 'nft/components/icons'
 import { useProfilePageState } from 'nft/hooks'
 import { ProfilePageStateType } from 'nft/types'
-import { ReactNode } from 'react'
+import { ReactNode, useState, useEffect } from 'react'
 import { NavLink, NavLinkProps, useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components/macro'
 
@@ -17,11 +17,22 @@ import { SearchBar } from './SearchBar'
 import * as styles from './style.css'
 import { Tabs } from './Tabs/Tabs'
 
-const Nav = styled.nav`
-  padding: 20px 12px;
+const Nav = styled.nav<{ $scrolled: boolean }>`
+  padding: ${({ $scrolled }) => ($scrolled ? '12px' : '20px 12px')};
   width: 100%;
   height: ${({ theme }) => theme.navHeight}px;
-  z-index: 2;
+  z-index: 5;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  transition: all 0.2s ease;
+  background: ${({ $scrolled, theme }) => 
+    $scrolled ? theme.background : 'transparent'};
+  box-shadow: ${({ $scrolled }) => 
+    $scrolled ? '0 2px 8px rgba(0, 0, 0, 0.15)' : 'none'};
+  border-bottom: ${({ $scrolled, theme }) =>
+    $scrolled ? `0.5px solid ${theme.neutralBorder}` : 'none'};
 `
 
 interface MenuItemProps {
@@ -67,14 +78,23 @@ export const PageTabs = () => {
 }
 
 const Navbar = ({ blur }: { blur: boolean }) => {
-  const isNftPage = useIsNftPage()
-  const sellPageState = useProfilePageState((state) => state.state)
   const navigate = useNavigate()
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 20
+      setScrolled(isScrolled)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   return (
     <>
       {blur && <Blur />}
-      <Nav>
+      <Nav $scrolled={scrolled}>
         <Box display="flex" height="full" flexWrap="nowrap">
           <Box className={styles.leftSideContainer}>
             <Box className={styles.logoContainer}>
@@ -99,7 +119,6 @@ const Navbar = ({ blur }: { blur: boolean }) => {
               <Box position="relative" display={{ sm: 'flex', navSearchInputVisible: 'none' }}>
                 <SearchBar />
               </Box>
-              {isNftPage && sellPageState !== ProfilePageStateType.LISTING && <Bag />}
               <Web3Status />
             </Row>
           </Box>

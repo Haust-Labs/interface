@@ -17,13 +17,9 @@ const StyledDialogOverlay = styled(AnimatedDialogOverlay)<{ $scrollOverlay?: boo
 
     display: flex;
     align-items: center;
-    @media screen and (max-width: ${({ theme }) => theme.breakpoint.sm}px) {
-      align-items: flex-end;
-    }
     overflow-y: ${({ $scrollOverlay }) => $scrollOverlay && 'scroll'};
     justify-content: center;
 
-    background-color: ${({ theme }) => theme.backgroundScrim};
     border: 1px solid ${({ theme }) => theme.borderPrimary};
   }
 `

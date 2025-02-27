@@ -250,7 +250,7 @@ function parseRemoteActivity(assetActivity: AssetActivityPartsFragment): Activit
     }
     const parsedFields = ActivityParserByType[assetActivity.type]?.(changes, assetActivity)
 
-    return { ...defaultFields, ...parsedFields }
+    return { ...defaultFields, ...parsedFields, from: assetActivity.transaction.from ?? '' }
   } catch (e) {
     console.error('Failed to parse activity', e, assetActivity)
     return undefined

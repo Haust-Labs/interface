@@ -150,6 +150,7 @@ export function CurrencySearch({
 
     const allTokens = sortArrayByUnique([...natives, ...tokens], JSON.stringify)
     
+    // Sort tokens according to preferred order
     return allTokens.sort((a: Token, b: Token) => {
       const symbolA = a.symbol?.toUpperCase() || ''
       const symbolB = b.symbol?.toUpperCase() || ''
@@ -157,14 +158,15 @@ export function CurrencySearch({
       const indexA = PREFERRED_TOKENS_ORDER.indexOf(symbolA)
       const indexB = PREFERRED_TOKENS_ORDER.indexOf(symbolB)
       
+      // If both tokens are in preferred list
       if (indexA !== -1 && indexB !== -1) {
         return indexA - indexB
       }
-      
+      // If only first token is in preferred list
       if (indexA !== -1) return -1
-      
+      // If only second token is in preferred list
       if (indexB !== -1) return 1
-      
+      // If neither token is in preferred list, maintain original order
       return 0
     })
   }, [debouncedQuery, filteredSortedTokens, onlyShowCurrenciesWithBalance, balancesAreLoading, balances, wrapped, disableNonToken, native])

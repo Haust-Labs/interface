@@ -20,7 +20,7 @@ interface FlexCustomProps {
   testID?: string;
 }
 
-type FlexProps = React.HTMLAttributes<HTMLDivElement> &
+export type FlexProps = React.HTMLAttributes<HTMLDivElement> &
   FlexCustomProps & {
     justifyContent?: string;
     alignItems?: string;

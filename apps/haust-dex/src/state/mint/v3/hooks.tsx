@@ -177,6 +177,7 @@ export function useV3DerivedMintInfo(
 
   // pool
   const [poolState, pool] = usePool(currencies[Field.CURRENCY_A], currencies[Field.CURRENCY_B], feeAmount)
+  
   const noLiquidity = poolState === PoolState.NOT_EXISTS
 
   // note to parse inputs in reverse
@@ -202,7 +203,7 @@ export function useV3DerivedMintInfo(
       }
       return undefined
     } else {
-      // get the amount of quote currency
+      // get the amount of quote currency      
       return pool && token0 ? pool.priceOf(token0) : undefined
     }
   }, [noLiquidity, startPriceTypedValue, invertPrice, token1, token0, pool])

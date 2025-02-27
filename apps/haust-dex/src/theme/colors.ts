@@ -18,7 +18,7 @@ export const colors = {
   positiveLight: "#85EFAC",
   negativeDark: "#C73D3D",
   negativeBase: "#EF4444",
-  negativeMid: "#F26666",
+  negativeMid: "#FF537C",
   negativeLight: "#FDA4AF",
   white: "#FFFFFF",
   black: "#000000",
@@ -131,7 +131,7 @@ export const colors = {
   frontrunWarning: "#FFEC46",
 };
 
-type Theme = typeof darkTheme;
+export type ThemeColors = typeof darkTheme;
 
 const commonTheme = {
   white: colors.white,
@@ -192,11 +192,13 @@ export const darkTheme = {
   textPrimary: colors.white,
   textSecondary: colors.neutralLighter,
   textTertiary: colors.gray500,
+  textLightGray: colors.gray350,
 
   accentAction: colors.primaryMid,
   accentActive: colors.primaryMid,
   accentSuccess: colors.positiveBase,
   accentWarning: colors.primaryDark,
+  accentWarning2: colors.redVibrant,
   accentFailure: colors.negativeMid,
   accentCritical: colors.negativeBase,
 
@@ -204,11 +206,11 @@ export const darkTheme = {
   accentActiveSoft: opacify(24, colors.primaryMid),
   accentSuccessSoft: opacify(24, colors.positiveBase),
   accentWarningSoft: opacify(24, colors.primaryDark),
-  accentFailureSoft: opacify(12, colors.negativeMid),
+  accentFailureSoft: opacify(20, colors.negativeMid),
 
   accentTextDarkPrimary: opacify(80, colors.primaryDark),
   accentTextDarkSecondary: opacify(60, colors.primaryDark),
-  accentTextDarkTertiary: opacify(24, colors.primaryDark),
+  accentTextDarkTertiary: opacify(20, colors.primaryDark),
 
   accentTextLightPrimary: colors.neutralLight,
   accentTextLightSecondary: opacify(72, colors.neutralLight),
@@ -229,12 +231,12 @@ export const darkTheme = {
   attention: colors.frontrunWarning,
 };
 
-export const lightTheme: Theme = {
+export const lightTheme: ThemeColors = {
   ...commonTheme,
 
   userThemeColor: colors.magentaVibrant,
 
-  background: "#faf9fa", 
+  background: "#faf9fa", //INTENTIONALLY OFF THEME TO GIVE WHITE BG A SOFTER VISUAL
   backgroundBackdrop: colors.white,
   backgroundSurface: colors.white,
   backgroundGray: colors.gray850,
@@ -253,11 +255,12 @@ export const lightTheme: Theme = {
   textPrimary: colors.gray900,
   textSecondary: colors.gray400,
   textTertiary: colors.gray300,
-
+  textLightGray: colors.gray750,
   accentAction: colors.pink400,
   accentActive: colors.primaryMid,
   accentSuccess: colors.green300,
   accentWarning: colors.gold400,
+  accentWarning2: colors.pink400,
   accentFailure: colors.red400,
   accentCritical: colors.red400,
 

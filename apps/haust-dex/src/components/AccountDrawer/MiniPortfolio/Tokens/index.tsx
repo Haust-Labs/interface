@@ -3,6 +3,7 @@ import Row from 'components/Row'
 import { DeltaArrow } from 'components/Tokens/Delta'
 import { formatDelta } from 'components/Tokens/TokenDetails/PriceChart'
 import { formatNumber, NumberType } from 'conedison/format'
+import { TOKEN_ADDRESSES } from 'constants/tokens'
 import { useDefaultActiveTokens } from 'hooks/Tokens'
 import { useTokenBalance } from 'hooks/useTokenBalance'
 import { useAtomValue } from 'jotai/utils'
@@ -53,7 +54,7 @@ export default function Tokens({ totalBalance }: { totalBalance?: number }) {
 
   const tokensList = useMemo(() => {
     const allTokens = [nativeCurrency, ...Object.values(tokens)]
-
+    
     return allTokens
       .filter(Boolean)
       .sort((a, b) => {
@@ -104,7 +105,7 @@ export default function Tokens({ totalBalance }: { totalBalance?: number }) {
       )}
       {tokensList.map((token) => (
         token && <MemoizedTokenRow 
-          key={token instanceof Token ? token.address : token.symbol} 
+          key={token instanceof Token ? token.address : `native-${token.symbol}`}
           token={token} 
           hideSmallBalances={hideSmallBalances}
           onLoaded={handleTokenLoaded}
@@ -182,26 +183,26 @@ function TokenRow({
   }
 
   return (
-    <PortfolioRow
-      left={<PortfolioLogo chainId={token.chainId} currencies={[token]} size="40px" />}
-      title={<ThemedText.SubHeader fontSize='14px' fontWeight={500}>{token.name}</ThemedText.SubHeader>}
-      descriptor={
-        <TokenBalanceText fontSize='13px'>
-          {formatNumber(displayBalance.balance, NumberType.TokenNonTx)}{' '}
-          {token.symbol}
-        </TokenBalanceText>
-      }
-      right={
-        displayBalance && (
-          <><ThemedText.SubHeader fontSize='13px' fontWeight={500}>
-            {formatNumber(displayBalance.balanceUSD, NumberType.PortfolioBalance)}
-          </ThemedText.SubHeader>
-          <Row justify="flex-end">
+      <PortfolioRow
+        left={<PortfolioLogo chainId={token.chainId} currencies={[token]} size="40px" />}
+        title={<ThemedText.SubHeader fontSize='14px' fontWeight={500}>{token.name}</ThemedText.SubHeader>}
+        descriptor={
+          <TokenBalanceText fontSize='13px'>
+            {formatNumber(displayBalance.balance, NumberType.TokenNonTx)}{' '}
+            {token.symbol}
+          </TokenBalanceText>
+        }
+        right={
+          displayBalance && (
+            <><ThemedText.SubHeader fontSize='13px' fontWeight={500}>
+              {formatNumber(displayBalance.balanceUSD, NumberType.PortfolioBalance)}
+            </ThemedText.SubHeader>
+            <Row justify="flex-end">
               <DeltaArrow delta={displayBalance.priceChange} size={20} />
               <ThemedText.BodySecondary fontSize='13px'>{formatDelta(displayBalance.priceChange)}</ThemedText.BodySecondary>
             </Row></>
-        )
-      }
-    />
+          )
+        }
+      />
   )
 }

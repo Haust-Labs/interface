@@ -169,11 +169,8 @@ export default function SettingsTab({ placeholderSlippage }: { placeholderSlippa
                 error={true}
                 padding="12px"
                 onClick={() => {
-                  const confirmWord = t`confirm`
-                  if (window.prompt(t`Please type the word "${confirmWord}" to enable expert mode.`) === confirmWord) {
                     toggleExpertMode()
                     setShowConfirmation(false)
-                  }
                 }}
               >
                 <Text fontSize={20} fontWeight={500} id="confirm-expert-mode">
@@ -191,13 +188,6 @@ export default function SettingsTab({ placeholderSlippage }: { placeholderSlippa
         aria-label={t`Transaction Settings`}
       >
         <StyledMenuIcon data-testid="swap-settings-button" $isOpen={open} />
-        {expertMode ? (
-          <EmojiWrapper>
-            <span role="img" aria-label="wizard-icon">
-              🧙
-            </span>
-          </EmojiWrapper>
-        ) : null}
       </StyledMenuButton>
       {open && (
         <MenuFlyout>

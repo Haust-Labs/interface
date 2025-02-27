@@ -70,16 +70,16 @@ export const formatDollar = ({
   }
   // For volume dollar amounts, like market cap, total value locked, etc.
   else {
-    if (num === 0) return '$0.00'
+    if (num === 0) return '0.00'
     if (!num) return '-'
     if (num < 0.000001) {
-      return '$<0.000001'
+      return '<0.000001'
     }
     if (num >= 0.000001 && num < 0.1) {
-      return `$${Number(num).toPrecision(3)}`
+      return `${Number(num).toPrecision(3)}`
     }
     if (num >= 0.1 && num < 1.05) {
-      return `$${num.toFixed(3)}`
+      return `${num.toFixed(3)}`
     }
 
     return numbro(num)
@@ -132,6 +132,7 @@ export const formatTransactionAmount = (num: number | undefined | null, maxDigit
   }
   return `${Number(num.toFixed(2)).toLocaleString(DEFAULT_LOCALE, { minimumFractionDigits: 2 })}`
 }
+
 interface FormattedBalance {
   value: string
   unit: string

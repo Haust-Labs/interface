@@ -24,11 +24,12 @@ import { RowBetween, RowFixed } from '../Row'
 import AnimatedConfirmation from './AnimatedConfirmation'
 
 const Wrapper = styled.div`
-  background-color: ${({ theme }) => theme.backgroundSurface};
+  background-color: ${({ theme }) => theme.backgroundModule};
   border-radius: 20px;
   outline: 1px solid ${({ theme }) => theme.backgroundOutline};
+  border: 1px solid ${({ theme }) => theme.neutralBorder};
   width: 100%;
-  padding: 1rem;
+  padding: 12px;
 `
 const Section = styled(AutoColumn)<{ inline?: boolean }>`
   padding: ${({ inline }) => (inline ? '0' : '0')};
@@ -179,11 +180,13 @@ export function ConfirmationModalContent({
   topContent: () => ReactNode
   bottomContent?: () => ReactNode | undefined
 }) {
+  const theme = useTheme()
+
   return (
     <Wrapper>
       <Section>
-        <RowBetween>
-          <Text fontWeight={500} fontSize={16}>
+        <RowBetween padding="8px 12px 0px 12px">
+          <Text fontWeight={500} fontSize={16} color={theme.textSecondary}>
             {title}
           </Text>
           <CloseIcon onClick={onDismiss} data-cy="confirmation-close-icon" />
@@ -343,7 +346,6 @@ export default function TransactionConfirmationModal({
 
   if (!chainId) return null
 
-  // confirmation screen
   return (
     <Modal isOpen={isOpen} $scrollOverlay={true} onDismiss={onDismiss} maxHeight={90}>
       {isL2ChainId(chainId) && (hash || attemptingTxn) ? (

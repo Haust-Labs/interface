@@ -31,15 +31,9 @@ export function validateUrlChainParam(chainName: string | undefined) {
 
 export function getTokenDetailsURL({
    address,
-   chain,
-   inputAddress,
  }: {
   address?: string | null
-  chain: Chain
-  inputAddress?: string | null
 }) {
-  const chainName = chain.toLowerCase()
   const tokenAddress = address ?? NATIVE_CHAIN_ID
-  const inputAddressSuffix = inputAddress ? `?inputCurrency=${inputAddress}` : ''
-  return `/tokens/${chainName}/${tokenAddress}${inputAddressSuffix}`
+  return `/tokens/${tokenAddress}`
 }

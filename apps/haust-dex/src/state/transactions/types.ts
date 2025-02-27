@@ -166,6 +166,13 @@ interface SubmitProposalTransactionInfo {
   type: TransactionType.SUBMIT_PROPOSAL
 }
 
+export interface SendTransactionInfo {
+  type: TransactionType.SEND
+  currencyId: string
+  amount: string
+  recipient: string
+}
+
 export type TransactionInfo =
   | ApproveTransactionInfo
   | ExactOutputSwapTransactionInfo
@@ -184,6 +191,7 @@ export type TransactionInfo =
   | CollectFeesTransactionInfo
   | RemoveLiquidityV3TransactionInfo
   | SubmitProposalTransactionInfo
+  | SendTransactionInfo
 
 export interface TransactionDetails {
   hash: string

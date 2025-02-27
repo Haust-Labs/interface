@@ -2,39 +2,30 @@ import { Contract } from "@ethersproject/contracts";
 import { formatUnits } from "@ethersproject/units";
 import { useWeb3React } from "@web3-react/core";
 import ERC20_ABI from "abis/erc20.json";
+import useBalanceMidnightForToken from "graphql/thegraph/BalanceMidnightForTokenQuery";
+import useCurrentTokenPrice from "graphql/thegraph/CurrentPriceTokensQuery";
 import useCurrencyLogoURIs from "lib/hooks/useCurrencyLogoURIs";
 import { useCallback, useEffect, useState } from "react";
-import { generateBearerToken } from "utils/generateBearerToken";
 
 export interface TokenBalance {
-  chainId: number;
-  address: string;
-  symbol: string;
-  name: string;
-  decimals: number;
-  logoURI: string;
   balance: number;
   balanceUSD: number;
   priceChange: number;
-}
-
-interface TokenPrice {
-  price: string;
-  price_decimals: number;
-  token: {
-    address: string | null;
-    symbol: string;
-  };
 }
 
 export function useTokenBalance(token: any) {
   const { account, provider } = useWeb3React();
   const [balance, setBalance] = useState<TokenBalance | null>(null);
   const [loading, setLoading] = useState(true);
-  const nonce = Date.now().toString();
-  const authToken = generateBearerToken(nonce);
+  const { data: tokenPriceData } = useCurrentTokenPrice(
+    token.wrapped.address,
+    1000
+  );
+  const { data: midnightData } = useBalanceMidnightForToken(
+    token.wrapped.address,
+    1000
+  );
 
-  const logoURI = useCurrencyLogoURIs(token)[0];
   const getBalance = useCallback(async () => {
     if (!account || !provider || !token) return;
 
@@ -53,117 +44,28 @@ export function useTokenBalance(token: any) {
       } catch (error) {
         console.error("Error fetching token balance:", error);
       }
-      // Get prices with error handling
-      let prices: TokenPrice[] = [];
-      try {
-        const pricesResponse = await fetch(
-          "https://entrypointv02.wdev.haust.app/v1/fiat_prices",
-          {
-            headers: {
-              "X-Haust-Wallet-Version": "0.1",
-              Authorization: authToken,
-            },
-          }
-        );
-        prices = await pricesResponse.json();
-      } catch (error) {
-        console.error("Error fetching prices:", error);
-      }
-
-      // Get token details with error handling
-      let tokenDetails = [];
-      try {
-        const detailsResponse = await fetch(
-          "https://entrypointv02.wdev.haust.app/v1/tokens/details/?lang=EN",
-          {
-            headers: {
-              "X-Haust-Wallet-Version": "0.1",
-              Authorization: authToken,
-            },
-          }
-        );
-        tokenDetails = await detailsResponse.json();
-      } catch (error) {
-        console.error("Error fetching token details:", error);
-      }
-
-      const tokenDetail = tokenDetails.find((detail: any) => {
-        if (token.symbol === "WHAUST" || token.isNative) {
-          return detail.token_id === 5;
-        }
-        return (
-          detail.token_address?.toLowerCase() === token.address.toLowerCase()
-        );
-      });
-
-      // Get midnight data and calculate price change with error handling
-      let priceChange = 0;
-      if (tokenDetail && account) {
-        try {
-          const midnightResponse = await fetch(
-            `https://entrypointv02.wdev.haust.app/v1/account/${account}/balance_midnight`,
-            {
-              headers: {
-                "X-Haust-Wallet-Version": "0.1",
-                Authorization: authToken,
-              },
-            }
-          );
-          const midnightData = await midnightResponse.json();
-          const midnightPrice = midnightData.find(
-            (item: any) => item.id === tokenDetail.token_id
-          );
-
-          if (midnightPrice) {
-            const midnightPriceValue =
-              Number(midnightPrice.usd_price_midnight) /
-              Math.pow(10, midnightPrice.usd_price_decimals);
-            const priceData = prices.find((p) => {
-              if (token.symbol === "WHAUST" || token.isNative) {
-                return p.token.symbol === "HAUST";
-              }
-              return (
-                p.token.address?.toLowerCase() === token.address.toLowerCase()
-              );
-            });
-
-
-            if (priceData) {
-              const currentPrice =
-                Number(priceData.price) /
-                Math.pow(10, priceData.price_decimals);
-              priceChange =
-                ((currentPrice - midnightPriceValue) / midnightPriceValue) *
-                100;
-            }
-          }
-        } catch (error) {
-          console.error("Error fetching midnight data:", error);
-        }
-      }
-
-      // Calculate token price
+      
       let tokenPrice = 0;
-      const priceData = prices.find((p) => {
-        if (token.symbol === "WHAUST" || token.isNative) {
-          return p.token.symbol === "HAUST";
-        }
-        
-        return p.token.address?.toLowerCase() === token.address.toLowerCase();
-      });
-
-      if (priceData) {
+      if (
+        tokenPriceData?.bundle?.ethPriceUSD &&
+        tokenPriceData?.token?.derivedETH
+      ) {
         tokenPrice =
-          Number(priceData.price) / Math.pow(10, priceData.price_decimals);
+          Number(tokenPriceData.bundle.ethPriceUSD) *
+          Number(tokenPriceData.token.derivedETH);
+      }
+
+      // Calculate price change using midnight data
+      let priceChange = 0;
+      const midnightPrice = Number(
+        midnightData?.token?.tokenDayData[0]?.priceUSD || 0
+      );
+
+      if (midnightPrice > 0 && tokenPrice > 0) {
+        priceChange = ((tokenPrice - midnightPrice) / midnightPrice) * 100;
       }
 
       setBalance({
-        chainId: token.chainId,
-        address: token.address,
-        symbol: token.symbol || "",
-        name: token.name || "",
-        decimals: token.decimals,
-        logoURI,
         balance: Number(tokenBalance),
         balanceUSD: parseFloat(tokenBalance) * tokenPrice,
         priceChange,
@@ -172,12 +74,6 @@ export function useTokenBalance(token: any) {
       console.error("Error in getBalance:", error);
       // Set default values in case of error
       setBalance({
-        chainId: token.chainId,
-        address: token.address,
-        symbol: token.symbol || "",
-        name: token.name || "",
-        decimals: token.decimals,
-        logoURI,
         balance: 0,
         balanceUSD: 0,
         priceChange: 0,
@@ -185,7 +81,7 @@ export function useTokenBalance(token: any) {
     } finally {
       setLoading(false);
     }
-  }, [account, provider, token, logoURI]);
+  }, [account, provider, token, tokenPriceData, midnightData]);
 
   // Expose refetch function
   const refetch = useCallback(() => {

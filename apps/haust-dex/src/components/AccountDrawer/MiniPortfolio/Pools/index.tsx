@@ -20,15 +20,24 @@ import { ExpandoRow } from '../ExpandoRow'
 import { PortfolioLogo } from '../PortfolioLogo'
 import PortfolioRow, { PortfolioSkeleton, PortfolioTabWrapper } from '../PortfolioRow'
 import { getPriceOrderingFromPositionForUI } from 'components/PositionListItem'
+import { TOKEN_ADDRESSES } from 'constants/tokens'
 
 export default function Pools({ account }: { account: string }) {
   const { positions, loading: positionsLoading } = useV3Positions(account)
   const [showClosed, toggleShowClosed] = useReducer((showClosed) => !showClosed, false)
   const { chainId } = useWeb3React()
 
+  const isValidToken = (address: string) => {
+    return Object.values(TOKEN_ADDRESSES).some(
+      tokenAddress => tokenAddress?.address?.toLowerCase() === address.toLowerCase()
+    )
+  }
+
   const [openPositions, closedPositions] = positions?.reduce<[PositionDetails[], PositionDetails[]]>(
     (acc, p) => {
-      acc[p.liquidity?.isZero() ? 1 : 0].push(p)
+      if (isValidToken(p.token0) && isValidToken(p.token1)) {
+        acc[p.liquidity?.isZero() ? 1 : 0].push(p)
+      }
       return acc
     },
     [[], []]

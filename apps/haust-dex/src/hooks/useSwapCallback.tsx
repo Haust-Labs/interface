@@ -9,6 +9,8 @@ import { currencyId } from '../utils/currencyId'
 import useTransactionDeadline from './useTransactionDeadline'
 import { useUniversalRouterSwapCallback } from './useUniversalRouter'
 
+export type SwapResult = Promise<string> | null
+
 // returns a function that will execute a swap if the parameters are all valid,
 // and the user has approved the slippage-adjusted input amount for the trade
 export function useSwapCallback(

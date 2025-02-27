@@ -4,7 +4,7 @@ import { Currency, TradeType } from '@uniswap/sdk-core'
 import { AutoColumn } from 'components/Column'
 import { LoadingOpacityContainer } from 'components/Loader/styled'
 import { RowFixed } from 'components/Row'
-import { MouseoverTooltipContent } from 'components/Tooltip'
+import { MouseoverTooltip, MouseoverTooltipContent } from 'components/Tooltip'
 import { InterfaceTrade } from 'state/routing/types'
 import styled from 'styled-components/macro'
 import { ThemedText } from 'theme'
@@ -34,12 +34,10 @@ const StyledGasIcon = styled(GasIcon)`
 export default function GasEstimateBadge({
   trade,
   loading,
-  showRoute,
   disableHover,
 }: {
   trade: InterfaceTrade<Currency, Currency, TradeType> | undefined | null // dollar amount in active chain's stablecoin
   loading: boolean
-  showRoute?: boolean // show route instead of gas estimation summary
   disableHover?: boolean
 }) {
   const formattedGasPriceString = trade?.gasUseEstimateUSD
@@ -49,47 +47,13 @@ export default function GasEstimateBadge({
     : undefined
 
   return (
-    <MouseoverTooltipContent
-      wrap={false}
-      disableHover={disableHover}
-      content={
-        loading ? null : (
-          <ResponsiveTooltipContainer
-            origin="top right"
-            style={{
-              padding: showRoute ? '0' : '12px',
-              border: 'none',
-              borderRadius: showRoute ? '16px' : '12px',
-              maxWidth: '400px',
-            }}
-          >
-            {showRoute ? (
-              trade ? (
-                <SwapRoute trade={trade} syncing={loading} fixedOpen={showRoute} />
-              ) : null
-            ) : (
-              <AutoColumn gap="4px" justify="center">
-                <ThemedText.DeprecatedMain fontSize="12px" textAlign="center">
-                  <Trans>Estimated network fee</Trans>
-                </ThemedText.DeprecatedMain>
-                <ThemedText.DeprecatedBody textAlign="center" fontWeight={500} style={{ userSelect: 'none' }}>
-                  <Trans>${trade?.gasUseEstimateUSD?.toFixed(2)}</Trans>
-                </ThemedText.DeprecatedBody>
-                <ThemedText.DeprecatedMain fontSize="10px" textAlign="center" maxWidth="140px" color="text3">
-                  <Trans>Estimate may differ due to your wallet gas settings</Trans>
-                </ThemedText.DeprecatedMain>
-              </AutoColumn>
-            )}
-          </ResponsiveTooltipContainer>
-        )
+    <MouseoverTooltip
+      text={
+        <Trans>
+          This is the cost to process your transaction on the blockchain. Haust does not receive any share of these fees.
+        </Trans>
       }
-      placement="bottom"
-      onOpen={undefined}
-        // sendEvent({
-        //   category: 'Gas',
-        //   action: 'Gas Details Tooltip Open',
-        // })
-      // }
+      disableHover={disableHover}
     >
       <LoadingOpacityContainer $loading={loading}>
         <GasWrapper>
@@ -97,6 +61,6 @@ export default function GasEstimateBadge({
           {formattedGasPriceString ?? null}
         </GasWrapper>
       </LoadingOpacityContainer>
-    </MouseoverTooltipContent>
+    </MouseoverTooltip>
   )
 }

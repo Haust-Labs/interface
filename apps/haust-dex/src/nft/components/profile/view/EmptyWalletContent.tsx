@@ -12,8 +12,7 @@ const EmptyWalletContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
-  height: 100%;
+  min-height: 300px;
   width: 100%;
 `
 

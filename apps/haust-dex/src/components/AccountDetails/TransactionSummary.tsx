@@ -19,6 +19,7 @@ import {
   MigrateV2LiquidityToV3TransactionInfo,
   QueueTransactionInfo,
   RemoveLiquidityV3TransactionInfo,
+  SendTransactionInfo,
   TransactionInfo,
   TransactionType,
   WrapTransactionInfo,
@@ -80,6 +81,14 @@ function ClaimSummary({ info: { recipient, uniAmountRaw } }: { info: ClaimTransa
 
 function SubmitProposalTransactionSummary() {
   return <Trans>Submit new proposal</Trans>
+}
+
+function SendSummary({ info }: { info: SendTransactionInfo }) {
+  return (
+    <Trans>
+      Send <FormattedCurrencyAmountManaged rawAmount={info.amount} currencyId={info.currencyId} sigFigs={6} /> to {info.recipient}
+    </Trans>
+  )
 }
 
 function ApprovalSummary({ info }: { info: ApproveTransactionInfo }) {
@@ -315,5 +324,8 @@ export function TransactionSummary({ info }: { info: TransactionInfo }) {
 
     case TransactionType.SUBMIT_PROPOSAL:
       return <SubmitProposalTransactionSummary />
+
+    case TransactionType.SEND:
+      return <SendSummary info={info} />
   }
 }

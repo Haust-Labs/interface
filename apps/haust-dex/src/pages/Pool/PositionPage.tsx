@@ -379,7 +379,6 @@ function PositionPageContent() {
 
   const parsedTokenId = tokenIdFromUrl ? BN.from(tokenIdFromUrl) : undefined
   const { loading, position: positionDetails } = useV3PositionFromTokenId(parsedTokenId)
-
   const {
     token0: token0Address,
     token1: token1Address,
@@ -407,6 +406,7 @@ function PositionPageContent() {
 
   // construct Position from details returned
   const [poolState, pool] = usePool(token0 ?? undefined, token1 ?? undefined, feeAmount)
+  
   const position = useMemo(() => {
     if (pool && liquidity && typeof tickLower === 'number' && typeof tickUpper === 'number') {
       return new Position({ pool, liquidity: liquidity.toString(), tickLower, tickUpper })

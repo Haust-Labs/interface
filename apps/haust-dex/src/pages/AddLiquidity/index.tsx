@@ -59,7 +59,6 @@ import { useIsExpertMode, useUserSlippageToleranceWithDefault } from '../../stat
 import { ThemedText } from '../../theme'
 import {colors} from "../../theme/colors";
 import approveAmountCalldata from '../../utils/approveAmountCalldata'
-import { calculateGasMargin } from '../../utils/calculateGasMargin'
 import { currencyId } from '../../utils/currencyId'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { Dots } from '../Pool/styleds'
@@ -155,7 +154,6 @@ function AddLiquidity() {
     baseCurrency ?? undefined,
     existingPosition
   )
-
   const { onFieldAInput, onFieldBInput, onLeftRangeInput, onRightRangeInput, onStartPriceInput } =
     useV3MintActionHandlers(noLiquidity)
 
@@ -227,6 +225,9 @@ function AddLiquidity() {
 
     if (position && account && deadline) {
       const useNative = baseCurrency.isNative ? baseCurrency : quoteCurrency.isNative ? quoteCurrency : undefined
+
+      // adjust for slippage
+      
       const { calldata, value } =
         hasExistingPosition && tokenId
           ? NonfungiblePositionManager.addCallParameters(position, {
@@ -274,6 +275,7 @@ function AddLiquidity() {
       }
 
       setAttemptingTxn(true)
+      console.log('txn', position)
       provider
         .getSigner()
         .sendTransaction(txn)
@@ -289,7 +291,21 @@ function AddLiquidity() {
                 feeAmount: position.pool.fee,
               })
               setTxHash(response.hash)
+              // sendEvent({
+              //   category: 'Liquidity',
+              //   action: 'Add',
+              //   label: [currencies[Field.CURRENCY_A]?.symbol, currencies[Field.CURRENCY_B]?.symbol].join('/'),
+              // })
             })
+        // })
+        // .catch((error) => {
+        //   console.error('Failed to send transaction', error)
+        //   setAttemptingTxn(false)
+        //   // we only care if the error is something _other_ than the user rejected the tx
+        //   if (error?.code !== 4001) {
+        //     console.error(error)
+        //   }
+        // })
     } else {
       return
     }

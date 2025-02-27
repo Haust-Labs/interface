@@ -64,14 +64,8 @@ export const SearchBar = () => {
         }
   }, [gqlCollections, gqlCollectionsAreLoading, isNftGraphqlEnabled, queryCollections, queryCollectionsAreLoading])
 
-  // const { chainId } = useWeb3React()
-  // const { data: tokens, loading: tokensAreLoading } = useSearchTokens(debouncedSearchValue, chainId ?? 1)
   const { data: tokens, loading: tokensAreLoading } = useSearchTokensApi(debouncedSearchValue);
-  // const isNFTPage = useIsNftPage()
 
-  // const [reducedTokens] = organizeSearchResults(isNFTPage, tokens ?? [], gatedCollections ?? [])
-
-  // close dropdown on escape
   useEffect(() => {
     const escapeKeyDownHandler = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && isOpen) {
@@ -107,7 +101,9 @@ export const SearchBar = () => {
 
   const handleKeyPress = useCallback(
     (event: any) => {
-      if (event.key === '/') {
+      const isInputField = event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA';
+      
+      if (event.key === '/' && !isInputField) {
         event.preventDefault()
         !isOpen && toggleOpen()
       }

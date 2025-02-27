@@ -264,12 +264,12 @@ const ButtonConfirmedStyle = styled(BaseButton)`
 `
 
 const ButtonErrorStyle = styled(BaseButton)`
-  background-color: ${({ theme }) => theme.accentFailure};
-  border: 1px solid ${({ theme }) => theme.accentFailure};
+  background-color: ${({ theme }) => theme.accentFailureSoft};
+  color: ${({ theme }) => theme.accentFailure};
 
   &:focus {
-    box-shadow: 0 0 0 1pt ${({ theme }) => darken(0.05, theme.accentFailure)};
-    background-color: ${({ theme }) => darken(0.05, theme.accentFailure)};
+    box-shadow: 0 0 0 1pt ${({ theme }) => darken(0.05, theme.accentFailureSoft)};
+    background-color: ${({ theme }) => darken(0.05, theme.accentFailureSoft)};
   }
   &:hover {
     background-color: ${({ theme }) => darken(0.05, theme.accentFailure)};
@@ -279,11 +279,9 @@ const ButtonErrorStyle = styled(BaseButton)`
     background-color: ${({ theme }) => darken(0.1, theme.accentFailure)};
   }
   &:disabled {
-    opacity: 50%;
     cursor: auto;
     box-shadow: none;
-    background-color: ${({ theme }) => theme.accentFailure};
-    border: 1px solid ${({ theme }) => theme.accentFailure};
+    background-color: ${({ theme }) => theme.accentFailureSoft};
   }
 `
 

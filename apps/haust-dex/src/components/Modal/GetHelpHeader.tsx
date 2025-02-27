@@ -4,6 +4,7 @@ import { Text } from 'components/Text/Text'
 import { ReactNode } from 'react'
 import { ArrowLeft } from 'react-feather'
 import styled from 'styled-components/macro'
+import { colors } from 'theme/colors'
 import { ClickableStyle, CloseIcon } from 'theme/components'
 
 const BackButton = styled(ArrowLeft)`
@@ -25,7 +26,7 @@ export function GetHelpHeader({ title, goBack, closeModal, link, closeDataTestId
     <Flex row align-items="center" width="100%" className={className} justify-content="space-between">
       {title && (
         <Flex>
-          <Text variant="body2" color='white'>{title}</Text>
+          <Text variant="body5" color={colors.neutralLighter}>{title}</Text>
         </Flex>
       )}
       <Flex row align-items="center" gap="10px">

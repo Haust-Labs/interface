@@ -67,9 +67,10 @@ function useCallContext() {
 
   useEffect(() => {
     const interval = setInterval(() => {
+      // Force refresh block number
       if (latestBlock) {
-        setPollBlock(latestBlock + 1);
-        setTimeout(() => setPollBlock(latestBlock), 100);
+        setPollBlock(latestBlock + 1); // Increment block to force refresh
+        setTimeout(() => setPollBlock(latestBlock), 100); // Reset back to actual block
       }
     }, 5000);
 

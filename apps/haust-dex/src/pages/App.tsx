@@ -31,7 +31,7 @@ import PoolFinder from './PoolFinder'
 import RemoveLiquidity from './RemoveLiquidity'
 import RemoveLiquidityV3 from './RemoveLiquidity/V3'
 import Swap from './Swap'
-import Tokens from './Tokens'
+import Tokens, { ExploreTab } from './Tokens'
 
 const TokenDetails = lazy(() => import('./TokenDetails'))
 
@@ -137,7 +137,9 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<Swap />} />
 
-                <Route path="explore/tokens" element={<Tokens />} />
+                <Route path="explore/tokens" element={<Tokens initialTab={ExploreTab.Tokens} />} />
+                <Route path="explore/pools" element={<Tokens initialTab={ExploreTab.Pools} />} />
+                <Route path="explore/transactions" element={<Tokens initialTab={ExploreTab.Transactions} />} />
                 <Route path="tokens/:chainName/:tokenAddress" element={<TokenDetails />} />
                 <Route path="swap" element={<Swap />} />
                 <Route path="send" element={<Swap />} />

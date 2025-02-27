@@ -28,6 +28,7 @@ import { useCreateTransferTransaction } from 'utils/transfer'
 import SendAddressInputPanel from './SendAddressInputPanel'
 import SendCurrencyInputPanel from './SendCurrencyInputPanel'
 import { SendReviewModal } from './SendReviewModal'
+import { TransactionRequest } from "@ethersproject/abstract-provider";
 
 enum SendFormModalState {
   None = 'None',
@@ -136,11 +137,13 @@ export default function SendCurrencyInputForm() {
     }
   }, [account, address, chainId, parsedAmount, provider])
   const transferTransaction = useCreateTransferTransaction(transferInfo)
-
   // the callback to execute the send
   const sendCallback = useSendCallback({
-    transactionRequest: transferTransaction,
+    transactionRequest: transferTransaction as TransactionRequest,
     provider: provider as Web3Provider,
+    tokenAddress: currencies[Field.INPUT]?.isNative ? 'HST' : currencies[Field.INPUT]?.wrapped.address,
+    amount: parsedAmount?.quotient?.toString(),
+    recipient: address
   })
   
   const handleSend = useCallback(() => {

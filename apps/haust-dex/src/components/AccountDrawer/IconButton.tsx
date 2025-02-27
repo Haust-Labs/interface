@@ -65,8 +65,8 @@ const IconWrapper = styled.span`
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
 `
 interface BaseProps {
   Icon: Icon
@@ -86,7 +86,7 @@ const IconBlock = (props: React.ComponentPropsWithoutRef<'a' | 'button'>) => {
 const IconButton = ({ Icon, ...rest }: IconButtonProps | IconLinkProps) => (
   <IconBlock {...rest}>
     <IconWrapper>
-      <Icon strokeWidth={1.5} size={16} />
+      <Icon strokeWidth={2} size={20} color={colors.neutralLighter} />
     </IconWrapper>
   </IconBlock>
 )

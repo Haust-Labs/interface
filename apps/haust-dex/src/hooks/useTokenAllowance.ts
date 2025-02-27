@@ -3,8 +3,10 @@ import { ContractTransaction } from '@ethersproject/contracts'
 import { CurrencyAmount, MaxUint256, Token } from '@uniswap/sdk-core'
 import { useTokenContract } from 'hooks/useContract'
 import { useSingleCallResult } from 'lib/hooks/multicall'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ApproveTransactionInfo, TransactionType } from 'state/transactions/types'
+
+const MAX_ALLOWANCE = MaxUint256.toString()
 
 export function useTokenAllowance(
   token?: Token,
@@ -39,15 +41,19 @@ export function useUpdateTokenAllowance(
   amount: CurrencyAmount<Token> | undefined,
   spender: string
 ): () => Promise<{ response: ContractTransaction; info: ApproveTransactionInfo }> {
-  const contract = useTokenContract(amount?.currency.address)
+  const contract = useTokenContract(amount?.currency.address, true)
+  const contractRef = useRef(contract)
+  contractRef.current = contract
 
   return useCallback(async () => {
     try {
+      const contract = contractRef.current
       if (!amount) throw new Error('missing amount')
       if (!contract) throw new Error('missing contract')
       if (!spender) throw new Error('missing spender')
 
-      const response = await contract.approve(spender, amount.quotient.toString())
+        const allowance = amount.equalTo(0) ? '0' : MAX_ALLOWANCE
+      const response = await contract.approve(spender, allowance)
       
       return {
         response,
@@ -61,5 +67,5 @@ export function useUpdateTokenAllowance(
       const symbol = amount?.currency.symbol ?? 'Token'
       throw new Error(`${symbol} token allowance failed: ${e instanceof Error ? e.message : e}`)
     }
-  }, [amount, contract, spender])
+  }, [amount, spender])
 }

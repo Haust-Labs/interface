@@ -27,6 +27,7 @@ export enum Duration {
 interface MarketData {
   duration: Duration;
   pricePercentChange: string;
+  hourlyPriceChange: string;
   volume: Nullish<string>;
 }
 export interface TopTokenApi {
@@ -114,7 +115,7 @@ function useSortedTokens(tokens: TopTokenApi[]) {
       case TokenSortMethod.PRICE:
         tokenArray = tokenArray.sort((a, b) => (+b?.priceUsd ?? 0) - (+a?.priceUsd ?? 0))
         break
-      case TokenSortMethod.PERCENT_CHANGE:
+      case TokenSortMethod.ONE_HOUR:
         tokenArray = tokenArray.sort(
           (a, b) => (+b?.marketData.pricePercentChange ?? 0) - (+a?.marketData.pricePercentChange ?? 0)
         )

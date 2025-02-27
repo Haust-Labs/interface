@@ -56,7 +56,6 @@ const FixedPopupColumn = styled(AutoColumn)<{ extraPadding: boolean; xlPadding: 
 export default function Popups() {
   // get all popups
   const activePopups = useActivePopups()
-
   const urlWarningActive = useURLWarningVisible()
 
   // need extra padding if network is not L1 Ethereum

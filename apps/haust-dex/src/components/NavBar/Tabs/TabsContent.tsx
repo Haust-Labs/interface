@@ -60,7 +60,7 @@ export const useTabsContent = (): TabsSection[] => {
         {
           label: 'Transactions',
           quickKey: 'X',
-          href: `/explore/transactions/ethereum`,
+          href: `/explore/transactions`,
           internal: true,
         },
       ],

@@ -23,7 +23,7 @@ import { anonymizeLink } from '../../utils/anonymizeLink'
 // TODO: Break this file into a components folder
 
 export const CloseIcon = styled(X)<{ onClick: () => void }>`
-  color: ${({ theme }) => theme.textPrimary};
+  color: ${({ theme }) => theme.textTertiary};
   cursor: pointer;
 `
 

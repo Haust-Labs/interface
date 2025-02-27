@@ -5,6 +5,13 @@ import noop from 'utils/noop'
 
 import Popover, { PopoverProps } from '../Popover'
 
+export enum TooltipSize {
+  ExtraSmall = '200px',
+  Small = '256px',
+  Large = '400px',
+  Max = 'max-content',
+}
+
 export const TooltipContainer = styled.div`
   max-width: 256px;
   cursor: default;
@@ -17,9 +24,9 @@ export const TooltipContainer = styled.div`
   line-height: 16px;
   word-break: break-word;
 
-  background: ${({ theme }) => theme.backgroundSurface};
+  background: ${({ theme }) => theme.backgroundInteractive};
   border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.backgroundInteractive};
+  border: 1px solid ${({ theme }) => theme.neutralBorder};
   box-shadow: 0 4px 8px 0 ${({ theme }) => transparentize(0.9, theme.shadow1)};
 `
 

@@ -15,13 +15,14 @@ const OptionCardLeft = styled.div`
 const OptionCardClickable = styled.button<{ isActive?: boolean; clickable?: boolean }>`
   background-color: ${({ theme }) => theme.backgroundModule};
   width: 100% !important;
-  border-color: ${({ theme, isActive }) => (isActive ? theme.accentActive : 'transparent')};
+  border-radius: 12px;
+  border: 1px solid ${({ theme }) => theme.neutralBorder};
+  padding: 12px 16px;
 
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
 
   margin-top: 0;
   transition: ${({ theme }) => theme.transition.duration.fast};
@@ -53,6 +54,7 @@ const IconWrapper = styled.div`
   span {
     height: 40px;
     width: 40px;
+    border-radius: 50%;
   }
   ${({ theme }) => theme.deprecated_mediaWidth.deprecated_upToMedium`
     align-items: flex-end;

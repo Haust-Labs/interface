@@ -6,13 +6,20 @@ import { QrCode } from 'components/Icons/QrCode'
 import { Flex } from 'components/layout/Flex'
 import { GetHelpHeader } from 'components/Modal/GetHelpHeader'
 import { Text } from 'components/Text/Text'
+import useENSName from 'hooks/useENSName'
 import { useOpenModal, useToggleModal } from 'state/application/hooks'
 import { ApplicationModal } from 'state/application/reducer'
+import { useTheme } from 'styled-components/macro'
 import { CopyToClipboard } from 'theme/components'
 import { colors } from 'theme/colors'
 import styled from 'styled-components/macro'
 import { useGetConnection } from 'connection'
 import { uniswapUrls } from 'constants/urls'
+
+const ICON_SIZE = 32
+const ICON_BORDER_RADIUS = 100
+
+
 
 const ModalHeader = styled(GetHelpHeader)`
   display: flex;

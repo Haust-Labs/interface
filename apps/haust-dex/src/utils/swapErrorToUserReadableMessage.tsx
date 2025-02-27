@@ -11,6 +11,7 @@ function getReason(error: any): string | undefined {
 
 export function didUserReject(error: any): boolean {
   const reason = getReason(error)
+
   if (
     error?.code === 4001 ||
     // ethers v5.7.0 wrapped error

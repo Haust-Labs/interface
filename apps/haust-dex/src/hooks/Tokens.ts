@@ -18,7 +18,6 @@ function useTokensFromMap(tokenMap: TokenAddressMap): { [address: string]: Token
   const { chainId } = useWeb3React()
   return useMemo(() => {
     if (!chainId) return {}
-
     // reduce to just tokens
     return Object.keys(tokenMap[chainId] ?? {}).reduce<{ [address: string]: Token }>((newMap, address) => {
       newMap[address] = tokenMap[chainId][address].token

@@ -133,6 +133,11 @@ export function getTokenDetailsURL({
   return `/tokens/${chainName}/${tokenAddress}${inputAddressSuffix}`
 }
 
+export enum OrderDirection {
+  Asc = 'asc',
+  Desc = 'desc',
+}
+
 export function unwrapToken<
   T extends {
     address?: string | null | undefined

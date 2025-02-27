@@ -7,7 +7,7 @@ import { MouseoverTooltip } from '../../components/Tooltip'
 const BadgeWrapper = styled.div`
   font-size: 14px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
 `
 
 const BadgeText = styled.div`
@@ -17,8 +17,8 @@ const BadgeText = styled.div`
   margin-right: 8px;
 `
 
-const ActiveDot = styled.span`
-  background-color: ${({ theme }) => theme.accentSuccess};
+const ActiveDot = styled.span<{ $backgroundColor?: string }>`
+  background-color: ${({ $backgroundColor, theme }) => $backgroundColor ?? theme.accentSuccess};
   border-radius: 50%;
   height: 8px;
   width: 8px;
@@ -29,7 +29,8 @@ const LabelText = styled.div<{ color: string }>`
   color: ${({ color }) => color};
   display: flex;
   flex-direction: row;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  gap: 4px;
 `
 
 export default function RangeBadge({
@@ -45,10 +46,10 @@ export default function RangeBadge({
       {removed ? (
         <MouseoverTooltip text={<Trans>Your position has 0 liquidity, and is not earning fees.</Trans>}>
           <LabelText color={theme.textSecondary}>
+          <ActiveDot $backgroundColor={theme.textSecondary} />
             <BadgeText>
               <Trans>Closed</Trans>
             </BadgeText>
-            <Slash width={12} height={12} />
           </LabelText>
         </MouseoverTooltip>
       ) : inRange ? (
@@ -60,10 +61,10 @@ export default function RangeBadge({
           }
         >
           <LabelText color={theme.accentSuccess}>
+            <ActiveDot $backgroundColor={theme.accentSuccess} />
             <BadgeText>
-              <Trans>In Range</Trans>
+              <Trans>In range</Trans>
             </BadgeText>
-            <ActiveDot />
           </LabelText>
         </MouseoverTooltip>
       ) : (
@@ -74,11 +75,11 @@ export default function RangeBadge({
             </Trans>
           }
         >
-          <LabelText color={theme.accentWarning}>
+          <LabelText color={theme.accentWarning2}>
+          <ActiveDot $backgroundColor={theme.accentCritical} />
             <BadgeText>
               <Trans>Out of range</Trans>
             </BadgeText>
-            <AlertTriangle width={12} height={12} />
           </LabelText>
         </MouseoverTooltip>
       )}

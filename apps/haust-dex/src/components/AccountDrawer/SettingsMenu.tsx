@@ -1,57 +1,57 @@
 import { Trans } from '@lingui/macro'
-import { LOCALE_LABEL, SUPPORTED_LOCALES, SupportedLocale } from 'constants/locales'
 import { useActiveLocale } from 'hooks/useActiveLocale'
-import { useLocationLinkProps } from 'hooks/useLocationLinkProps'
-import { Check } from 'react-feather'
-import { Link } from 'react-router-dom'
-import styled, { useTheme } from 'styled-components/macro'
+import { ChevronRight } from 'react-feather'
+import styled from 'styled-components/macro'
 import { ClickableStyle, ThemedText } from 'theme'
 
 import { SlideOutMenu } from './SlideOutMenu'
+import { ReactNode } from 'react'
+import Row from 'components/Row'
 
-const InternalLinkMenuItem = styled(Link)`
+
+const SettingsButtonWrapper = styled(Row)`
   ${ClickableStyle}
-  flex: 1;
-  color: ${({ theme }) => theme.textTertiary};
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 12px 0;
-  justify-content: space-between;
-  text-decoration: none;
-  color: ${({ theme }) => theme.textPrimary};
+  padding: 16px 0px;
 `
 
-function LanguageMenuItem({ locale, isActive }: { locale: SupportedLocale; isActive: boolean }) {
-  const { to, onClick } = useLocationLinkProps(locale)
-  const theme = useTheme()
-
-  if (!to) return null
-
-  return (
-    <InternalLinkMenuItem onClick={onClick} to={to}>
-      <ThemedText.BodySmall data-testid="wallet-language-item">{LOCALE_LABEL[locale]}</ThemedText.BodySmall>
-      {isActive && <Check color={theme.accentActive} opacity={1} size={20} />}
-    </InternalLinkMenuItem>
-  )
-}
-
-const SectionTitle = styled(ThemedText.SubHeader)`
-  color: ${({ theme }) => theme.textSecondary};
-  padding-bottom: 24px;
+const LanguageLabel = styled(Row)`
+  white-space: nowrap;
 `
 
-export default function SettingsMenu({ onClose }: { onClose: () => void }) {
+const SettingsButton = ({
+  title,
+  currentState,
+  onClick,
+  testId,
+  showArrow = true,
+}: {
+  title: ReactNode
+  currentState: ReactNode
+  onClick: () => void
+  testId?: string
+  showArrow?: boolean
+}) => (
+  <SettingsButtonWrapper data-testid={testId} align="center" justify="space-between" onClick={onClick}>
+    <ThemedText.SubHeaderSmall color="textPrimary">{title}</ThemedText.SubHeaderSmall>
+    <LanguageLabel gap="xs" align="center" width="min-content">
+      <ThemedText.LabelSmall color="textPrimary">{currentState}</ThemedText.LabelSmall>
+      {showArrow && <ChevronRight size={20} />}
+    </LanguageLabel>
+  </SettingsButtonWrapper>
+)
+
+
+export default function SettingsMenu({ onClose, openLanguageSettings }: { onClose: () => void, openLanguageSettings: () => void }) {
   const activeLocale = useActiveLocale()
 
   return (
     <SlideOutMenu title={<Trans>Settings</Trans>} onClose={onClose}>
-      <SectionTitle data-testid="wallet-header">
-        <Trans>Language</Trans>
-      </SectionTitle>
-      {SUPPORTED_LOCALES.map((locale) => (
-        <LanguageMenuItem locale={locale} isActive={activeLocale === locale} key={locale} />
-      ))}
+      <SettingsButton
+              title={<Trans>Language</Trans>}
+              currentState={activeLocale}
+              onClick={openLanguageSettings}
+              testId="language-settings-button"
+            />
     </SlideOutMenu>
   )
 }

@@ -68,7 +68,6 @@ export function useTokenBalancesWithLoadingIndicator(
     useMemo(() => [address], [address]),
     tokenBalancesGasRequirement
   )
-
   const anyLoading: boolean = useMemo(() => balances.some((callState) => callState.loading), [balances])
 
   return useMemo(
@@ -114,7 +113,6 @@ export function useCurrencyBalances(
     () => currencies?.filter((currency): currency is Token => currency?.isToken ?? false) ?? [],
     [currencies]
   )
-
   const { chainId } = useWeb3React()
   const tokenBalances = useTokenBalances(account, tokens)
   const containsETH: boolean = useMemo(() => currencies?.some((currency) => currency?.isNative) ?? false, [currencies])
