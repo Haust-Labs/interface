@@ -17,10 +17,10 @@ import { useUserAddedTokens, useUserAddedTokensOnChain } from '../state/user/hoo
 function useTokensFromMap(tokenMap: TokenAddressMap): { [address: string]: Token } {
   const { chainId } = useWeb3React()
   return useMemo(() => {
-    if (!chainId) return {}
+    const effectiveChainId = chainId || SupportedChainId.HAUST_TESTNET;
     // reduce to just tokens
-    return Object.keys(tokenMap[chainId] ?? {}).reduce<{ [address: string]: Token }>((newMap, address) => {
-      newMap[address] = tokenMap[chainId][address].token
+    return Object.keys(tokenMap[effectiveChainId] ?? {}).reduce<{ [address: string]: Token }>((newMap, address) => {
+      newMap[address] = tokenMap[effectiveChainId][address].token
       return newMap
     }, {})
   }, [chainId, tokenMap])

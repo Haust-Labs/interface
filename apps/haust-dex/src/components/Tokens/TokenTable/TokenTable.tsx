@@ -18,7 +18,7 @@ import ms from 'ms.macro';
 import { CornerLeftUp } from 'react-feather'
 import { isGqlSupportedChain } from 'graphql/data/util';
 import { ExplorerDataType, getExplorerLink } from 'utils/getExplorerLink';
-import { CHAIN_IDS_TO_NAMES } from 'constants/chains';
+import { CHAIN_IDS_TO_NAMES, SupportedChainId } from 'constants/chains';
 import { useWeb3React } from '@web3-react/core';
 
 const TableContainer = styled.div`
@@ -274,7 +274,7 @@ export default function TokenTable() {
                     token={token}
                     sparklineMap={sparklines}
                     sortRank={index+1}
-                    chainId={chainId}
+                    chainId={chainId ?? SupportedChainId.HAUST_TESTNET}
                   />
                 )
             )}

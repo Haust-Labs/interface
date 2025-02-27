@@ -472,7 +472,7 @@ interface LoadedRowProps {
 
 /* Loaded State: row component with token information */
 export const LoadedRow = forwardRef((props: LoadedRowProps, ref: ForwardedRef<HTMLDivElement>) => {
-  const { chainId } = useWeb3React()
+  const { chainId = SupportedChainId.HAUST_TESTNET } = useWeb3React()
   const { poolListIndex, poolListLength, pool, sortRank } = props
   const nativeToken = useNativeCurrency()
   const token0Currency = useCurrency(pool.token0.id)

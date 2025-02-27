@@ -556,12 +556,14 @@ export const LoadedRow = forwardRef((props: LoadedRowProps, ref: ForwardedRef<HT
   const token0= isValidToken(token0Id)
   const token1 = isValidToken(token1Id)
 
-  if(!token0 || !token1) {
-    return null
-  }
+
 
   const token0Currency = useCurrency(token0Id)
   const token1Currency = useCurrency(token1Id)
+
+  if(!token0 || !token1) {
+    return null
+  }
   
   const currencyQuote = token0Currency
 
