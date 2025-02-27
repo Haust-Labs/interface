@@ -32,11 +32,15 @@ import {
   useSetSortMethod,
 } from '../state'
 import { ArrowCell, DeltaText, formatDelta, getDeltaArrow } from '../TokenDetails/PriceChart'
-import { useCurrency } from 'hooks/Tokens';
 import CurrencyLogo from 'components/Logo/CurrencyLogo';
 import useTokenDayPrices from 'graphql/thegraph/TokenDayPriceQuery';
 import useTokenHourPrices from 'graphql/thegraph/TokenHourPriceQuery';
 import { DeltaArrow } from '../Delta';
+import useNativeCurrency from 'lib/hooks/useNativeCurrency';
+import { useCurrency } from 'hooks/Tokens';
+import { isGqlSupportedChain } from 'graphql/data/util';
+import { CHAIN_IDS_TO_NAMES } from 'constants/chains';
+import { ExplorerDataType, getExplorerLink } from 'utils/getExplorerLink';
 
 const Cell = styled.div`
   display: flex;
@@ -51,14 +55,15 @@ const StyledTokenRow = styled.div<{
   background-color: ${({ theme }) => theme.background};
   display: grid;
   font-size: 16px;
-  grid-template-columns: 1fr 5fr 3fr 3fr 3fr 3fr 3fr 4fr;
+  grid-template-columns: 1fr 4fr 3fr 3fr 3fr 3fr 2fr 3fr;
   line-height: 24px;
   max-width: ${MAX_WIDTH_MEDIA_BREAKPOINT};
   min-width: 390px;
   ${({ first, last }) => css`
     height: ${first || last ? '72px' : '64px'};
-    padding-top: ${first ? '8px' : '0px'};
     padding-bottom: ${last ? '8px' : '0px'};
+    border-bottom-left-radius: ${last ? '20px' : '0px'};
+    border-bottom-right-radius: ${last ? '20px' : '0px'};
   `}
   padding-left: 12px;
   padding-right: 12px;
@@ -69,15 +74,15 @@ const StyledTokenRow = styled.div<{
   }) => css`background-color ${duration.medium} ${timing.ease}`};
   width: 100%;
   transition-duration: ${({ theme }) => theme.transition.duration.fast};
-  border-radius: 20px;
 
   &:hover {
     ${({ loading, theme }) =>
       !loading &&
-      css`
-        background-color: ${theme.buttonSecondaryHover};
-      `}
-  }
+    css`
+      background-color: ${theme.buttonDisabled};
+      opacity: 0.7;
+    `}
+}
 
   @media only screen and (max-width: ${MAX_WIDTH_MEDIA_BREAKPOINT}) {
     grid-template-columns: 1fr 6.5fr 4.5fr 4.5fr 4.5fr 4.5fr 1.7fr;
@@ -115,11 +120,12 @@ const ClickableName = styled(ClickableContent)`
 `
 const StyledHeaderRow = styled.div`
   display: grid;
-  grid-template-columns: 1fr 5fr 3fr 3fr 3fr 3fr 3fr 4fr;
+  grid-template-columns: 1fr 4fr 3fr 3fr 3fr 3fr 2fr 3fr;
   background: ${({ theme }) => theme.backgroundModule};
   border-bottom: 1px solid ${({ theme }) => theme.borderSecondary};
   color: ${({ theme }) => theme.textSecondary};
   font-size: 14px;
+  font-weight: 500;
   height: 48px;
   line-height: 16px;
   padding: 0 12px;
@@ -233,7 +239,9 @@ const HeaderCellWrapper = styled.span<{ onClick?: () => void }>`
   }
 `
 const SparkLineCell = styled(Cell)`
-  min-width: 120px;
+  display: flex;
+  justify-content: flex-end;
+  min-width: 100px;
 `
 const SparkLine = styled(Cell)`
   width: 124px;
@@ -450,11 +458,21 @@ export function LoadingRow(props: { first?: boolean; last?: boolean }) {
 }
 
 interface LoadedRowProps {
+  chainId?: number
   tokenListIndex: number
   tokenListLength: number
   token: NonNullable<TopTokenApi>
   sparklineMap: SparklineMap
   sortRank: number
+}
+
+const getTokenLink = (chainId: any, address: string) => {
+  if (isGqlSupportedChain(chainId)) {
+    const chainName = CHAIN_IDS_TO_NAMES[chainId]
+    return `${window.location.origin}/explore/token/${chainName}/${address}`
+  } else {
+    return getExplorerLink(chainId, address, ExplorerDataType.TOKEN)
+  }
 }
 
 /* Loaded State: row component with token information */
@@ -463,33 +481,24 @@ export const LoadedRow = forwardRef((props: LoadedRowProps, ref: ForwardedRef<HT
   const filterString = useAtomValue(filterStringAtom)
 
   const filterNetwork = validateUrlChainParam(useParams<{ chainName?: string }>().chainName?.toUpperCase())
-  const chainId = CHAIN_NAME_TO_CHAIN_ID[filterNetwork]
-  const timePeriod = useAtomValue(filterTimeAtom)
   
   const dayDelta = Number(token.marketData.pricePercentChange)
   const hourDelta = Number(token.marketData.hourlyPriceChange)
 
-  const dayArrow = getDeltaArrow(dayDelta)
   const smallDayArrow = getDeltaArrow(dayDelta, 14)
   const formattedDayDelta = formatDelta(dayDelta)
   const formattedHourDelta = formatDelta(hourDelta)
 
-  const currency = useCurrency(token.address)
-  const exploreTokenSelectedEventProperties = {
-    chain_id: chainId,
-    token_symbol: token.symbol,
-    token_list_index: tokenListIndex,
-    token_list_rank: sortRank,
-    token_list_length: tokenListLength,
-    time_frame: timePeriod,
-    search_token_address_input: filterString,
-  }
+  const nativeCurrency = useNativeCurrency()
+  const tokenCurrency = useCurrency(token.address)
+  const currency = token.symbol === 'HAUST' ? nativeCurrency : tokenCurrency
+
 
   return (
     <div ref={ref} data-testid={`token-table-row-${token.symbol}`}>
       <StyledLink
-        to={getTokenDetailsURL({address: token.address})}
-        onClick={noop}
+        to={getTokenLink(props.chainId, token.address)}
+        onClick={(e) => e.preventDefault()}
       >
         <TokenRow
           header={false}
@@ -528,12 +537,12 @@ export const LoadedRow = forwardRef((props: LoadedRowProps, ref: ForwardedRef<HT
           }
           tvl={
             <ClickableContent>
-              {formatNumber(Number(token.totalValueLockedUsd), NumberType.FiatTokenStats)}
+              {formatUSDPrice((Number(token.totalSupply) * Number(token.priceUsd)), NumberType.FiatTokenStats)}
             </ClickableContent>
           }
           volume={
             <ClickableContent>
-              {formatNumber(Number(token.marketData.volume), NumberType.FiatTokenStats)}
+              {formatUSDPrice(Number(token.marketData.volume), NumberType.FiatTokenStats)}
             </ClickableContent>
           }
           sparkLine={

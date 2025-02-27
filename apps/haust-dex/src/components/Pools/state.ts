@@ -13,7 +13,7 @@ export enum PoolSortMethod {
 
 export const filterStringAtom = atomWithReset<string>('')
 export const filterTimeAtom = atom<TimePeriod>(TimePeriod.DAY)
-export const sortMethodAtom = atom<PoolSortMethod>(PoolSortMethod.ONE_DAY_VOLUME_TO_TVL)
+export const sortMethodAtom = atom<PoolSortMethod>(PoolSortMethod.TOTAL_VALUE_LOCKED)
 export const sortAscendingAtom = atom<boolean>(false)
 
 /* keep track of sort category for token table */

@@ -275,7 +275,7 @@ function AddLiquidity() {
       }
 
       setAttemptingTxn(true)
-      console.log('txn', position)
+
       provider
         .getSigner()
         .sendTransaction(txn)

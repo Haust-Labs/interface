@@ -36,6 +36,7 @@ export interface TopTokenApi {
   priceUsd: string;
   symbol: string;
   totalValueLockedUsd: Nullish<string>;
+  totalSupply: string;
   decimals: number;
   chain: Chain;
   marketData: MarketData;

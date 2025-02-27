@@ -1,0 +1,133 @@
+import { ApolloError, useQuery } from "@apollo/client";
+import gql from "graphql-tag";
+import { useMemo } from "react";
+
+import { apolloClient } from "./apollo";
+import { SupportedChainId } from "constants/chains";
+import { Nullish } from "types/common";
+
+interface MarketData {
+  volume24H: string;
+  priceHigh52W: string;
+  priceLow52W: string;
+  pricePercentChange: string;
+}
+
+export interface TokenApi {
+  address: string;
+  name: string;
+  priceUsd: string;
+  symbol: string;
+  totalValueLockedUsd: Nullish<string>;
+  decimals: number;
+  chain: SupportedChainId;
+  marketData: MarketData;
+}
+
+const query = gql`
+  query TokenDataQuery($tokenId: ID!) {
+    token(id: $tokenId) {
+      id
+      name
+      symbol
+      tokenDayData(orderBy: date, orderDirection: asc) {
+        priceUSD
+        close
+        open
+        date
+        volumeUSD
+      }
+      totalValueLockedUSD
+      decimals
+    }
+  }
+`;
+
+export default function useTokenData(
+  tokenId: string,
+  interval: number
+): {
+  error: ApolloError | undefined;
+  isLoading: boolean;
+  data: TokenApi | null;
+} {
+  const {
+    data: queryData,
+    loading: isLoading,
+    error,
+  } = useQuery(query, {
+    variables: { tokenId },
+    pollInterval: interval,
+    client: apolloClient,
+  });
+
+  return useMemo(() => {
+    if (!queryData?.token) {
+      return {
+        error,
+        isLoading,
+        data: null,
+      };
+    }
+
+    const tokenData = queryData.token;
+    const dayData = tokenData.tokenDayData || [];
+    const latestDayData =
+      dayData.length > 0 ? dayData[dayData.length - 1] : null;
+
+    // Calculate 52-week high and low
+    const priceHigh52W = dayData
+      .reduce(
+        (max: number, day: { priceUSD: string }) =>
+          parseFloat(day.priceUSD) > max ? parseFloat(day.priceUSD) : max,
+        0
+      )
+      .toString();
+
+    const priceLow52W = dayData
+      .reduce((min: number, day: { priceUSD: string }) => {
+        const price = parseFloat(day.priceUSD);
+        return (price > 0 && price < min) || min === 0 ? price : min;
+      }, 0)
+      .toString();
+
+    // Calculate price percent change (from previous day if available)
+    let pricePercentChange = "0";
+    if (dayData.length >= 2) {
+      const currentPrice = parseFloat(latestDayData?.priceUSD || "0");
+      const previousPrice = parseFloat(
+        dayData[dayData.length - 2].priceUSD || "0"
+      );
+
+      if (previousPrice > 0) {
+        const change = ((currentPrice - previousPrice) / previousPrice) * 100;
+        pricePercentChange = change.toString();
+      }
+    }
+
+    // Get the latest day's volume
+    const volume24H = latestDayData?.volumeUSD || "0";
+
+    const formattedData: TokenApi = {
+      address: tokenData.id,
+      name: tokenData.name,
+      symbol: tokenData.symbol,
+      priceUsd: latestDayData?.priceUSD || "0",
+      totalValueLockedUsd: tokenData.totalValueLockedUSD,
+      decimals: parseInt(tokenData.decimals),
+      chain: SupportedChainId.HAUST_TESTNET,
+      marketData: {
+        volume24H,
+        priceHigh52W,
+        priceLow52W,
+        pricePercentChange,
+      },
+    };
+
+    return {
+      error,
+      isLoading,
+      data: formattedData,
+    };
+  }, [queryData, error, isLoading]);
+}

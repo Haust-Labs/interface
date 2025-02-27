@@ -66,8 +66,6 @@ export default function useAssetLogoSource(
     // Parses and stores logo sources from tokenlists if assets repo url fails
     if (!fallbackSrcs) {
       const uris = TokenLogoLookupTable.getIcons(address, chainId) ?? []
-      console.log(uris, 'current')
-
       if (backupImg) uris.push(backupImg)
       const tokenListIcons = prioritizeLogoSources(parseLogoSources(uris))
 

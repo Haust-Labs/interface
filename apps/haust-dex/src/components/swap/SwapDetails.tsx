@@ -200,7 +200,7 @@ export function SwapDetails({
                 <ThemedText.HeadlineSmall color="neutral2">
                   <Row gap="8px">
                     <Loader />
-                    <Trans>swap.finalizingQuote</Trans>
+                    <Trans>Finalizing quote</Trans>
                   </Row>
                 </ThemedText.HeadlineSmall>
               ) : (

@@ -63,6 +63,7 @@ export interface TokenData {
   symbol: string;
   priceUsd: string;
   totalValueLockedUsd: string;
+  totalSupply: string;
   decimals: number;
   chain: string;
   isNative?: boolean;
@@ -134,7 +135,7 @@ export default function useTopTokensQuery(interval: number): {
               totalValueLockedUsd:
                 token.totalSupply * token.tokenDayData[0]?.priceUSD || "0",
               decimals: token.decimals,
-              chain: "ETHEREUM",
+              chain: "HAUST_TESTNET",
               marketData: {
                 duration: Duration.day,
                 pricePercentChange: dayDelta.toString(),
@@ -150,23 +151,43 @@ export default function useTopTokensQuery(interval: number): {
                 token.id.toLowerCase() ===
                 "0x6c25c1cb4b8677982791328471be1bfb187687c1".toLowerCase()
             )
-            .map((whaustToken: TopTokensQuery["tokens"][number]) => ({
-              ...whaustToken,
-              id: whaustToken.id + "_haust",
-              address: whaustToken.id + "_haust",
-              name: "Haust",
-              symbol: "HAUST",
-              isNative: true,
-              priceUsd: whaustToken.tokenDayData[0]?.priceUSD || "0",
-              totalValueLockedUsd: whaustToken.volumeUSD,
-              decimals: whaustToken.decimals,
-              chain: "ETHEREUM",
-              marketData: {
-                duration: Duration.day,
-                pricePercentChange: "5.67",
-                volume: whaustToken.volumeUSD,
-              },
-            })) || []),
+            .map((whaustToken: TopTokensQuery["tokens"][number]) => {
+              // Calculate hour price changes for HAUST
+              const currentDayPrice = Number(whaustToken.tokenDayData[0]?.priceUSD);
+              const previousDayPrice = Number(whaustToken.tokenDayData[1]?.priceUSD);
+              const dayDelta = previousDayPrice
+                ? ((currentDayPrice - previousDayPrice) / previousDayPrice) * 100
+                : 0;
+              const tokenHourData = hourData?.tokenHourDatas?.filter(
+                (t: any) => t.token.id === whaustToken.id
+              );
+              const currentHourPrice = Number(tokenHourData?.[0]?.priceUSD);
+              const previousHourPrice = Number(tokenHourData?.[1]?.priceUSD);
+              
+              const hourDelta = previousHourPrice
+                ? ((currentHourPrice - previousHourPrice) / previousHourPrice) *
+                  100
+                : 0;
+
+              return {
+                ...whaustToken,
+                id: whaustToken.id + "_haust",
+                address: whaustToken.id + "_haust",
+                name: "Haust",
+                symbol: "HAUST",
+                isNative: true,
+                priceUsd: whaustToken.tokenDayData[0]?.priceUSD || "0",
+                totalValueLockedUsd: whaustToken.volumeUSD,
+                decimals: whaustToken.decimals,
+                chain: "HAUST_TESTNET",
+                marketData: {
+                  duration: Duration.day,
+                  pricePercentChange: dayDelta.toString(),
+                  hourlyPriceChange: hourDelta.toString(),
+                  volume: whaustToken.volumeUSD,
+                },
+              };
+            }) || []),
         ],
         sparklines: rawData?.tokens.reduce(
           (
@@ -194,7 +215,7 @@ export default function useTopTokensQuery(interval: number): {
                     value: Number(dayData.priceUSD),
                     timestamp: dayData.date * 1000,
                   }));
-            console.log(sparklineData, token.id, "sparklineData");
+
             acc[token.id] = sparklineData;
             if (
               token.id.toLowerCase() ===

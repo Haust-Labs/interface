@@ -148,14 +148,14 @@ function LoadingTokenTable({ rowCount = PAGE_SIZE }: { rowCount?: number }) {
   )
 }
 
-export default function PoolTable() {
+export default function PoolTable({ poolsData, loading }: { poolsData?: any, loading?: boolean }) {
   const chainName = validateUrlChainParam(useParams<{ chainName?: string }>().chainName)
   const { isLoading, error, data } = usePollsData(ms`30s`)
   const searchFilter = useAtomValue(filterStringAtom)
   const sortMethod = useAtomValue(sortMethodAtom)
   const sortAscending = useAtomValue(sortAscendingAtom)
 
-  const { pools }: { pools: any } = data ?? {}
+  const { pools }: { pools: any } = poolsData ?? data ?? {}
   
   const headerHeight = 72
   const [showReturn, setShowReturn] = useState(false)
@@ -174,35 +174,71 @@ export default function PoolTable() {
     )
   }
 
-  const filteredPools = pools?.filter((pool: any) => {
-    const hasValidTokens = pool?.token0?.id && 
-      pool?.token1?.id && 
-      isValidToken(pool.token0.id) && 
-      isValidToken(pool.token1.id);
+  const filteredPools = React.useMemo(() => {
+    if (!pools) return []
+    
+    const filtered = pools.filter((pool: any) => {
+      const hasValidTokens = pool?.token0?.id && 
+        pool?.token1?.id && 
+        isValidToken(pool.token0.id) && 
+        isValidToken(pool.token1.id);
 
-    if (!hasValidTokens) return false;
-    
-    if (!searchFilter) return true;
-
-    const searchTerm = searchFilter.toLowerCase();
-    
-    const pairString = `${pool.token0.symbol.toUpperCase()} / ${pool.token1.symbol.toUpperCase()}`;
-    
-    if (searchTerm.includes('/')) {
-      const [token0Search, token1Search] = searchTerm.split('/').map(term => term.trim());
+      if (!hasValidTokens) return false;
       
-      if (token1Search) {
-        return pool.token0.symbol.toLowerCase().startsWith(token0Search) &&
-               pool.token1.symbol.toLowerCase().startsWith(token1Search);
+      if (!searchFilter) return true;
+
+      const searchTerm = searchFilter.toLowerCase();
+      
+      const pairString = `${pool.token0.symbol.toUpperCase()} / ${pool.token1.symbol.toUpperCase()}`;
+      
+      if (searchTerm.includes('/')) {
+        const [token0Search, token1Search] = searchTerm.split('/').map(term => term.trim());
+        
+        if (token1Search) {
+          return pool.token0.symbol.toLowerCase().startsWith(token0Search) &&
+                 pool.token1.symbol.toLowerCase().startsWith(token1Search);
+        }
+        
+        return pool.token0.symbol.toLowerCase().startsWith(token0Search);
       }
       
-      return pool.token0.symbol.toLowerCase().startsWith(token0Search);
-    }
+      return pairString.toLowerCase().includes(searchTerm);
+    });
+
+    // Затем сортируем отфильтрованные пулы
+    filtered.sort((a: any, b: any) => {
+      let compareValue = 0
+      let aprA, aprB
+      
+      switch (sortMethod) {
+        case PoolSortMethod.TOTAL_VALUE_LOCKED:
+          compareValue = Number(a.totalValueLockedUSD) - Number(b.totalValueLockedUSD)
+          break
+        case PoolSortMethod.ONE_DAY_VOLUME:
+          compareValue = Number(a?.poolDayData[0]?.volumeUSD) - Number(b.poolDayData[0]?.volumeUSD)
+          break
+        case PoolSortMethod.THIRTY_DAY_VOLUME:
+          compareValue = Number(a.poolDayData.slice(0, 30).reduce((sum: number, day: any) => sum + Number(day.volumeUSD), 0)) - Number(b.poolDayData.slice(0, 30).reduce((sum: number, day: any) => sum + Number(day.volumeUSD), 0))
+          break
+        case PoolSortMethod.ONE_DAY_VOLUME_TO_TVL:
+          compareValue = Number(a.poolDayData[0]?.volumeUSD) / Number(a.totalValueLockedUSD) - Number(b.poolDayData[0]?.volumeUSD) / Number(b.totalValueLockedUSD)
+          break
+        case PoolSortMethod.APR:
+          aprA = (Number(a.poolDayData[0].feesUSD) / Number(a.totalValueLockedUSD) * 365 * 100)
+          aprB = (Number(b.poolDayData[0].feesUSD) / Number(b.totalValueLockedUSD) * 365 * 100)
+          compareValue = Number(aprA) - Number(aprB)
+          break
+        default:
+          compareValue = 0
+      }
+
+      return sortAscending ? compareValue : -compareValue
+    })
     
-    return pairString.toLowerCase().includes(searchTerm);
-  });
-  
-  if (isLoading && !pools) {
+    return filtered
+  }, [pools, searchFilter, sortMethod, sortAscending])
+
+  if ((isLoading || loading) && !pools) {
     return <LoadingTokenTable rowCount={PAGE_SIZE} />
   } else if (!filteredPools) {
     return (
@@ -210,13 +246,13 @@ export default function PoolTable() {
         message={
           <>
             <AlertTriangle size={16} />
-            <Trans>An error occurred loading tokens. Please try again.</Trans>
+            <Trans>An error occurred loading pools. Please try again.</Trans>
           </>
         }
       />
     )
-  } else if (filteredPools?.length === 0) {
-    return <NoTokensState message={<Trans>No tokens found</Trans>} />
+  } else if (filteredPools.length === 0) {
+    return <NoTokensState message={<Trans>No pools found</Trans>} />
   } else {
     return (
       <TableContainer>

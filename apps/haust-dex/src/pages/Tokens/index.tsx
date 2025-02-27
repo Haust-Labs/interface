@@ -13,6 +13,7 @@ import { NavLink } from 'react-router-dom'
 import { ExploreChartsSection } from './charts/ExploreChartsSection'
 import PoolTable from 'components/Pools/PoolTable/PoolTable'
 import { ButtonPrimary } from 'components/Button'
+import TransactionTable from 'components/Transactions/TransactionTable/TransactionTable'
 const ExploreContainer = styled.div`
   width: 100%;
   min-width: 320px;
@@ -126,7 +127,7 @@ const Pages: Array<Page> = [
   {
     title: <Trans>Transactions</Trans>,
     key: ExploreTab.Transactions,
-    component: TokenTable,
+    component: TransactionTable,
   },
 ]
 

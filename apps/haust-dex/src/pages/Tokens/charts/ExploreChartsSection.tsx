@@ -20,6 +20,9 @@ import { getCumulativeSum, getCumulativeVolume, getVolumeProtocolInfo } from 'co
 import { CustomVolumeChartModel } from 'components/ChartsV2/VolumeChart/CustomVolumeChartModel'
 import { StackedHistogramData } from 'components/ChartsV2/VolumeChart/renderer'
 import { formatHistoryDuration } from 'components/ChartsV2/VolumeChart'
+import useUniswapTvl from 'graphql/thegraph/UniswapTvlQuery'
+import ms from 'ms.macro'
+import useUniswapVolume from 'graphql/thegraph/UniswapVolumeQuery'
 
 const EXPLORE_CHART_HEIGHT_PX = 368
 const PRICE_SOURCES = ['V2', 'V3']
@@ -78,6 +81,7 @@ function VolumeChartSection() {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>(TimePeriod.DAY)
   const theme = useTheme()
   const isSmallScreen = !useScreenSize()['sm']
+  const { data, isLoading } = useUniswapVolume(ms`30s`)
   // const refitChartContent = useAtomValue(refitChartContentAtom)
 
   function timeGranularityToHistoryDuration(timePeriod: TimePeriod): HistoryDuration {
@@ -96,22 +100,19 @@ function VolumeChartSection() {
 
   // Add mock data generation
   const mockEntries = useMemo(() => {
-    const today = new Date()
-    return Array.from({ length: 30 }, (_, i) => {
-      const date = new Date(today)
-      date.setDate(date.getDate() - i)
+    if (!data?.uniswapDayDatas) return []
+    return data?.uniswapDayDatas?.filter(dayData => !dayData.volumeUSD || dayData.volumeUSD !== '0').map((dayData) => {
       return {
-        time: (date.getTime() / 1000) as UTCTimestamp,
+        time: (dayData.date) as UTCTimestamp,
         values: {
-          V3: Math.random() * 1000000000 + 2000000000,
+          V3: Number(dayData.volumeUSD),
         },
       }
-    }).reverse()
-  }, [])
+    })
+  }, [data])
 
   // Replace real data with mock data
   const entries = mockEntries
-  const loading = false
   // const dataQuality = DataQuality.VALID
 
   const params = useMemo(
@@ -128,6 +129,8 @@ function VolumeChartSection() {
   )
 
   const cumulativeVolume = useMemo(() => getCumulativeVolume(entries), [entries])
+  console.log(cumulativeVolume, 'cumulativeVolume');
+  
   if (isSmallScreen) {
     return (
       <MinimalStatDisplay
@@ -158,12 +161,9 @@ function VolumeChartSection() {
         />
       </Flex>
       {(() => {
-        // if (dataQuality === DataQuality.INVALID) {
-        //   const errorText = loading ? undefined : <Trans i18nKey="explore.unableToDisplayHistorical" />
-        //   return (
-        //     <ChartSkeleton hideYAxis type={ChartType.VOLUME} height={EXPLORE_CHART_HEIGHT_PX} errorText={errorText} />
-        //   )
-        // }
+        if (isLoading) {
+          return <ChartSkeleton hideYAxis type={ChartType.VOLUME} height={EXPLORE_CHART_HEIGHT_PX} />
+        }
         return (
           <Chart
             // TODO(WEB-4820): Remove key when Chart automatically updates to theme changes
@@ -190,23 +190,21 @@ function VolumeChartSection() {
 
 function TVLChartSection() {
   const theme = useTheme()
+  const { data, isLoading } = useUniswapTvl(ms`30s`)
   
   const mockEntries = useMemo(() => {
-    const today = new Date()
-    return Array.from({ length: 100 }, (_, i) => {
-      const date = new Date(today)
-      date.setDate(date.getDate() - i)
+    if (!data?.uniswapDayDatas) return []
+    return data?.uniswapDayDatas.filter(dayData => !dayData.tvlUSD || dayData.tvlUSD !== '0').map((dayData) => {
       return {
-        time: (date.getTime() / 1000) as UTCTimestamp,
+        time: (dayData.date as UTCTimestamp),
         values: [
-          Math.random() * 2000000000 + 3000000000,
+          Number(dayData.tvlUSD),
         ],
       }
-    }).reverse()
-  }, [])
+    })
+  }, [data]);
 
   const entries = mockEntries
-  const loading = false
 
   const lastEntry = entries[entries.length - 1]
   const params = useMemo(
@@ -227,20 +225,19 @@ function TVLChartSection() {
   const isSmallScreen = !useScreenSize()['sm']
   if (isSmallScreen) {
     const currentTVL = lastEntry?.values.reduce((acc, curr) => acc + curr, 0)
-    return <MinimalStatDisplay title="Uniswap TVL" value={currentTVL} />
+    return <MinimalStatDisplay title="Haust TVL" value={currentTVL} />
   }
 
   return (
     <SectionContainer>
       <SectionTitle style={{ marginBottom: '20px' }}>
-        Uniswap TVL
+        Haust TVL
       </SectionTitle>
       {(() => {
-        // if (dataQuality === DataQuality.INVALID) {
-        //   const errorText = loading ? undefined : 'Unable to display historical TVL'
-        //   return <ChartSkeleton hideYAxis type={ChartType.TVL} height={EXPLORE_CHART_HEIGHT_PX} errorText={errorText} />
-        // }
-
+        if (isLoading) {
+          return <ChartSkeleton hideYAxis type={ChartType.TVL} height={EXPLORE_CHART_HEIGHT_PX} />
+        }
+        
         return (
           <Chart Model={TVLChartModel} params={params} height={EXPLORE_CHART_HEIGHT_PX}>
             {(crosshairData) => (

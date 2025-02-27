@@ -88,8 +88,6 @@ export class LPPriceChartModel extends ChartModel<PriceChartData> {
 
   constructor(chartDiv: HTMLDivElement, params: LPPriceChartModelParams) {
     super(chartDiv, params)
-    console.log('params.positionPriceLower', params.positionPriceLower)
-    console.log('params.positionPriceUpper', params.positionPriceUpper)
     this.positionRangeMin =
       typeof params.positionPriceLower === 'number'
         ? params.positionPriceLower
@@ -333,7 +331,6 @@ function usePoolPriceChartData(tokenId: string) {
     tokenId.toLowerCase(),
     1000
   )
-  console.log('data4', data)
   return {
     entries: data,
     loading: isLoading,

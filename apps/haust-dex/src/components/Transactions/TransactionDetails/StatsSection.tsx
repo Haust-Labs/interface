@@ -7,8 +7,8 @@ import styled from 'styled-components/macro'
 import { ThemedText } from 'theme'
 import { textFadeIn } from 'theme/styles'
 
-import { PoolSortMethod } from '../state'
-import { HEADER_DESCRIPTIONS } from '../TransactionTable/PoolRow'
+import { TransactionSortMethod } from '../state'
+import { HEADER_DESCRIPTIONS } from '../TransactionTable/TransactionRow'
 
 export const StatWrapper = styled.div`
   color: ${({ theme }) => theme.textSecondary};
@@ -87,7 +87,7 @@ export default function StatsSection(props: StatsSectionProps) {
             <Stat
               dataCy="tvl"
               value={TVL}
-              description={HEADER_DESCRIPTIONS[PoolSortMethod.TOTAL_VALUE_LOCKED]}
+              description={HEADER_DESCRIPTIONS[TransactionSortMethod.TIME]}
               title={<Trans>TVL</Trans>}
             />
             <Stat

@@ -1,4 +1,4 @@
-import {Chain} from "api/util";
+import { SupportedChainId } from "constants/chains";
 import {Nullish} from "types/common";
 
 interface MarketData {
@@ -14,6 +14,6 @@ export interface TokenApi {
   symbol: string;
   totalValueLockedUsd: Nullish<string>;
   decimals: number;
-  chain: Chain;
+  chain: SupportedChainId;
   marketData: MarketData;
 }

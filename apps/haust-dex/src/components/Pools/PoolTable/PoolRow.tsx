@@ -62,8 +62,9 @@ const StyledTokenRow = styled.div<{
   min-width: 390px;
   ${({ first, last }) => css`
     height: ${first || last ? '72px' : '64px'};
-    padding-top: ${first ? '8px' : '0px'};
     padding-bottom: ${last ? '8px' : '0px'};
+    border-bottom-left-radius: ${last ? '20px' : '0px'};
+    border-bottom-right-radius: ${last ? '20px' : '0px'};
   `}
   padding-left: 12px;
   padding-right: 12px;
@@ -74,14 +75,14 @@ const StyledTokenRow = styled.div<{
   }) => css`background-color ${duration.medium} ${timing.ease}`};
   width: 100%;
   transition-duration: ${({ theme }) => theme.transition.duration.fast};
-  border-radius: 20px;
 
   &:hover {
     ${({ loading, theme }) =>
       !loading &&
-      css`
-        background-color: ${theme.buttonSecondaryHover};
-      `}
+    css`
+      background-color: ${theme.buttonDisabled};
+      opacity: 0.7;
+    `}
   }
 
   @media only screen and (max-width: ${MAX_WIDTH_MEDIA_BREAKPOINT}) {
@@ -125,6 +126,7 @@ const StyledHeaderRow = styled.div`
   border-bottom: 1px solid ${({ theme }) => theme.borderSecondary};
   color: ${({ theme }) => theme.textSecondary};
   font-size: 14px;
+  font-weight: 500;
   height: 48px;
   line-height: 16px;
   padding: 0 12px;
@@ -472,27 +474,22 @@ interface LoadedRowProps {
 export const LoadedRow = forwardRef((props: LoadedRowProps, ref: ForwardedRef<HTMLDivElement>) => {
   const { chainId } = useWeb3React()
   const { poolListIndex, poolListLength, pool, sortRank } = props
-  const filterString = useAtomValue(filterStringAtom)
   const nativeToken = useNativeCurrency()
   const token0Currency = useCurrency(pool.token0.id)
   const token1Currency = useCurrency(pool.token1.id)
 
-  const filterNetwork = validateUrlChainParam(useParams<{ chainName?: string }>().chainName?.toUpperCase())
-  const timePeriod = useAtomValue(filterTimeAtom)
-  
   const currencyQuote = pool.token0.symbol.toUpperCase() === 'WHAUST' 
     ? nativeToken 
     : token0Currency
   const currencyBase = pool.token1.symbol.toUpperCase() === 'WHAUST'
     ? nativeToken
     : token1Currency
-console.log(pool, Number(pool.feeTier), Number(pool.totalValueLockedUSD), 'apr');
 
   return (
     <div ref={ref} data-testid={`pool-table-row-${pool.token0.symbol}`}>
       <StyledLink
         to={getTokenDetailsURL({address: pool.token0.address})}
-        onClick={noop}
+        onClick={(e) => e.preventDefault()}
       >
         <PoolRow
           header={false}
@@ -517,12 +514,12 @@ console.log(pool, Number(pool.feeTier), Number(pool.totalValueLockedUSD), 'apr')
           }
           oneDayVolume={
             <ClickableContent>
-              {formatNumber(Number(Number(pool?.poolDayData[0]?.volumeUSD).toFixed(2)), NumberType.FiatTokenStats)}
+              {formatUSDPrice(Number(Number(pool?.poolDayData[0]?.volumeUSD).toFixed(2)), NumberType.FiatTokenStats)}
             </ClickableContent>
           }
           thirtyDayVolume={
             <ClickableContent>
-                {formatNumber(
+                {formatUSDPrice(
                     pool.poolDayData.slice(0, 30).reduce((sum: number, day: any) => sum + Number(day.volumeUSD), 0),
                     NumberType.FiatTokenStats
                   )}

@@ -18,7 +18,7 @@ const ChartErrorContainer = styled(Row)`
   left: 50%;
   transform: translate(-50%, -50%);
   border-radius: 20px;
-  border: 1.3px solid ${({ theme }) => theme.accentCritical};
+  border: 1.3px solid ${({ theme }) => theme.accentAction};
   background-color: ${({ theme }) => theme.accentActive};
   padding: 12px 20px 12px 12px;
   gap: 12px;
@@ -89,13 +89,13 @@ function ChartLoadingStateMask({ type, height, id }: { type: ChartType; height: 
         <>
           <defs>
             <linearGradient id={`${id}-gradient`} x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0" stopColor={theme.accentActionSoft}>
+              <stop offset="0" stopColor={theme.accentAction}>
                 <animate attributeName="offset" values="-1;3" dur="1.3s" repeatCount="indefinite" />
               </stop>
-              <stop offset="0.5" stopColor={lighten(0.24, theme.accentFailure)}>
+              <stop offset="0.5" stopColor={lighten(0.24, theme.accentAction)}>
                 <animate attributeName="offset" values="-0.5;3.5" dur="1.3s" repeatCount="indefinite" />
               </stop>
-              <stop offset="1" stopColor={theme.accentActiveSoft}>
+              <stop offset="1" stopColor={theme.accentAction}>
                 <animate attributeName="offset" values="0;4" dur="1.3s" repeatCount="indefinite" />
               </stop>
             </linearGradient>
@@ -119,10 +119,10 @@ function ChartLoadingStateMask({ type, height, id }: { type: ChartType; height: 
               <stop offset="0" stopColor={theme.accentAction}>
                 <animate attributeName="offset" values="-0.2;3.3" dur="1.3s" repeatCount="indefinite" />
               </stop>
-              <stop offset="0.1" stopColor={lighten(0.05, theme.accentCritical)}>
+              <stop offset="0.1" stopColor={lighten(0.05, theme.accentAction)}>
                 <animate attributeName="offset" values="-0.1;3.4" dur="1.3s" repeatCount="indefinite" />
               </stop>
-              <stop offset="0.2" stopColor={theme.accentFailure}>
+              <stop offset="0.2" stopColor={theme.accentAction}>
                 <animate attributeName="offset" values="0;3.5" dur="1.3s" repeatCount="indefinite" />
               </stop>
             </linearGradient>
@@ -162,9 +162,9 @@ export function ChartSkeleton({
   hideYAxis?: boolean
 }) {
   const theme = useTheme()
-  const neutral3Opacified = opacify(25, theme.accentActionSoft)
+  const neutral3Opacified = theme.accentAction
 
-  const fillColor = errorText || dim ? neutral3Opacified : theme.accentActionSoft
+  const fillColor = errorText || dim ? neutral3Opacified : theme.accentAction
   const tickColor = errorText ? opacify(12.5, theme.accentActive) : neutral3Opacified
 
   const maskId = `mask-${type}-${height}`

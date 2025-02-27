@@ -28,7 +28,7 @@ import {
   filterTimeAtom,
   sortAscendingAtom,
   sortMethodAtom,
-  PoolSortMethod,
+  TransactionSortMethod,
   useSetSortMethod,
 } from '../state'
 import { ArrowCell, DeltaText, formatDelta, getDeltaArrow } from '../TransactionDetails/PriceChart'
@@ -42,6 +42,8 @@ import { SupportedChainId } from 'constants/chains';
 import { Percent } from '@uniswap/sdk-core';
 import { useWeb3React } from '@web3-react/core';
 import useNativeCurrency from 'lib/hooks/useNativeCurrency';
+import { ExplorerDataType, getExplorerLink } from 'utils/getExplorerLink';
+import { TOKEN_ADDRESSES } from 'constants/tokens';
 
 const Cell = styled.div`
   display: flex;
@@ -56,14 +58,15 @@ const StyledTokenRow = styled.div<{
   background-color: ${({ theme }) => theme.background};
   display: grid;
   font-size: 16px;
-  grid-template-columns: 1fr 6fr 3fr 3fr 3fr 3fr 3fr;
+  grid-template-columns: 1fr 3fr 2fr 2fr 2fr 2fr;
   line-height: 24px;
   max-width: ${MAX_WIDTH_MEDIA_BREAKPOINT};
   min-width: 390px;
   ${({ first, last }) => css`
     height: ${first || last ? '72px' : '64px'};
-    padding-top: ${first ? '8px' : '0px'};
     padding-bottom: ${last ? '8px' : '0px'};
+    border-bottom-left-radius: ${last ? '20px' : '0px'};
+    border-bottom-right-radius: ${last ? '20px' : '0px'};
   `}
   padding-left: 12px;
   padding-right: 12px;
@@ -74,18 +77,19 @@ const StyledTokenRow = styled.div<{
   }) => css`background-color ${duration.medium} ${timing.ease}`};
   width: 100%;
   transition-duration: ${({ theme }) => theme.transition.duration.fast};
-  border-radius: 20px;
 
   &:hover {
     ${({ loading, theme }) =>
       !loading &&
       css`
-        background-color: ${theme.buttonSecondaryHover};
+        background-color: ${theme.buttonDisabled};
+        opacity: 0.7;
       `}
   }
 
   @media only screen and (max-width: ${MAX_WIDTH_MEDIA_BREAKPOINT}) {
     grid-template-columns: 1fr 6.5fr 4.5fr 4.5fr 4.5fr 4.5fr 1.7fr;
+    column-gap: 24px;
   }
 
   @media only screen and (max-width: ${LARGE_MEDIA_BREAKPOINT}) {
@@ -120,7 +124,7 @@ const ClickableName = styled(ClickableContent)`
 `
 const StyledHeaderRow = styled.div`
   display: grid;
-  grid-template-columns: 1fr 6fr 3fr 3fr 3fr 3fr 3fr;
+  grid-template-columns: 1fr 3fr 2fr 2fr 2fr 2fr;
   background: ${({ theme }) => theme.backgroundModule};
   border-bottom: 1px solid ${({ theme }) => theme.borderSecondary};
   color: ${({ theme }) => theme.textSecondary};
@@ -147,6 +151,7 @@ const StyledHeaderRow = styled.div`
 
   @media only screen and (max-width: ${MAX_WIDTH_MEDIA_BREAKPOINT}) {
     grid-template-columns: 1fr 6.5fr 4.5fr 4.5fr 4.5fr 4.5fr 1.7fr;
+    column-gap: 24px;
   }
 
   @media only screen and (max-width: ${LARGE_MEDIA_BREAKPOINT}) {
@@ -168,6 +173,16 @@ const ListNumberCell = styled(Cell)<{ header: boolean }>`
   color: ${({ theme }) => theme.textSecondary};
   min-width: 32px;
   font-size: 14px;
+  justify-content: flex-start;
+  padding: 0 8px;
+  text-align: left;
+  direction: ltr;
+
+  ${({ header }) => !header && `
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  `}
 
   @media only screen and (max-width: ${SMALL_MEDIA_BREAKPOINT}) {
     display: none;
@@ -177,6 +192,11 @@ const DataCell = styled(Cell)<{ sortable: boolean }>`
   justify-content: flex-end;
   min-width: 80px;
   user-select: ${({ sortable }) => (sortable ? 'none' : 'unset')};
+  text-align: right;
+  direction: ltr;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
   transition: ${({
     theme: {
       transition: { duration, timing },
@@ -194,6 +214,8 @@ const NameCell = styled(Cell)`
   padding: 0 8px;
   min-width: 240px;
   gap: 8px;
+  text-align: left;
+  direction: ltr;
 `
 const AprCell = styled(DataCell)`
   padding-right: 8px;
@@ -225,12 +247,12 @@ const PriceInfoCell = styled(Cell)`
   }
 `
 
-const HeaderCellWrapper = styled.span<{ onClick?: () => void }>`
+const HeaderCellWrapper = styled.span<{ onClick?: () => void; leftAlign?: boolean }>`
   align-items: center;
   cursor: ${({ onClick }) => (onClick ? 'pointer' : 'unset')};
   display: flex;
   gap: 4px;
-  justify-content: flex-end;
+  justify-content: ${({ leftAlign }) => (leftAlign ? 'flex-start' : 'flex-end')};
   width: 100%;
 
   &:hover {
@@ -255,6 +277,8 @@ const TokenInfoCell = styled(Cell)`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: left;
+  direction: ltr;
 
   @media only screen and (max-width: ${SMALL_MEDIA_BREAKPOINT}) {
     justify-content: flex-start;
@@ -269,6 +293,7 @@ const TokenName = styled.div`
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 100%;
+  direction: ltr;
 `
 const TokenSymbol = styled(Cell)`
   color: ${({ theme }) => theme.textSecondary};
@@ -323,25 +348,35 @@ const InfoIconContainer = styled.div`
   cursor: help;
 `
 
-export const HEADER_DESCRIPTIONS: Record<PoolSortMethod, ReactNode | undefined> = {
-  [PoolSortMethod.APR]: undefined,
-  [PoolSortMethod.ONE_DAY_VOLUME]: undefined,
-  [PoolSortMethod.THIRTY_DAY_VOLUME]: undefined,
-  [PoolSortMethod.TOTAL_VALUE_LOCKED]: (
-    <Trans>
-      Total value locked (TVL) is the aggregate amount of the asset available across all Haust DEX v3 liquidity pools.
-    </Trans>
-  ),
-  [PoolSortMethod.ONE_DAY_VOLUME_TO_TVL]: (
-    <Trans>Volume is the amount of the asset that has been traded on Haust DEX v3 during the selected time frame.</Trans>
-  ),
+const ExplorerLink = styled.a`
+  text-decoration: none;
+  color: ${({ theme }) => theme.textPrimary};
+  
+  &:hover {
+    color: ${({ theme }) => theme.accentAction};
+    cursor: pointer;
+  }
+`
+
+const WalletCell = styled(DataCell)`
+  &:hover {
+    color: ${({ theme }) => theme.accentAction};
+    cursor: pointer;
+  }
+`
+
+export const HEADER_DESCRIPTIONS: Record<TransactionSortMethod, ReactNode | undefined> = {
+  [TransactionSortMethod.TIME]: undefined,
+  [TransactionSortMethod.TRANSACTION_INFO]: undefined,
 }
 
 /* Get singular header cell for header row */
 function HeaderCell({
   category,
+  leftAlign,
 }: {
-  category: PoolSortMethod // TODO: change this to make it work for trans
+  category: TransactionSortMethod
+  leftAlign?: boolean
 }) {
   const theme = useTheme()
   const sortAscending = useAtomValue(sortAscendingAtom)
@@ -351,7 +386,16 @@ function HeaderCell({
   const description = HEADER_DESCRIPTIONS[category]
 
   return (
-    <HeaderCellWrapper onClick={handleSortCategory}>
+    <HeaderCellWrapper onClick={handleSortCategory} leftAlign={leftAlign}>
+      {category === TransactionSortMethod.TIME || category === TransactionSortMethod.TRANSACTION_INFO ? (
+        <div style={{ textAlign: 'left', direction: 'ltr' }}>
+          {category}
+        </div>
+      ) : (
+        <div style={{ textAlign: 'right', direction: 'ltr' }}>
+          {category}
+        </div>
+      )}
       {sortMethod === category && (
         <>
           {sortAscending ? (
@@ -361,7 +405,6 @@ function HeaderCell({
           )}
         </>
       )}
-      {category}
       {description && (
         <MouseoverTooltip text={description} placement="right">
           <InfoIconContainer>
@@ -374,49 +417,46 @@ function HeaderCell({
 }
 
 /* Token Row: skeleton row component */
-function PoolRow({
+function TransactionRow({
   header,
-  listNumber,
-  poolInfo,
-  apr,
-  oneDayVolume,
-  thirtyDayVolume,
-  tvl,
-  oneDayVolumeToTvl,
+  timestamp,
+  transactionInfo,
+  usd,
+  token0,
+  token1,
+  wallet,
   ...rest
 }: {
   first?: boolean
   header: boolean
-  listNumber: ReactNode
+  timestamp: ReactNode
   loading?: boolean
-  tvl: ReactNode
-  apr: ReactNode
-  oneDayVolume: ReactNode
-  thirtyDayVolume: ReactNode
-  poolInfo: ReactNode
-  oneDayVolumeToTvl: ReactNode
+  usd: ReactNode
+  token0: ReactNode
+  token1: ReactNode
+  wallet: ReactNode
+  transactionInfo: ReactNode
   last?: boolean
   style?: CSSProperties
 }) {
   const rowCells = (
     <>
-      <ListNumberCell header={header}>{listNumber}</ListNumberCell>
-      <NameCell data-testid="name-cell">{poolInfo}</NameCell>
+      <ListNumberCell header={header}>
+        {header ? timestamp : <ClickableContent>{timestamp}</ClickableContent>}
+      </ListNumberCell>
+      <NameCell data-testid="name-cell">{transactionInfo}</NameCell>
       <TvlCell data-testid="tvl-cell" sortable={header}>
-        {tvl}
+        {usd}
       </TvlCell>
       <AprCell data-testid="apr-cell" sortable={header}>
-        {apr}
+        {token0}
       </AprCell>
       <PercentChangeCell data-testid="percent-change-cell" sortable={header}>
-        {oneDayVolume}
+        {token1}
       </PercentChangeCell>
       <PercentChangeCell data-testid="percent-change-cell" sortable={header}>
-        {thirtyDayVolume}
+        {wallet}
       </PercentChangeCell>
-      <VolumeCell data-testid="volume-cell" sortable={header}>
-        {oneDayVolumeToTvl}
-      </VolumeCell>
     </>
   )
   if (header) return <StyledHeaderRow data-testid="header-row">{rowCells}</StyledHeaderRow>
@@ -426,15 +466,19 @@ function PoolRow({
 /* Header Row: top header row component for table */
 export function HeaderRow() {
   return (
-    <PoolRow
+    <TransactionRow
       header={true}
-      listNumber="#"
-      poolInfo={<Trans>Pool</Trans>}
-      tvl={<HeaderCell category={PoolSortMethod.TOTAL_VALUE_LOCKED} />}
-      apr={<HeaderCell category={PoolSortMethod.APR} />}
-      oneDayVolume={<HeaderCell category={PoolSortMethod.ONE_DAY_VOLUME} />}
-      thirtyDayVolume={<HeaderCell category={PoolSortMethod.THIRTY_DAY_VOLUME} />}
-      oneDayVolumeToTvl={<HeaderCell category={PoolSortMethod.ONE_DAY_VOLUME_TO_TVL} />}
+      timestamp={
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <ArrowDown size={16} />
+          <Trans>Time</Trans>
+        </div>
+      }
+      transactionInfo={<Trans>Type</Trans>}
+      usd={<Trans>USD</Trans>}
+      token0={<Trans>Token amount</Trans>}
+      token1={<Trans>Token amount</Trans>}
+      wallet={<Trans>Wallet</Trans>}
     />
   )
 }
@@ -442,109 +486,174 @@ export function HeaderRow() {
 /* Loading State: row component with loading bubbles */
 export function LoadingRow(props: { first?: boolean; last?: boolean }) {
   return (
-    <PoolRow
+    <TransactionRow
       header={false}
-      listNumber={<SmallLoadingBubble />}
-      poolInfo={
+      timestamp={<SmallLoadingBubble />}
+      transactionInfo={
         <>
           <IconLoadingBubble />
           <MediumLoadingBubble />
         </>
       }
-      apr={<MediumLoadingBubble />}
-      oneDayVolume={<LoadingBubble />}
-      thirtyDayVolume={<LoadingBubble />}
-      oneDayVolumeToTvl={<LoadingBubble />}
-      tvl={<LoadingBubble />}
+      usd={<MediumLoadingBubble />}
+      token0={<LoadingBubble />}
+      token1={<LoadingBubble />}
+      wallet={<LoadingBubble />}
       {...props}
     />
   )
 }
 
 interface LoadedRowProps {
-  poolListIndex: number
-  poolListLength: number
-  pool: NonNullable<any>
+  transactionListIndex: number
+  transactionListLength: number
+  transaction: NonNullable<any>
   sortRank: number
+}
+
+function getTimeAgo(timestamp: number): string {
+  const now = Date.now() / 1000;
+  const diff = now - timestamp;
+
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
+  if (diff < 31536000) return `${Math.floor(diff / 2592000)}mo ago`;
+  return `${Math.floor(diff / 31536000)}y ago`;
 }
 
 /* Loaded State: row component with token information */
 export const LoadedRow = forwardRef((props: LoadedRowProps, ref: ForwardedRef<HTMLDivElement>) => {
   const { chainId } = useWeb3React()
-  const { poolListIndex, poolListLength, pool, sortRank } = props
+  const { transactionListIndex, transactionListLength, transaction, sortRank } = props
   const filterString = useAtomValue(filterStringAtom)
   const nativeToken = useNativeCurrency()
-  const token0Currency = useCurrency(pool.token0.id)
-  const token1Currency = useCurrency(pool.token1.id)
 
-  const filterNetwork = validateUrlChainParam(useParams<{ chainName?: string }>().chainName?.toUpperCase())
-  const timePeriod = useAtomValue(filterTimeAtom)
+  const isValidToken = (address: string) => {
+    return Object.values(TOKEN_ADDRESSES).some(
+      tokenAddress => tokenAddress?.address?.toLowerCase() === address.toLowerCase()
+    )
+  };
+
+  const token0Id = transaction.swaps.length > 0 
+    ? transaction.swaps[0].token0.id
+    : transaction.burns.length > 0
+    ? transaction.burns[0].token0.id
+    : transaction.mints.length > 0
+    ? transaction.mints[0].token0.id
+    : ''
+
+  const token1Id = transaction.swaps.length > 0 
+    ? transaction.swaps[0].token1.id
+    : transaction.burns.length > 0
+    ? transaction.burns[0].token1.id
+    : transaction.mints.length > 0
+    ? transaction.mints[0].token1.id
+    : ''
+
+
+  const token0= isValidToken(token0Id)
+  const token1 = isValidToken(token1Id)
+
+  if(!token0 || !token1) {
+    return null
+  }
+
+  const token0Currency = useCurrency(token0Id)
+  const token1Currency = useCurrency(token1Id)
   
-  const currencyQuote = pool.token0.symbol.toUpperCase() === 'WHAUST' 
-    ? nativeToken 
-    : token0Currency
-  const currencyBase = pool.token1.symbol.toUpperCase() === 'WHAUST'
-    ? nativeToken
-    : token1Currency
-console.log(pool, Number(pool.feeTier), Number(pool.totalValueLockedUSD), 'apr');
+  const currencyQuote = token0Currency
+
+  const currencyBase = token1Currency
+
+  const getWalletAddress = () => {
+    if (transaction.swaps.length > 0) return transaction.swaps[0].recipient
+    if (transaction.burns.length > 0) return transaction.burns[0].origin
+    if (transaction.mints.length > 0) return transaction.mints[0].origin
+    return ''
+  }
+
+  const walletAddress = getWalletAddress()
+  const walletExplorerLink = getExplorerLink(chainId ?? SupportedChainId.HAUST_TESTNET, walletAddress, ExplorerDataType.ADDRESS)
+  const transactionExplorerLink = getExplorerLink(chainId ?? SupportedChainId.HAUST_TESTNET, transaction.id, ExplorerDataType.TRANSACTION)
 
   return (
-    <div ref={ref} data-testid={`pool-table-row-${pool.token0.symbol}`}>
-      <StyledLink
-        to={getTokenDetailsURL({address: pool.token0.address})}
-        onClick={noop}
+    <div ref={ref} data-testid={`pool-table-row-${transaction.id}`}>
+      <ExplorerLink
+        href={transactionExplorerLink}
+        target="_blank"
+        rel="noopener noreferrer"
       >
-        <PoolRow
+        <TransactionRow
           header={false}
-          listNumber={sortRank}
-          poolInfo={
+          timestamp={getTimeAgo(transaction.timestamp)}
+          transactionInfo={
             <ClickableName>
-              <PortfolioLogo chainId={chainId as SupportedChainId} currencies={[currencyQuote!, currencyBase!]} size="44px" />
               <TokenInfoCell>
-                <TokenName data-cy="pool-name">{currencyQuote?.symbol?.toUpperCase()}&nbsp;/&nbsp;{currencyBase?.symbol?.toUpperCase()}</TokenName>
-                <FeeTierText>
-                  <Trans>{pool.feeTier / 10000}%</Trans>
-                </FeeTierText>
+                <TokenName data-cy="pool-name">
+                  {transaction.swaps.length > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      Swap <CurrencyLogo currency={currencyQuote} size="16px" style={{ margin: '0 4px' }} /> {currencyQuote?.symbol?.toUpperCase()} for{' '}
+                      <CurrencyLogo currency={currencyBase} size="16px" style={{ margin: '0 4px' }} /> {currencyBase?.symbol?.toUpperCase()}
+                    </div>
+                  )}
+                  {transaction.burns.length > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      Remove <CurrencyLogo currency={currencyQuote} size="16px" style={{ margin: '0 4px' }} /> {currencyQuote?.symbol?.toUpperCase()} and{' '}
+                      <CurrencyLogo currency={currencyBase} size="16px" style={{ margin: '0 4px' }} /> {currencyBase?.symbol?.toUpperCase()}
+                    </div>
+                  )}
+                  {transaction.mints.length > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      Add <CurrencyLogo currency={currencyQuote} size="16px" style={{ margin: '0 4px' }} /> {currencyQuote?.symbol?.toUpperCase()} and{' '}
+                      <CurrencyLogo currency={currencyBase} size="16px" style={{ margin: '0 4px' }} /> {currencyBase?.symbol?.toUpperCase()}
+                    </div>
+                  )}
+                </TokenName>
               </TokenInfoCell>
             </ClickableName>
           }
-          apr={
+          usd={
             <ClickableContent>
               <PriceInfoCell>
-              {(Number(pool.poolDayData[0].feesUSD) / Number(pool.totalValueLockedUSD) * 365 * 100).toFixed(2)}%
+                {transaction.swaps.length > 0 && formatUSDPrice(Number(transaction.swaps[0].amountUSD), NumberType.FiatTokenStats)}
+                {transaction.burns.length > 0 && formatUSDPrice(Number(transaction.burns[0].amountUSD), NumberType.FiatTokenStats)}
+                {transaction.mints.length > 0 && formatUSDPrice(Number(transaction.mints[0].amountUSD), NumberType.FiatTokenStats)}
               </PriceInfoCell>
             </ClickableContent>
           }
-          oneDayVolume={
+          token0={
             <ClickableContent>
-              {formatNumber(Number(Number(pool?.poolDayData[0]?.volumeUSD).toFixed(2)), NumberType.FiatTokenStats)}
+              {transaction.swaps.length > 0 && `${formatNumber(Number(transaction.swaps[0].amount0), NumberType.TokenNonTx)} ${currencyQuote?.symbol}`}
+              {transaction.burns.length > 0 && `${formatNumber(Number(transaction.burns[0].amount0), NumberType.TokenNonTx)} ${currencyQuote?.symbol}`}
+              {transaction.mints.length > 0 && `${formatNumber(Number(transaction.mints[0].amount0), NumberType.TokenNonTx)} ${currencyQuote?.symbol}`}
             </ClickableContent>
           }
-          thirtyDayVolume={
+          token1={
             <ClickableContent>
-                {formatNumber(
-                    pool.poolDayData.slice(0, 30).reduce((sum: number, day: any) => sum + Number(day.volumeUSD), 0),
-                    NumberType.FiatTokenStats
-                  )}
+              {transaction.swaps.length > 0 && `${formatNumber(Number(transaction.swaps[0].amount1), NumberType.TokenNonTx)} ${currencyBase?.symbol}`}
+              {transaction.burns.length > 0 && `${formatNumber(Number(transaction.burns[0].amount1), NumberType.TokenNonTx)} ${currencyBase?.symbol}`}
+              {transaction.mints.length > 0 && `${formatNumber(Number(transaction.mints[0].amount1), NumberType.TokenNonTx)} ${currencyBase?.symbol}`}
             </ClickableContent>
           }
-          tvl={
-            <ClickableContent>
-              {formatUSDPrice(Number(pool.totalValueLockedUSD), NumberType.FiatTokenStats)}
-            </ClickableContent>
+          wallet={
+            <ExplorerLink 
+              href={walletExplorerLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="wallet-cell"
+              onClick={(e) => {
+                e.stopPropagation()
+              }}
+            >
+              {`${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}
+            </ExplorerLink>
           }
-          oneDayVolumeToTvl={
-            <ClickableContent>
-              {formatNumber(
-                Number(pool?.poolDayData[0]?.volumeUSD) / Number(pool.totalValueLockedUSD)
-                
-              )}
-            </ClickableContent>
-          }
-          first={poolListIndex === 0}
-          last={poolListIndex === poolListLength - 1}
+          first={transactionListIndex === 0}
+          last={transactionListIndex === transactionListLength - 1}
         />
-      </StyledLink>
+      </ExplorerLink>
     </div>
   )
 })

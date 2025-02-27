@@ -16,6 +16,10 @@ import { HeaderRow, LoadedRow, LoadingRow } from './TokenRow'
 import useTopTokensQuery from 'graphql/thegraph/TopTokensQuery';
 import ms from 'ms.macro';
 import { CornerLeftUp } from 'react-feather'
+import { isGqlSupportedChain } from 'graphql/data/util';
+import { ExplorerDataType, getExplorerLink } from 'utils/getExplorerLink';
+import { CHAIN_IDS_TO_NAMES } from 'constants/chains';
+import { useWeb3React } from '@web3-react/core';
 
 const TableContainer = styled.div`
   display: flex;
@@ -146,25 +150,23 @@ function LoadingTokenTable({ rowCount = PAGE_SIZE }: { rowCount?: number }) {
 }
 
 export default function TokenTable() {
-  const chainName = validateUrlChainParam(useParams<{ chainName?: string }>().chainName)
-  const { tokenSortRank, loadingTokens } = useTopTokensApi();
+  const { chainId } = useWeb3React()
   const { isLoading, error, data } = useTopTokensQuery(ms`30s`)
   const searchFilter = useAtomValue(filterStringAtom)
   const sortMethod = useAtomValue(sortMethodAtom)
   const sortAscending = useAtomValue(sortAscendingAtom)
   
-  // Define allowed token IDs
-  const allowedTokenIds = ['0x6c25c1cb4b8677982791328471be1bfb187687c1',
-    "0x87054392461F52a513d83EF2e06af50f4e2F6614", // USDT
-    "0x1AfB500AFfBBc8a7FC8aB0f5C4D06c59AC87B111", // USDC
-    "0x48C3C36CE1DF7d5852FB4cda746015a9971A882E", // WETH
-    "0x595BC82909f2311Cf19E865bc82e7930b103540C",
-    '0x6c25c1cb4b8677982791328471be1bfb187687c1_haust' // WBTC
-] // Replace with your actual token IDs
-  console.log("data1", data)
-  // Filter and process tokens data
   const processedData = React.useMemo(() => {
     if (!data?.tokens) return { tokens: [], sparklines: {} }
+    
+    const allowedTokenIds = [
+      '0x6c25c1cb4b8677982791328471be1bfb187687c1',
+      "0x87054392461F52a513d83EF2e06af50f4e2F6614",
+      "0x1AfB500AFfBBc8a7FC8aB0f5C4D06c59AC87B111",
+      "0x48C3C36CE1DF7d5852FB4cda746015a9971A882E",
+      "0x595BC82909f2311Cf19E865bc82e7930b103540C",
+      '0x6c25c1cb4b8677982791328471be1bfb187687c1_haust'
+    ]
     
     let filteredTokens = data.tokens.filter((token: any) => 
       allowedTokenIds.map(id => id.toLowerCase()).includes(token.address.toLowerCase())
@@ -224,7 +226,7 @@ export default function TokenTable() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  if (loadingTokens && !tokens) {
+  if (isLoading && tokens?.length === 0) {
     return <LoadingTokenTable rowCount={PAGE_SIZE} />
   } else if (!tokens) {
     return (
@@ -272,6 +274,7 @@ export default function TokenTable() {
                     token={token}
                     sparklineMap={sparklines}
                     sortRank={index+1}
+                    chainId={chainId}
                   />
                 )
             )}

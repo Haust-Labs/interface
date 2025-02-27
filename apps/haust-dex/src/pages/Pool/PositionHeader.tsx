@@ -83,7 +83,7 @@ export function PositionsHeader({
       if (!config) {
         return null
       }
-      console.log('selectedStatus', selectedStatus, status, selectedStatus?.includes(status))
+
       return (
         <Flex
           key={`PositionsHeader-status-${status}`}

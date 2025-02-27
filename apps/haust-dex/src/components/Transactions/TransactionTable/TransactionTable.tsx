@@ -9,16 +9,17 @@ import styled from 'styled-components/macro'
 import { useState, useEffect } from 'react'
 import React from 'react'
 import { useAtomValue } from 'jotai/utils'
-import { sortMethodAtom, sortAscendingAtom, PoolSortMethod } from '../state'
+import { sortMethodAtom, sortAscendingAtom, TransactionSortMethod } from '../state'
 
 import { MAX_WIDTH_MEDIA_BREAKPOINT } from '../constants'
-import { HeaderRow, LoadedRow, LoadingRow } from './PoolRow'
 import useTopTokensQuery from 'graphql/thegraph/TopTokensQuery';
 import ms from 'ms.macro';
 import { CornerLeftUp } from 'react-feather'
 import usePollsData from 'graphql/thegraph/PollsDataQuery';
 import { TOKEN_ADDRESSES } from 'constants/tokens';
 import { filterStringAtom } from 'components/Tokens/state';
+import useTransactionHistory from 'graphql/thegraph/TransactionHistoryQuery';
+import { HeaderRow, LoadedRow, LoadingRow } from './TransactionRow';
 
 const TableContainer = styled.div`
   display: flex;
@@ -148,14 +149,13 @@ function LoadingTokenTable({ rowCount = PAGE_SIZE }: { rowCount?: number }) {
   )
 }
 
-export default function PoolTable() {
-  const chainName = validateUrlChainParam(useParams<{ chainName?: string }>().chainName)
-  const { isLoading, error, data } = usePollsData(ms`30s`)
+export default function TransactionTable({ referenceToken }: { referenceToken?: string }) {
+  const { isLoading, error, data } = useTransactionHistory(ms`10s`)
   const searchFilter = useAtomValue(filterStringAtom)
   const sortMethod = useAtomValue(sortMethodAtom)
   const sortAscending = useAtomValue(sortAscendingAtom)
 
-  const { pools }: { pools: any } = data ?? {}
+  const { transactions }: { transactions: any } = data ?? {}
   
   const headerHeight = 72
   const [showReturn, setShowReturn] = useState(false)
@@ -167,44 +167,10 @@ export default function PoolTable() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
-
-  const isValidToken = (address: string) => {
-    return Object.values(TOKEN_ADDRESSES).some(
-      tokenAddress => tokenAddress?.address?.toLowerCase() === address.toLowerCase()
-    )
-  }
-
-  const filteredPools = pools?.filter((pool: any) => {
-    const hasValidTokens = pool?.token0?.id && 
-      pool?.token1?.id && 
-      isValidToken(pool.token0.id) && 
-      isValidToken(pool.token1.id);
-
-    if (!hasValidTokens) return false;
-    
-    if (!searchFilter) return true;
-
-    const searchTerm = searchFilter.toLowerCase();
-    
-    const pairString = `${pool.token0.symbol.toUpperCase()} / ${pool.token1.symbol.toUpperCase()}`;
-    
-    if (searchTerm.includes('/')) {
-      const [token0Search, token1Search] = searchTerm.split('/').map(term => term.trim());
-      
-      if (token1Search) {
-        return pool.token0.symbol.toLowerCase().startsWith(token0Search) &&
-               pool.token1.symbol.toLowerCase().startsWith(token1Search);
-      }
-      
-      return pool.token0.symbol.toLowerCase().startsWith(token0Search);
-    }
-    
-    return pairString.toLowerCase().includes(searchTerm);
-  });
   
-  if (isLoading && !pools) {
+  if (isLoading && !transactions) {
     return <LoadingTokenTable rowCount={PAGE_SIZE} />
-  } else if (!filteredPools) {
+  } else if (!transactions) {
     return (
       <NoTokensState
         message={
@@ -215,7 +181,7 @@ export default function PoolTable() {
         }
       />
     )
-  } else if (filteredPools?.length === 0) {
+  } else if (transactions?.length === 0) {
     return <NoTokensState message={<Trans>No tokens found</Trans>} />
   } else {
     return (
@@ -240,15 +206,15 @@ export default function PoolTable() {
         </TableHead>
         <TableBodyContainer>
           <TokenDataContainer>
-            {filteredPools.map(
-              (pool: any, index: number) =>
-                pool?.id && (
+            {transactions.map(
+              (transaction: any, index: number) =>
+                transaction?.id && (
                   <LoadedRow
-                    key={pool.id}
-                    poolListIndex={index}
-                    poolListLength={filteredPools.length}
-                    pool={pool}
-                    sortRank={index+1}
+                    key={transaction.id}
+                    transactionListIndex={index}
+                    transactionListLength={transactions.length}
+                    transaction={transaction}
+                    sortRank={transaction.timestamp}
                   />
                 )
             )}

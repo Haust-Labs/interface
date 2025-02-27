@@ -324,6 +324,21 @@ const chartFiatValueFormatter: FormatterRule[] = [
   { upperBound: Infinity, formatter: new Intl.NumberFormat("en-US", SHORTHAND_CURRENCY_TWO_DECIMALS) },
 ];
 
+const superCompactTokenStatsFormatter: FormatterRule[] = [
+  { exact: 0, formatter: "-" },
+  { upperBound: 1e3, formatter: TWO_DECIMALS_USD }, // до 1K - обычный формат
+  { upperBound: 1e6, formatter: SHORTHAND_USD_ONE_DECIMAL }, // до 1M - с одним знаком
+  { upperBound: Infinity, formatterOptions: { // для больших чисел - супер-компактный формат
+    notation: "compact",
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+    compactDisplay: "short",
+    currency: "USD",
+    style: "currency",
+  }},
+];
+
+
 export enum NumberType {
   // used for token quantities in non-transaction contexts (e.g. portfolio balances)
   TokenNonTx = "token-non-tx",
@@ -367,6 +382,9 @@ export enum NumberType {
 
   // nft floor price with trailing zeros
   NFTTokenFloorPriceTrailingZeros = "nft-token-floor-price-trailing-zeros",
+
+  // super compact token stats
+  SuperCompactTokenStats = "super-compact-token-stats",
 }
 
 const TYPE_TO_FORMATTER_RULES = {
@@ -385,6 +403,7 @@ const TYPE_TO_FORMATTER_RULES = {
   [NumberType.NFTCollectionStats]: ntfCollectionStatsFormatter,
   [NumberType.ChartFiatValue]: chartFiatValueFormatter,
   [NumberType.ChartVolumePriceScale]: chartVolumePriceScale,
+  [NumberType.SuperCompactTokenStats]: superCompactTokenStatsFormatter,
 };
 
 function getFormatterRule(input: number, type: NumberType) {
@@ -480,3 +499,4 @@ export function formatUSDPrice(
 ) {
   return formatNumberOrString(price, type);
 }
+
