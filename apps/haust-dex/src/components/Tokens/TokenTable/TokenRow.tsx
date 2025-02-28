@@ -39,7 +39,7 @@ import { DeltaArrow } from '../Delta';
 import useNativeCurrency from 'lib/hooks/useNativeCurrency';
 import { useCurrency } from 'hooks/Tokens';
 import { isGqlSupportedChain } from 'graphql/data/util';
-import { CHAIN_IDS_TO_NAMES } from 'constants/chains';
+import { CHAIN_IDS_TO_NAMES, SupportedChainId } from 'constants/chains';
 import { ExplorerDataType, getExplorerLink } from 'utils/getExplorerLink';
 
 const Cell = styled.div`
@@ -466,9 +466,15 @@ interface LoadedRowProps {
   sortRank: number
 }
 
-const getTokenLink = (chainId: any, address: string) => {
+const getTokenLink = (chainId: SupportedChainId, address: string) => {
+  if (address.toLowerCase().includes('_haust')) {
+    // Don't include address in URL for _haust tokens
+    const chainName = CHAIN_IDS_TO_NAMES[chainId as keyof typeof CHAIN_IDS_TO_NAMES]
+    return `${window.location.origin}/explore/token/${chainName}/NATIVE`
+  }
+  
   if (isGqlSupportedChain(chainId)) {
-    const chainName = CHAIN_IDS_TO_NAMES[chainId]
+    const chainName = CHAIN_IDS_TO_NAMES[chainId as keyof typeof CHAIN_IDS_TO_NAMES]
     return `${window.location.origin}/explore/token/${chainName}/${address}`
   } else {
     return getExplorerLink(chainId, address, ExplorerDataType.TOKEN)
@@ -497,8 +503,8 @@ export const LoadedRow = forwardRef((props: LoadedRowProps, ref: ForwardedRef<HT
   return (
     <div ref={ref} data-testid={`token-table-row-${token.symbol}`}>
       <StyledLink
-        to={getTokenLink(props.chainId, token.address)}
-        onClick={(e) => e.preventDefault()}
+        to={token.symbol === 'WBTC' ? '#' : getTokenLink(props.chainId as SupportedChainId, token.address)}
+        onClick={token.symbol === 'WBTC' ? (e) => e.preventDefault() : noop}
       >
         <TokenRow
           header={false}

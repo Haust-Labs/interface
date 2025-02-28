@@ -48,8 +48,8 @@ class VolumeChartModel extends CustomVolumeChartModel<SingleHistogramData> {
       rightPriceScale: {
         borderVisible: false,
         scaleMargins: {
-          top: 0.3,
-          bottom: 0,
+          top: 0.1,
+          bottom: 0.1,
         },
       },
       handleScale: {

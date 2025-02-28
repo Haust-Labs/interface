@@ -20,8 +20,10 @@ export default function SwapPage({ className }: { className?: string }) {
 
 export function Swap({
   className,
+  syncTabToUrl = true
 }: {
   className?: string;
+  syncTabToUrl?: boolean;
 }) {
   const [currentTab, setCurrentTab] = useState<SwapTab>('Swap');
   const { chainId } = useWeb3React();
@@ -31,8 +33,6 @@ export function Swap({
   const handleTabChange = (tab: SwapTab) => {
     setCurrentTab(tab);
   };
-
-  const syncTabToUrl = true;
 
   const onTabClick = useCallback(
     (tab: SwapTab) => {

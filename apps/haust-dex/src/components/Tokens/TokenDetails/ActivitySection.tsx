@@ -1,17 +1,32 @@
 import { Flex } from "components/layout/Flex"
 import { useTDPContext } from "pages/TokenDetails/TDPContext"
 import { useState } from "react"
-import styled from "styled-components/macro"
+import styled, { useTheme } from "styled-components/macro"
+import { TransactionsTable } from "./tables/TransactionsTable"
 import { TokenDetailsPoolsTable } from "./tables/TokenDetailsPoolsTable"
+import { colors } from "theme/colors"
 
 const Container = styled(Flex)`
   width: '100%',
 `
 
 const Tab = styled.div`
-  color: '$neutral1',
-  variant: 'heading3',
-  ...ClickableTamaguiStyle,
+  text-decoration: none;
+  color: ${({ theme }) => theme.textSecondary};
+  font-size: 20px;
+  font-weight: 485;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+
+  &[data-active='true'] {
+    color: ${({ theme }) => theme.textPrimary};
+  }
+
+  &:hover {
+    color: ${({ theme }) => theme.textPrimary};
+  }
 `
 
 enum ActivityTab {
@@ -28,21 +43,21 @@ export function ActivitySection() {
   }
   return (
     <Container data-testid="token-details-activity-section">
-      <Flex row gap="$spacing24" id="activity-header">
+      <Flex row gap="24px" id="activity-header" style={{ marginBottom: '16px', marginTop: '40px' }}>
         <Tab
-          color={activityInView === ActivityTab.Txs ? '$neutral1' : '$neutral2'}
+          data-active={activityInView === ActivityTab.Txs}
           onClick={() => setActivityInView(ActivityTab.Txs)}
         >
           Transactions
         </Tab>
         <Tab
-          color={activityInView === ActivityTab.Pools ? '$neutral1' : '$neutral2'}
+          data-active={activityInView === ActivityTab.Pools}
           onClick={() => setActivityInView(ActivityTab.Pools)}
         >
           Pools
         </Tab>
       </Flex>
-      {/* {activityInView === ActivityTab.Txs && <TransactionsTable chainId={chainId} referenceToken={address} />} */}
+      {activityInView === ActivityTab.Txs && <TransactionsTable referenceToken={address} />}
       {activityInView === ActivityTab.Pools && (
         <TokenDetailsPoolsTable referenceToken={address} />
       )}

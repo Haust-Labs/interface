@@ -13,17 +13,20 @@ import { useParams } from 'react-router-dom'
 import { getNativeTokenDBAddress } from 'utils/nativeTokens'
 import { LoadedTDPContext, PendingTDPContext, TDPProvider } from "./TDPContext";
 import { CHAIN_IDS_TO_NAMES, SupportedChainId } from "constants/chains";
+import { WRAPPED_NATIVE_CURRENCY } from "constants/tokens";
+import { Token } from "@uniswap/sdk-core";
 
 export const pageTimePeriodAtom = atomWithStorage<TimePeriod>('tokenDetailsTimePeriod', TimePeriod.DAY)
 
 function useCreateTDPContext(): PendingTDPContext | LoadedTDPContext {
   const { tokenAddress, chainName } = useParams<{
-    tokenAddress: string
+    tokenAddress?: string
     chainName?: string
   }>()
-  if (!tokenAddress) {
-    throw new Error('Invalid token details route: token address URL param is undefined')
-  }
+  
+  const resolvedTokenAddress = tokenAddress === 'NATIVE' 
+    ? (WRAPPED_NATIVE_CURRENCY[SupportedChainId.HAUST_TESTNET] as Token).address
+    : tokenAddress || (WRAPPED_NATIVE_CURRENCY[SupportedChainId.HAUST_TESTNET] as Token).address
 
   const currencyChainInfo = chainName
 
@@ -31,11 +34,13 @@ function useCreateTDPContext(): PendingTDPContext | LoadedTDPContext {
     return {
       currencyChain: currencyChainInfo ?? CHAIN_IDS_TO_NAMES[SupportedChainId.HAUST_TESTNET],
       // `currency.address` is checksummed, whereas the `tokenAddress` url param may not be
-      address: tokenAddress,
+      address: resolvedTokenAddress,
+      isNative: tokenAddress === 'NATIVE' 
     }
   }, [
     currencyChainInfo,
     tokenAddress,
+    resolvedTokenAddress,
   ])
 }
 
@@ -65,11 +70,10 @@ export default function TokenDetailsPage() {
     return (
       <TDPProvider contextValue={contextValue}>
         <TokenDetails
-          urlAddress={contextValue.address}
+          urlAddress={contextValue.isNative ? NATIVE_CHAIN_ID : contextValue.address}
           chain={chain}
           tokenQuery={tokenQuery}
           // tokenPriceQuery={currentPriceQuery}
-          onChangeTimePeriod={setTimePeriod}
           inputTokenAddress={parsedInputTokenAddress}
         />
       </TDPProvider>

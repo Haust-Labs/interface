@@ -326,9 +326,9 @@ const chartFiatValueFormatter: FormatterRule[] = [
 
 const superCompactTokenStatsFormatter: FormatterRule[] = [
   { exact: 0, formatter: "-" },
-  { upperBound: 1e3, formatter: TWO_DECIMALS_USD }, // до 1K - обычный формат
-  { upperBound: 1e6, formatter: SHORTHAND_USD_ONE_DECIMAL }, // до 1M - с одним знаком
-  { upperBound: Infinity, formatterOptions: { // для больших чисел - супер-компактный формат
+  { upperBound: 1e3, formatter: TWO_DECIMALS_USD },
+  { upperBound: 1e6, formatter: SHORTHAND_USD_ONE_DECIMAL },
+  { upperBound: Infinity, formatterOptions: {
     notation: "compact",
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
@@ -338,6 +338,12 @@ const superCompactTokenStatsFormatter: FormatterRule[] = [
   }},
 ];
 
+const SUPER_COMPACT_NOTATION = new Intl.NumberFormat("en-US", {
+  notation: "compact",
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+  compactDisplay: "short",
+});
 
 export enum NumberType {
   // used for token quantities in non-transaction contexts (e.g. portfolio balances)

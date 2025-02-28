@@ -141,6 +141,7 @@ export default function App() {
                 <Route path="explore/pools" element={<Tokens initialTab={ExploreTab.Pools} />} />
                 <Route path="explore/transactions" element={<Tokens initialTab={ExploreTab.Transactions} />} />
                 <Route path="explore/token/:chainName/:tokenAddress" element={<TokenDetails />} />
+                <Route path="explore/token/:chainName" element={<TokenDetails />} />
                 <Route path="swap" element={<Swap />} />
                 <Route path="send" element={<Swap />} />
 

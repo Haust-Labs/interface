@@ -31,7 +31,7 @@ function combineMaps(map1: TokenAddressMap, map2: TokenAddressMap): TokenAddress
         return memo
       }, {})
   ).map((id) => parseInt(id))
-
+  
   return chainIds.reduce<Mutable<TokenAddressMap>>((memo, chainId) => {
     memo[chainId] = {
       ...map2[chainId],

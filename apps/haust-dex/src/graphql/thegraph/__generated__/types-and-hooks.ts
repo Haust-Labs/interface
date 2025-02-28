@@ -4057,7 +4057,7 @@ export type TokenDataQueryQueryVariables = Exact<{
 }>;
 
 
-export type TokenDataQueryQuery = { __typename?: 'Query', token?: { __typename?: 'Token', id: string, name: string, symbol: string, totalValueLockedUSD: any, decimals: any, tokenDayData: Array<{ __typename?: 'TokenDayData', priceUSD: any, close: any, open: any, date: number, volumeUSD: any }> } };
+export type TokenDataQueryQuery = { __typename?: 'Query', token?: { __typename?: 'Token', id: string, name: string, symbol: string, totalSupply: any, totalValueLockedUSD: any, decimals: any, tokenDayData: Array<{ __typename?: 'TokenDayData', priceUSD: any, close: any, open: any, date: number, volumeUSD: any }> } };
 
 export type TokenDayPricesQueryVariables = Exact<{
   token: Scalars['ID'];
@@ -4072,6 +4072,27 @@ export type TokenHourPricesQueryVariables = Exact<{
 
 
 export type TokenHourPricesQuery = { __typename?: 'Query', tokenHourDatas: Array<{ __typename?: 'TokenHourData', id: string, priceUSD: any, periodStartUnix: number }> };
+
+export type TokenPriceChartQueryVariables = Exact<{
+  token: Scalars['String'];
+}>;
+
+
+export type TokenPriceChartQuery = { __typename?: 'Query', tokenDayDatas: Array<{ __typename?: 'TokenDayData', date: number, close: any, high: any, low: any, priceUSD: any, open: any }> };
+
+export type TokenTvlChartQueryVariables = Exact<{
+  token: Scalars['String'];
+}>;
+
+
+export type TokenTvlChartQuery = { __typename?: 'Query', tokenDayDatas: Array<{ __typename?: 'TokenDayData', date: number, totalValueLockedUSD: any }> };
+
+export type TokenVolumeChartQueryVariables = Exact<{
+  token: Scalars['String'];
+}>;
+
+
+export type TokenVolumeChartQuery = { __typename?: 'Query', tokenDayDatas: Array<{ __typename?: 'TokenDayData', date: number, volumeUSD: any }> };
 
 export type TopTokensQueryVariables = Exact<{
   orderDirection?: InputMaybe<OrderDirection>;
@@ -4466,6 +4487,7 @@ export const TokenDataQueryDocument = gql`
     id
     name
     symbol
+    totalSupply
     tokenDayData(orderBy: date, orderDirection: asc) {
       priceUSD
       close
@@ -4590,6 +4612,118 @@ export function useTokenHourPricesLazyQuery(baseOptions?: Apollo.LazyQueryHookOp
 export type TokenHourPricesQueryHookResult = ReturnType<typeof useTokenHourPricesQuery>;
 export type TokenHourPricesLazyQueryHookResult = ReturnType<typeof useTokenHourPricesLazyQuery>;
 export type TokenHourPricesQueryResult = Apollo.QueryResult<TokenHourPricesQuery, TokenHourPricesQueryVariables>;
+export const TokenPriceChartDocument = gql`
+    query TokenPriceChart($token: String!) {
+  tokenDayDatas(where: {token: $token}, orderBy: date, orderDirection: asc) {
+    date
+    close
+    high
+    low
+    priceUSD
+    open
+  }
+}
+    `;
+
+/**
+ * __useTokenPriceChartQuery__
+ *
+ * To run a query within a React component, call `useTokenPriceChartQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTokenPriceChartQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTokenPriceChartQuery({
+ *   variables: {
+ *      token: // value for 'token'
+ *   },
+ * });
+ */
+export function useTokenPriceChartQuery(baseOptions: Apollo.QueryHookOptions<TokenPriceChartQuery, TokenPriceChartQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TokenPriceChartQuery, TokenPriceChartQueryVariables>(TokenPriceChartDocument, options);
+      }
+export function useTokenPriceChartLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TokenPriceChartQuery, TokenPriceChartQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TokenPriceChartQuery, TokenPriceChartQueryVariables>(TokenPriceChartDocument, options);
+        }
+export type TokenPriceChartQueryHookResult = ReturnType<typeof useTokenPriceChartQuery>;
+export type TokenPriceChartLazyQueryHookResult = ReturnType<typeof useTokenPriceChartLazyQuery>;
+export type TokenPriceChartQueryResult = Apollo.QueryResult<TokenPriceChartQuery, TokenPriceChartQueryVariables>;
+export const TokenTvlChartDocument = gql`
+    query TokenTVLChart($token: String!) {
+  tokenDayDatas(where: {token: $token}, orderBy: date, orderDirection: asc) {
+    date
+    totalValueLockedUSD
+  }
+}
+    `;
+
+/**
+ * __useTokenTvlChartQuery__
+ *
+ * To run a query within a React component, call `useTokenTvlChartQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTokenTvlChartQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTokenTvlChartQuery({
+ *   variables: {
+ *      token: // value for 'token'
+ *   },
+ * });
+ */
+export function useTokenTvlChartQuery(baseOptions: Apollo.QueryHookOptions<TokenTvlChartQuery, TokenTvlChartQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TokenTvlChartQuery, TokenTvlChartQueryVariables>(TokenTvlChartDocument, options);
+      }
+export function useTokenTvlChartLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TokenTvlChartQuery, TokenTvlChartQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TokenTvlChartQuery, TokenTvlChartQueryVariables>(TokenTvlChartDocument, options);
+        }
+export type TokenTvlChartQueryHookResult = ReturnType<typeof useTokenTvlChartQuery>;
+export type TokenTvlChartLazyQueryHookResult = ReturnType<typeof useTokenTvlChartLazyQuery>;
+export type TokenTvlChartQueryResult = Apollo.QueryResult<TokenTvlChartQuery, TokenTvlChartQueryVariables>;
+export const TokenVolumeChartDocument = gql`
+    query TokenVolumeChart($token: String!) {
+  tokenDayDatas(where: {token: $token}, orderBy: date, orderDirection: asc) {
+    date
+    volumeUSD
+  }
+}
+    `;
+
+/**
+ * __useTokenVolumeChartQuery__
+ *
+ * To run a query within a React component, call `useTokenVolumeChartQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTokenVolumeChartQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTokenVolumeChartQuery({
+ *   variables: {
+ *      token: // value for 'token'
+ *   },
+ * });
+ */
+export function useTokenVolumeChartQuery(baseOptions: Apollo.QueryHookOptions<TokenVolumeChartQuery, TokenVolumeChartQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TokenVolumeChartQuery, TokenVolumeChartQueryVariables>(TokenVolumeChartDocument, options);
+      }
+export function useTokenVolumeChartLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TokenVolumeChartQuery, TokenVolumeChartQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TokenVolumeChartQuery, TokenVolumeChartQueryVariables>(TokenVolumeChartDocument, options);
+        }
+export type TokenVolumeChartQueryHookResult = ReturnType<typeof useTokenVolumeChartQuery>;
+export type TokenVolumeChartLazyQueryHookResult = ReturnType<typeof useTokenVolumeChartLazyQuery>;
+export type TokenVolumeChartQueryResult = Apollo.QueryResult<TokenVolumeChartQuery, TokenVolumeChartQueryVariables>;
 export const TopTokensDocument = gql`
     query TopTokens($orderDirection: OrderDirection = asc) {
   tokens(orderBy: totalValueLockedUSD, orderDirection: $orderDirection) {

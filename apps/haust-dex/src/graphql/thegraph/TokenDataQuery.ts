@@ -2,6 +2,7 @@ import { ApolloError, useQuery } from "@apollo/client";
 import gql from "graphql-tag";
 import { useMemo } from "react";
 
+import { UniswapTvlQueryQuery } from "./__generated__/types-and-hooks";
 import { apolloClient } from "./apollo";
 import { SupportedChainId } from "constants/chains";
 import { Nullish } from "types/common";
@@ -30,6 +31,7 @@ const query = gql`
       id
       name
       symbol
+      totalSupply
       tokenDayData(orderBy: date, orderDirection: asc) {
         priceUSD
         close
@@ -56,7 +58,7 @@ export default function useTokenData(
     loading: isLoading,
     error,
   } = useQuery(query, {
-    variables: { tokenId },
+    variables: { tokenId: tokenId.toLowerCase() },
     pollInterval: interval,
     client: apolloClient,
   });
@@ -76,20 +78,9 @@ export default function useTokenData(
       dayData.length > 0 ? dayData[dayData.length - 1] : null;
 
     // Calculate 52-week high and low
-    const priceHigh52W = dayData
-      .reduce(
-        (max: number, day: { priceUSD: string }) =>
-          parseFloat(day.priceUSD) > max ? parseFloat(day.priceUSD) : max,
-        0
-      )
-      .toString();
+    const priceLow52W = (latestDayData?.priceUSD * tokenData.totalSupply).toString() || "0";
 
-    const priceLow52W = dayData
-      .reduce((min: number, day: { priceUSD: string }) => {
-        const price = parseFloat(day.priceUSD);
-        return (price > 0 && price < min) || min === 0 ? price : min;
-      }, 0)
-      .toString();
+    const priceHigh52W = latestDayData?.volumeUSD;
 
     // Calculate price percent change (from previous day if available)
     let pricePercentChange = "0";
@@ -106,7 +97,7 @@ export default function useTokenData(
     }
 
     // Get the latest day's volume
-    const volume24H = latestDayData?.volumeUSD || "0";
+    const volume24H = (latestDayData?.priceUSD * tokenData.totalSupply).toString() || "0";
 
     const formattedData: TokenApi = {
       address: tokenData.id,

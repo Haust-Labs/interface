@@ -41,6 +41,7 @@ const NoData = styled.div`
 `
 export const StatsWrapper = styled.div`
   gap: 16px;
+  margin-top: 24px;
   ${textFadeIn}
 `
 
@@ -57,10 +58,14 @@ function Stat({
   title: ReactNode
   description?: ReactNode
 }) {
+  const formattedValue = value && value > 9999e12 
+    ? '>$9,999T' 
+    : formatNumber(value, NumberType.FiatTokenStats)
+
   return (
     <StatWrapper data-cy={`${dataCy}`}>
-      <MouseoverTooltip text={description}>{title}</MouseoverTooltip>
-      <StatPrice>{formatNumber(value, NumberType.FiatTokenStats)}</StatPrice>
+      <MouseoverTooltip style={{ fontSize: '14px', fontWeight: 485, lineHeight: '24px' }} text={description}>{title}</MouseoverTooltip>
+      <StatPrice>{formattedValue}</StatPrice>
     </StatWrapper>
   )
 }
@@ -79,7 +84,7 @@ export default function StatsSection(props: StatsSectionProps) {
   if (TVL || volume24H || priceLow52W || priceHigh52W) {
     return (
       <StatsWrapper data-testid="token-details-stats">
-        <Header>
+        <Header style={{ fontSize: '28px', fontWeight: 485, lineHeight: '36px' }}>
           <Trans>Stats</Trans>
         </Header>
         <TokenStatsSection>
@@ -87,7 +92,11 @@ export default function StatsSection(props: StatsSectionProps) {
             <Stat
               dataCy="tvl"
               value={TVL}
-              description={HEADER_DESCRIPTIONS[TokenSortMethod.TOTAL_VALUE_LOCKED]}
+              description={
+                <Trans>
+                  Total value locked (TVL) is the aggregate amount of the asset available across all Uniswap v3 liquidity pools.                
+                </Trans>
+              }
               title={<Trans>TVL</Trans>}
             />
             <Stat
@@ -95,15 +104,15 @@ export default function StatsSection(props: StatsSectionProps) {
               value={volume24H}
               description={
                 <Trans>
-                  24H volume is the amount of the asset that has been traded on Haust DEX v3 during the past 24 hours.
+                  Market capitalization is the total market value of an asset's circulating supply.                     
                 </Trans>
               }
-              title={<Trans>24H volume</Trans>}
+              title={<Trans>Market cap</Trans>}
             />
           </StatPair>
           <StatPair>
-            <Stat dataCy="52w-low" value={priceLow52W} title={<Trans>52W low</Trans>} />
-            <Stat dataCy="52w-high" value={priceHigh52W} title={<Trans>52W high</Trans>} />
+            <Stat dataCy="52w-low" value={priceLow52W} description={<Trans>Fully diluted valuation (FDV) calculates the total market value assuming all tokens are in circulation.</Trans>} title={<Trans>FDV</Trans>} />
+            <Stat dataCy="52w-high" value={priceHigh52W} description={<Trans>1 day volume is the amount of the asset that has been traded on Uniswap v3 during the past 24 hours.</Trans>} title={<Trans>1D volume</Trans>} />
           </StatPair>
         </TokenStatsSection>
       </StatsWrapper>

@@ -7,6 +7,7 @@ type BaseTDPContext = {
 
   /** Set to `NATIVE_CHAIN_ID` if currency is native, else equal to `currency.address` */
   address: string
+  isNative?: boolean
 }
 /** Token details context with an unresolved currency field */
 export type PendingTDPContext = BaseTDPContext

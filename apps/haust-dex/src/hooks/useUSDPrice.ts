@@ -23,7 +23,7 @@ export function useUSDPrice(currencyAmount?: CurrencyAmount<Currency>): {
   const { data: priceData, isLoading: isPriceLoading } =
     useCurrentTokenPrice(currencyAmount?.currency.wrapped.address, 10000);
 
-  useEffect(() => {
+    useEffect(() => {
     if (priceData?.bundle && priceData?.token && currencyAmount) {
       const tokenPriceUSD =
         priceData.bundle.ethPriceUSD * priceData.token.derivedETH;

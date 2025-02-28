@@ -19,7 +19,7 @@ import usePollsData from 'graphql/thegraph/PollsDataQuery';
 import { TOKEN_ADDRESSES } from 'constants/tokens';
 import { filterStringAtom } from 'components/Tokens/state';
 import useTransactionHistory from 'graphql/thegraph/TransactionHistoryQuery';
-import { HeaderRow, LoadedRow, LoadingRow } from './TransactionRow';
+import { HeaderRow, LoadedRow, LoadingRow, ColumnVisibility, GridConfig, DEFAULT_COLUMN_VISIBILITY } from './TransactionRow';
 
 const TableContainer = styled.div`
   display: flex;
@@ -109,11 +109,27 @@ const ReturnButton = styled.div`
   }
 `
 
-function NoTokensState({ message }: { message: ReactNode }) {
+// Default grid configuration
+export const DEFAULT_GRID_CONFIG: GridConfig = {
+  desktop: '1fr 3fr 2fr 2fr 2fr 2fr', // 6 columns
+  laptop: '1fr 3fr 2fr 2fr 2fr',
+  tablet: '1fr 3fr 2fr 2fr',
+  mobile: '1fr 2fr'
+}
+
+function NoTokensState({ 
+  message, 
+  columnVisibility,
+  gridConfig 
+}: { 
+  message: ReactNode
+  columnVisibility: ColumnVisibility
+  gridConfig: GridConfig 
+}) {
   return (
     <TableContainer>
       <TableHead $top={0}>
-        <HeaderRow />
+        <HeaderRow columnVisibility={columnVisibility} gridConfig={gridConfig} />
       </TableHead>
       <TableBodyContainer>
         <TokenDataContainer>
@@ -124,32 +140,68 @@ function NoTokensState({ message }: { message: ReactNode }) {
   )
 }
 
-const LoadingRows = ({ rowCount }: { rowCount: number }) => (
+const LoadingRows = ({ 
+  rowCount,
+  columnVisibility,
+  gridConfig 
+}: { 
+  rowCount: number
+  columnVisibility: ColumnVisibility
+  gridConfig: GridConfig 
+}) => (
   <>
     {Array(rowCount)
       .fill(null)
       .map((_, index) => {
-        return <LoadingRow key={index} first={index === 0} last={index === rowCount - 1} />
+        return (
+          <LoadingRow 
+            key={index} 
+            first={index === 0} 
+            last={index === rowCount - 1}
+            columnVisibility={columnVisibility}
+            gridConfig={gridConfig}
+          />
+        )
       })}
   </>
 )
 
-function LoadingTokenTable({ rowCount = PAGE_SIZE }: { rowCount?: number }) {
+function LoadingTokenTable({ 
+  rowCount = PAGE_SIZE,
+  columnVisibility,
+  gridConfig 
+}: { 
+  rowCount?: number
+  columnVisibility: ColumnVisibility
+  gridConfig: GridConfig 
+}) {
   return (
     <TableContainer>
       <TableHead $top={0}>
-        <HeaderRow />
+        <HeaderRow columnVisibility={columnVisibility} gridConfig={gridConfig} />
       </TableHead>
       <TableBodyContainer>
         <TokenDataContainer>
-          <LoadingRows rowCount={rowCount} />
+          <LoadingRows 
+            rowCount={rowCount} 
+            columnVisibility={columnVisibility}
+            gridConfig={gridConfig}
+          />
         </TokenDataContainer>
       </TableBodyContainer>
     </TableContainer>
   )
 }
 
-export default function TransactionTable({ referenceToken }: { referenceToken?: string }) {
+export default function TransactionTable({ 
+  referenceToken,
+  columnVisibility = DEFAULT_COLUMN_VISIBILITY,
+  gridConfig = DEFAULT_GRID_CONFIG
+}: { 
+  referenceToken?: string
+  columnVisibility?: ColumnVisibility
+  gridConfig?: GridConfig
+}) {
   const { isLoading, error, data } = useTransactionHistory(ms`10s`)
   const searchFilter = useAtomValue(filterStringAtom)
   const sortMethod = useAtomValue(sortMethodAtom)
@@ -169,7 +221,11 @@ export default function TransactionTable({ referenceToken }: { referenceToken?: 
   }, [])
   
   if (isLoading && !transactions) {
-    return <LoadingTokenTable rowCount={PAGE_SIZE} />
+    return <LoadingTokenTable 
+      rowCount={PAGE_SIZE} 
+      columnVisibility={columnVisibility}
+      gridConfig={gridConfig}
+    />
   } else if (!transactions) {
     return (
       <NoTokensState
@@ -179,15 +235,23 @@ export default function TransactionTable({ referenceToken }: { referenceToken?: 
             <Trans>An error occurred loading tokens. Please try again.</Trans>
           </>
         }
+        columnVisibility={columnVisibility}
+        gridConfig={gridConfig}
       />
     )
   } else if (transactions?.length === 0) {
-    return <NoTokensState message={<Trans>No tokens found</Trans>} />
+    return (
+      <NoTokensState 
+        message={<Trans>No tokens found</Trans>}
+        columnVisibility={columnVisibility}
+        gridConfig={gridConfig}
+      />
+    )
   } else {
     return (
       <TableContainer>
         <TableHead $top={headerHeight}>
-          <HeaderRow />
+          <HeaderRow columnVisibility={columnVisibility} gridConfig={gridConfig} />
           {showReturn && (
             <ReturnButtonContainer top={20}>
               <ReturnButton
@@ -215,6 +279,9 @@ export default function TransactionTable({ referenceToken }: { referenceToken?: 
                     transactionListLength={transactions.length}
                     transaction={transaction}
                     sortRank={transaction.timestamp}
+                    referenceToken={referenceToken}
+                    columnVisibility={columnVisibility}
+                    gridConfig={gridConfig}
                   />
                 )
             )}

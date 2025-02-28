@@ -145,7 +145,7 @@ export default function TokenDetails({
               <ShareButton />
             </TokenActions>
           </TokenInfoContainer>
-          <ChartSection tokenPriceQuery={tokenPriceQuery} onChangeTimePeriod={onChangeTimePeriod} />
+          <ChartSection token={address} />
 
           <StatsSection
             chainId={pageChainId}

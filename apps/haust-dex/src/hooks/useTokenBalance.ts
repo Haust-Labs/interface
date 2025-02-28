@@ -44,7 +44,8 @@ export function useTokenBalance(token: any) {
       } catch (error) {
         console.error("Error fetching token balance:", error);
       }
-      
+
+      // Calculate token price using ethPriceUSD and derivedETH
       let tokenPrice = 0;
       if (
         tokenPriceData?.bundle?.ethPriceUSD &&

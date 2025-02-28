@@ -148,14 +148,14 @@ function LoadingTokenTable({ rowCount = PAGE_SIZE }: { rowCount?: number }) {
   )
 }
 
-export default function PoolTable({ poolsData, loading }: { poolsData?: any, loading?: boolean }) {
+export default function PoolTable({ referenceToken }: { referenceToken?: string }) {
   const chainName = validateUrlChainParam(useParams<{ chainName?: string }>().chainName)
   const { isLoading, error, data } = usePollsData(ms`30s`)
   const searchFilter = useAtomValue(filterStringAtom)
   const sortMethod = useAtomValue(sortMethodAtom)
   const sortAscending = useAtomValue(sortAscendingAtom)
 
-  const { pools }: { pools: any } = poolsData ?? data ?? {}
+  const { pools }: { pools: any } = data ?? {}
   
   const headerHeight = 72
   const [showReturn, setShowReturn] = useState(false)
@@ -184,11 +184,18 @@ export default function PoolTable({ poolsData, loading }: { poolsData?: any, loa
         isValidToken(pool.token1.id);
 
       if (!hasValidTokens) return false;
+
+      // Filter by reference token if provided
+      if (referenceToken) {
+        const referenceTokenLower = referenceToken.toLowerCase();
+        return pool.token0.id.toLowerCase() === referenceTokenLower || 
+               pool.token1.id.toLowerCase() === referenceTokenLower;
+      }
       
+      // Apply search filter if no reference token
       if (!searchFilter) return true;
 
       const searchTerm = searchFilter.toLowerCase();
-      
       const pairString = `${pool.token0.symbol.toUpperCase()} / ${pool.token1.symbol.toUpperCase()}`;
       
       if (searchTerm.includes('/')) {
@@ -205,7 +212,6 @@ export default function PoolTable({ poolsData, loading }: { poolsData?: any, loa
       return pairString.toLowerCase().includes(searchTerm);
     });
 
-    // Затем сортируем отфильтрованные пулы
     filtered.sort((a: any, b: any) => {
       let compareValue = 0
       let aprA, aprB
@@ -236,9 +242,9 @@ export default function PoolTable({ poolsData, loading }: { poolsData?: any, loa
     })
     
     return filtered
-  }, [pools, searchFilter, sortMethod, sortAscending])
+  }, [pools, searchFilter, sortMethod, sortAscending, referenceToken])
 
-  if ((isLoading || loading) && !pools) {
+  if ((isLoading) && !pools) {
     return <LoadingTokenTable rowCount={PAGE_SIZE} />
   } else if (!filteredPools) {
     return (

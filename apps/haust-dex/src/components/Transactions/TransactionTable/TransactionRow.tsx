@@ -50,15 +50,42 @@ const Cell = styled.div`
   align-items: center;
   justify-content: center;
 `
+
+export interface ColumnVisibility {
+  timestamp?: boolean
+  type?: boolean
+  usd?: boolean
+  token0?: boolean
+  token1?: boolean
+  wallet?: boolean
+}
+
+export interface GridConfig {
+  desktop: string
+  laptop?: string
+  tablet?: string
+  mobile?: string
+}
+
+export const DEFAULT_COLUMN_VISIBILITY: ColumnVisibility = {
+  timestamp: true,
+  type: true,
+  usd: true,
+  token0: true,
+  token1: true,
+  wallet: true
+}
+
 const StyledTokenRow = styled.div<{
   first?: boolean
   last?: boolean
   loading?: boolean
+  $gridConfig: GridConfig
 }>`
   background-color: ${({ theme }) => theme.background};
   display: grid;
   font-size: 16px;
-  grid-template-columns: 1fr 3fr 2fr 2fr 2fr 2fr;
+  grid-template-columns: ${({ $gridConfig }) => $gridConfig.desktop};
   line-height: 24px;
   max-width: ${MAX_WIDTH_MEDIA_BREAKPOINT};
   min-width: 390px;
@@ -88,20 +115,15 @@ const StyledTokenRow = styled.div<{
   }
 
   @media only screen and (max-width: ${MAX_WIDTH_MEDIA_BREAKPOINT}) {
-    grid-template-columns: 1fr 6.5fr 4.5fr 4.5fr 4.5fr 4.5fr 1.7fr;
-    column-gap: 24px;
-  }
-
-  @media only screen and (max-width: ${LARGE_MEDIA_BREAKPOINT}) {
-    grid-template-columns: 1fr 7.5fr 4.5fr 4.5fr 4.5fr 1.7fr;
+    grid-template-columns: ${({ $gridConfig }) => $gridConfig.laptop || $gridConfig.desktop};
   }
 
   @media only screen and (max-width: ${MEDIUM_MEDIA_BREAKPOINT}) {
-    grid-template-columns: 1fr 10fr 5fr 5fr 1.2fr;
+    grid-template-columns: ${({ $gridConfig }) => $gridConfig.tablet || $gridConfig.laptop || $gridConfig.desktop};
   }
 
   @media only screen and (max-width: ${SMALL_MEDIA_BREAKPOINT}) {
-    grid-template-columns: 2fr 3fr;
+    grid-template-columns: ${({ $gridConfig }) => $gridConfig.mobile || $gridConfig.tablet || $gridConfig.laptop || $gridConfig.desktop};
     min-width: unset;
     border-bottom: 0.5px solid ${({ theme }) => theme.backgroundModule};
 
@@ -122,9 +144,7 @@ const ClickableName = styled(ClickableContent)`
   gap: 8px;
   max-width: 100%;
 `
-const StyledHeaderRow = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 3fr 2fr 2fr 2fr 2fr;
+const StyledHeaderRow = styled(StyledTokenRow)`
   background: ${({ theme }) => theme.backgroundModule};
   border-bottom: 1px solid ${({ theme }) => theme.borderSecondary};
   color: ${({ theme }) => theme.textSecondary};
@@ -150,20 +170,15 @@ const StyledHeaderRow = styled.div`
   }
 
   @media only screen and (max-width: ${MAX_WIDTH_MEDIA_BREAKPOINT}) {
-    grid-template-columns: 1fr 6.5fr 4.5fr 4.5fr 4.5fr 4.5fr 1.7fr;
-    column-gap: 24px;
-  }
-
-  @media only screen and (max-width: ${LARGE_MEDIA_BREAKPOINT}) {
-    grid-template-columns: 1fr 7.5fr 4.5fr 4.5fr 4.5fr 1.7fr;
+    grid-template-columns: ${({ $gridConfig }) => $gridConfig.laptop || $gridConfig.desktop};
   }
 
   @media only screen and (max-width: ${MEDIUM_MEDIA_BREAKPOINT}) {
-    grid-template-columns: 1fr 10fr 5fr 5fr 1.2fr;
+    grid-template-columns: ${({ $gridConfig }) => $gridConfig.tablet || $gridConfig.laptop || $gridConfig.desktop};
   }
 
   @media only screen and (max-width: ${SMALL_MEDIA_BREAKPOINT}) {
-    grid-template-columns: 2fr 3fr;
+    grid-template-columns: ${({ $gridConfig }) => $gridConfig.mobile || $gridConfig.tablet || $gridConfig.laptop || $gridConfig.desktop};
     min-width: unset;
     justify-content: space-between;
   }
@@ -425,49 +440,74 @@ function TransactionRow({
   token0,
   token1,
   wallet,
+  columnVisibility = DEFAULT_COLUMN_VISIBILITY,
+  gridConfig,
   ...rest
 }: {
   first?: boolean
   header: boolean
-  timestamp: ReactNode
+  timestamp?: ReactNode
   loading?: boolean
-  usd: ReactNode
-  token0: ReactNode
-  token1: ReactNode
-  wallet: ReactNode
-  transactionInfo: ReactNode
+  usd?: ReactNode
+  token0?: ReactNode
+  token1?: ReactNode
+  wallet?: ReactNode
+  transactionInfo?: ReactNode
   last?: boolean
   style?: CSSProperties
+  columnVisibility?: ColumnVisibility
+  gridConfig: GridConfig
 }) {
   const rowCells = (
     <>
-      <ListNumberCell header={header}>
-        {header ? timestamp : <ClickableContent>{timestamp}</ClickableContent>}
-      </ListNumberCell>
-      <NameCell data-testid="name-cell">{transactionInfo}</NameCell>
-      <TvlCell data-testid="tvl-cell" sortable={header}>
-        {usd}
-      </TvlCell>
-      <AprCell data-testid="apr-cell" sortable={header}>
-        {token0}
-      </AprCell>
-      <PercentChangeCell data-testid="percent-change-cell" sortable={header}>
-        {token1}
-      </PercentChangeCell>
-      <PercentChangeCell data-testid="percent-change-cell" sortable={header}>
-        {wallet}
-      </PercentChangeCell>
+      {columnVisibility.timestamp && (
+        <ListNumberCell header={header}>
+          {header ? timestamp : <ClickableContent>{timestamp}</ClickableContent>}
+        </ListNumberCell>
+      )}
+      {columnVisibility.type && (
+        <NameCell data-testid="name-cell">{transactionInfo}</NameCell>
+      )}
+      {columnVisibility.usd && (
+        <TvlCell data-testid="tvl-cell" sortable={header}>
+          {usd}
+        </TvlCell>
+      )}
+      {columnVisibility.token0 && (
+        <AprCell data-testid="apr-cell" sortable={header}>
+          {token0}
+        </AprCell>
+      )}
+      {columnVisibility.token1 && (
+        <PercentChangeCell data-testid="percent-change-cell" sortable={header}>
+          {token1}
+        </PercentChangeCell>
+      )}
+      {columnVisibility.wallet && (
+        <PercentChangeCell data-testid="percent-change-cell" sortable={header}>
+          {wallet}
+        </PercentChangeCell>
+      )}
     </>
   )
-  if (header) return <StyledHeaderRow data-testid="header-row">{rowCells}</StyledHeaderRow>
-  return <StyledTokenRow {...rest}>{rowCells}</StyledTokenRow>
+
+  const RowComponent = header ? StyledHeaderRow : StyledTokenRow
+  return <RowComponent $gridConfig={gridConfig} {...rest}>{rowCells}</RowComponent>
 }
 
 /* Header Row: top header row component for table */
-export function HeaderRow() {
+export function HeaderRow({ 
+  columnVisibility = DEFAULT_COLUMN_VISIBILITY,
+  gridConfig
+}: { 
+  columnVisibility?: ColumnVisibility
+  gridConfig: GridConfig 
+}) {
   return (
     <TransactionRow
       header={true}
+      columnVisibility={columnVisibility}
+      gridConfig={gridConfig}
       timestamp={
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <ArrowDown size={16} />
@@ -484,7 +524,7 @@ export function HeaderRow() {
 }
 
 /* Loading State: row component with loading bubbles */
-export function LoadingRow(props: { first?: boolean; last?: boolean }) {
+export function LoadingRow(props: { first?: boolean; last?: boolean; columnVisibility?: ColumnVisibility; gridConfig: GridConfig }) {
   return (
     <TransactionRow
       header={false}
@@ -509,6 +549,7 @@ interface LoadedRowProps {
   transactionListLength: number
   transaction: NonNullable<any>
   sortRank: number
+  referenceToken?: string
 }
 
 function getTimeAgo(timestamp: number): string {
@@ -524,9 +565,15 @@ function getTimeAgo(timestamp: number): string {
 }
 
 /* Loaded State: row component with token information */
-export const LoadedRow = forwardRef((props: LoadedRowProps, ref: ForwardedRef<HTMLDivElement>) => {
+export const LoadedRow = forwardRef((
+  props: LoadedRowProps & {
+    columnVisibility?: ColumnVisibility
+    gridConfig: GridConfig
+  }, 
+  ref: ForwardedRef<HTMLDivElement>
+) => {
   const { chainId } = useWeb3React()
-  const { transactionListIndex, transactionListLength, transaction, sortRank } = props
+  const { transactionListIndex, transactionListLength, transaction, sortRank, referenceToken } = props
   const filterString = useAtomValue(filterStringAtom)
   const nativeToken = useNativeCurrency()
 
@@ -555,16 +602,18 @@ export const LoadedRow = forwardRef((props: LoadedRowProps, ref: ForwardedRef<HT
 
   const token0= isValidToken(token0Id)
   const token1 = isValidToken(token1Id)
-
-
-
+  
   const token0Currency = useCurrency(token0Id)
   const token1Currency = useCurrency(token1Id)
+
+  if (referenceToken && token0Id.toLowerCase() !== referenceToken.toLowerCase() && token1Id.toLowerCase() !== referenceToken.toLowerCase()) {
+    return null
+  }
 
   if(!token0 || !token1) {
     return null
   }
-  
+
   const currencyQuote = token0Currency
 
   const currencyBase = token1Currency
@@ -589,6 +638,8 @@ export const LoadedRow = forwardRef((props: LoadedRowProps, ref: ForwardedRef<HT
       >
         <TransactionRow
           header={false}
+          columnVisibility={props.columnVisibility}
+          gridConfig={props.gridConfig}
           timestamp={getTimeAgo(transaction.timestamp)}
           transactionInfo={
             <ClickableName>

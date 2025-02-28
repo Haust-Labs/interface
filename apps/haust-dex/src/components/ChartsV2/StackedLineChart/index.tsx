@@ -132,7 +132,7 @@ export class TVLChartModel extends ChartModel<StackedLineData> {
       ? {
           grid: {
             vertLines: { style: LineStyle.SparseDotted, color: params.theme.accentActiveSoft },
-            horzLines: { style: LineStyle.Dotted, color: params.theme.accentFailure },
+            horzLines: { visible: false },
           },
         }
       : {}
@@ -185,7 +185,11 @@ export function LineChart({ height, data, sources, stale }: LineChartProps) {
 
   const params = useMemo(() => {
     const colors = [theme.accentAction]
-    return { data, colors, stale, isMainChart: false }
+    const gradients = [{
+      start: theme.accentAction + '40', // 40 = 25% opacity
+      end: theme.accentAction + '00'    // 00 = fully transparent
+    }]
+    return { data, colors, gradients, stale, isMainChart: false }
   }, [data, theme, stale])
 
   const lastEntry = data[data.length - 1]
