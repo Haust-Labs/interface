@@ -159,7 +159,7 @@ export default function TokenDetails({
   const navigateToTokenForChain = useCallback(
     (update: Chain) => {
       if (!urlAddress) return
-      startTokenTransition(() => navigate(getTokenDetailsURL({ address: urlAddress })))
+      startTokenTransition(() => navigate(getTokenDetailsURL({ address: urlAddress, chain: chain.toLowerCase() })))
     },
     [urlAddress, chain, navigate]
   )

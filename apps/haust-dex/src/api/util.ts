@@ -30,10 +30,12 @@ export function validateUrlChainParam(chainName: string | undefined) {
 }
 
 export function getTokenDetailsURL({
-   address,
- }: {
-  address?: string | null
+  address,
+  chain,
+}: {
+ address?: string | null
+ chain?: string
 }) {
-  const tokenAddress = address ?? NATIVE_CHAIN_ID
-  return `/tokens/${tokenAddress}`
+ const tokenAddress = address ?? NATIVE_CHAIN_ID
+ return `/explore/token/${chain}/${tokenAddress}`
 }
