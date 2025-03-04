@@ -55,7 +55,7 @@ import { LoadingRows } from './styleds'
 const getTokenLink = (chainId: any, address: string) => {
   if (isGqlSupportedChain(chainId)) {
     const chainName = CHAIN_IDS_TO_NAMES[chainId]
-    return `${window.location.origin}/#/tokens/${chainName}/${address}`
+    return `${window.location.origin}/#/explore/tokens/${chainName}/${address}`
   } else {
     return getExplorerLink(chainId, address, ExplorerDataType.TOKEN)
   }

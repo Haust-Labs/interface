@@ -34,6 +34,7 @@ import Swap from './Swap'
 import Tokens, { ExploreTab } from './Tokens'
 
 const TokenDetails = lazy(() => import('./TokenDetails'))
+const PoolDetails = lazy(() => import('./PoolDetails'))
 
 const BodyWrapper = styled.div`
   display: flex;
@@ -141,6 +142,7 @@ export default function App() {
                 <Route path="explore/pools" element={<Tokens initialTab={ExploreTab.Pools} />} />
                 <Route path="explore/transactions" element={<Tokens initialTab={ExploreTab.Transactions} />} />
                 <Route path="explore/token/:chainName/:tokenAddress" element={<TokenDetails />} />
+                <Route path="explore/pools/:chainName/:poolAddress" element={<PoolDetails />} />
                 <Route path="explore/token/:chainName" element={<TokenDetails />} />
                 <Route path="swap" element={<Swap />} />
                 <Route path="send" element={<Swap />} />

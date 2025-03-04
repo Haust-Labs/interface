@@ -37,8 +37,8 @@ const ShareActions = styled.div`
   flex-direction: column;
   overflow: auto;
   padding: 8px;
-  background-color: ${({ theme }) => theme.backgroundSurface};
-  border: 0.5px solid ${({ theme }) => theme.backgroundOutline};
+  background-color: ${({ theme }) => theme.backgroundBackdrop};
+  border: 1px solid ${({ theme }) => theme.neutralBorder};
   box-shadow: ${({ theme }) => theme.deepShadow};
   border-radius: 12px;
 `

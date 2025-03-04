@@ -503,8 +503,8 @@ export const LoadedRow = forwardRef((props: LoadedRowProps, ref: ForwardedRef<HT
   return (
     <div ref={ref} data-testid={`token-table-row-${token.symbol}`}>
       <StyledLink
-        to={token.symbol === 'WBTC' ? '#' : getTokenLink(props.chainId as SupportedChainId, token.address)}
-        onClick={token.symbol === 'WBTC' ? (e) => e.preventDefault() : noop}
+        to={getTokenLink(props.chainId as SupportedChainId, token.address)}
+        onClick={noop}
       >
         <TokenRow
           header={false}

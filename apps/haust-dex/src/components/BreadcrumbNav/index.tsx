@@ -1,13 +1,10 @@
 import { Currency } from "@uniswap/sdk-core"
 import Row from "components/Row"
-import { MouseoverTooltip, TooltipSize } from "components/Tooltip"
-import useCopyClipboard from "hooks/useCopyClipboard"
-import { useScreenSize } from "hooks/useScreenSize"
-import { useCallback, useState } from "react"
 import { Copy } from "react-feather"
 import { Link } from "react-router-dom"
-import styled, { useTheme } from "styled-components/macro"
-import { ClickableStyle } from "theme"
+import styled from "styled-components/macro"
+import { CopyHelper, ThemedText } from "theme"
+import { shortenAddress } from "utils"
 
 export const BreadcrumbNavContainer = styled.nav`
   display: flex;
@@ -23,7 +20,9 @@ export const BreadcrumbNavContainer = styled.nav`
 export const BreadcrumbNavLink = styled(Link)`
   display: flex;
   align-items: center;
-  color: ${({ theme }) => theme.white};
+  color: ${({ theme }) => theme.textSecondary};
+  font-size: 14px;
+  font-weight: 485;
   transition-duration: ${({ theme }) => theme.transition.duration.fast};
   text-decoration: none;
   height: 24px; /* Match the line-height */
@@ -53,15 +52,13 @@ const PageTitleText = styled.h1`
   height: 24px; /* Match the line-height */
 `
 
-const TokenAddressHoverContainer = styled(Row)<{ isDisabled?: boolean }>`
-  cursor: ${({ isDisabled }) => (isDisabled ? 'default' : 'pointer')};
-  gap: 10px;
-  white-space: nowrap;
-`
-
-const CopyIcon = styled(Copy)`
-  ${ClickableStyle}
-`
+const CopyText = styled(CopyHelper).attrs({
+  InitialIcon: Copy,
+  CopiedIcon: Copy,
+  gap: 4,
+  iconSize: 14,
+  iconPosition: 'right',
+})``
 
 // Used in both TDP & PDP.
 // On TDP, currency is defined & poolName is undefined. On PDP, currency is undefined & poolName is defined.
@@ -74,8 +71,8 @@ export const CurrentPageBreadcrumb = ({
   currency?: Currency
   poolName?: string
 }) => {
+  const isNative = currency?.isNative
   const tokenSymbolName = currency?.symbol ?? 'Symbol Not Found'
-
 
   return (
     <CurrentPageBreadcrumbContainer
@@ -83,6 +80,11 @@ export const CurrentPageBreadcrumb = ({
       data-testid="current-breadcrumb"
     >
       <PageTitleText>{currency ? tokenSymbolName : poolName}</PageTitleText>{' '}
+      {(!currency || (currency && !isNative)) && (
+         <ThemedText.BodySmall color="textSecondary" fontWeight={485}>
+         <CopyText toCopy={address}>{shortenAddress(address, 4)}</CopyText>
+         </ThemedText.BodySmall>
+      )}
     </CurrentPageBreadcrumbContainer>
   )
 }

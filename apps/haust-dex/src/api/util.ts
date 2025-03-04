@@ -30,12 +30,22 @@ export function validateUrlChainParam(chainName: string | undefined) {
 }
 
 export function getTokenDetailsURL({
+   address,
+   chain,
+ }: {
+  address?: string | null
+  chain?: string
+}) {
+  const tokenAddress = address ?? NATIVE_CHAIN_ID
+  return `/explore/token/${chain ?? 'haust_testnet'}/${tokenAddress}`
+}
+
+export function getPoolDetailsURL({
   address,
   chain,
 }: {
  address?: string | null
  chain?: string
 }) {
- const tokenAddress = address ?? NATIVE_CHAIN_ID
- return `/explore/token/${chain}/${tokenAddress}`
+ return `/explore/pools/${chain ?? 'haust_testnet'}/${address}`
 }

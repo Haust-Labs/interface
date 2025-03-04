@@ -2,7 +2,6 @@ import { ApolloError, useQuery } from "@apollo/client";
 import gql from "graphql-tag";
 import { useMemo } from "react";
 
-import { UniswapTvlQueryQuery } from "./__generated__/types-and-hooks";
 import { apolloClient } from "./apollo";
 import { SupportedChainId } from "constants/chains";
 import { Nullish } from "types/common";

@@ -4045,6 +4045,20 @@ export type PollsDataQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type PollsDataQuery = { __typename?: 'Query', pools: Array<{ __typename?: 'Pool', id: string, feeTier: any, totalValueLockedUSD: any, poolDayData: Array<{ __typename?: 'PoolDayData', date: number, volumeUSD: any, feesUSD: any }>, token0: { __typename?: 'Token', id: string, name: string, symbol: string }, token1: { __typename?: 'Token', id: string, name: string, symbol: string } }> };
 
+export type PoolChartDataQueryVariables = Exact<{
+  id: Scalars['ID'];
+}>;
+
+
+export type PoolChartDataQuery = { __typename?: 'Query', pool?: { __typename?: 'Pool', totalValueLockedToken0: any, totalValueLockedToken1: any, poolDayData: Array<{ __typename?: 'PoolDayData', tvlUSD: any, close: any, date: number, high: any, low: any, open: any, tick?: any, token0Price: any, token1Price: any, volumeUSD: any, pool: { __typename?: 'Pool', totalValueLockedToken0: any, totalValueLockedToken1: any } }> } };
+
+export type PoolDataQueryVariables = Exact<{
+  poolAddress: Scalars['ID'];
+}>;
+
+
+export type PoolDataQuery = { __typename?: 'Query', pool?: { __typename?: 'Pool', feeTier: any, token0Price: any, token1Price: any, totalValueLockedToken0: any, totalValueLockedToken1: any, token0: { __typename?: 'Token', id: string, name: string, symbol: string }, token1: { __typename?: 'Token', id: string, name: string, symbol: string }, poolDayData: Array<{ __typename?: 'PoolDayData', volumeUSD: any, tvlUSD: any, feesUSD: any }> } };
+
 export type PoolPriceChartDataQueryVariables = Exact<{
   id: Scalars['ID'];
 }>;
@@ -4438,6 +4452,112 @@ export function usePollsDataLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<
 export type PollsDataQueryHookResult = ReturnType<typeof usePollsDataQuery>;
 export type PollsDataLazyQueryHookResult = ReturnType<typeof usePollsDataLazyQuery>;
 export type PollsDataQueryResult = Apollo.QueryResult<PollsDataQuery, PollsDataQueryVariables>;
+export const PoolChartDataDocument = gql`
+    query PoolChartData($id: ID!) {
+  pool(id: $id) {
+    totalValueLockedToken0
+    totalValueLockedToken1
+    poolDayData(orderBy: date, orderDirection: desc) {
+      tvlUSD
+      close
+      date
+      high
+      low
+      open
+      tick
+      token0Price
+      token1Price
+      volumeUSD
+      pool {
+        totalValueLockedToken0
+        totalValueLockedToken1
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __usePoolChartDataQuery__
+ *
+ * To run a query within a React component, call `usePoolChartDataQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePoolChartDataQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePoolChartDataQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function usePoolChartDataQuery(baseOptions: Apollo.QueryHookOptions<PoolChartDataQuery, PoolChartDataQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PoolChartDataQuery, PoolChartDataQueryVariables>(PoolChartDataDocument, options);
+      }
+export function usePoolChartDataLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PoolChartDataQuery, PoolChartDataQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PoolChartDataQuery, PoolChartDataQueryVariables>(PoolChartDataDocument, options);
+        }
+export type PoolChartDataQueryHookResult = ReturnType<typeof usePoolChartDataQuery>;
+export type PoolChartDataLazyQueryHookResult = ReturnType<typeof usePoolChartDataLazyQuery>;
+export type PoolChartDataQueryResult = Apollo.QueryResult<PoolChartDataQuery, PoolChartDataQueryVariables>;
+export const PoolDataDocument = gql`
+    query PoolData($poolAddress: ID!) {
+  pool(id: $poolAddress) {
+    feeTier
+    token0 {
+      id
+      name
+      symbol
+    }
+    token1 {
+      id
+      name
+      symbol
+    }
+    token0Price
+    token1Price
+    totalValueLockedToken0
+    totalValueLockedToken1
+    poolDayData(first: 2, orderBy: date, orderDirection: desc) {
+      volumeUSD
+      tvlUSD
+      feesUSD
+    }
+  }
+}
+    `;
+
+/**
+ * __usePoolDataQuery__
+ *
+ * To run a query within a React component, call `usePoolDataQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePoolDataQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePoolDataQuery({
+ *   variables: {
+ *      poolAddress: // value for 'poolAddress'
+ *   },
+ * });
+ */
+export function usePoolDataQuery(baseOptions: Apollo.QueryHookOptions<PoolDataQuery, PoolDataQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PoolDataQuery, PoolDataQueryVariables>(PoolDataDocument, options);
+      }
+export function usePoolDataLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PoolDataQuery, PoolDataQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PoolDataQuery, PoolDataQueryVariables>(PoolDataDocument, options);
+        }
+export type PoolDataQueryHookResult = ReturnType<typeof usePoolDataQuery>;
+export type PoolDataLazyQueryHookResult = ReturnType<typeof usePoolDataLazyQuery>;
+export type PoolDataQueryResult = Apollo.QueryResult<PoolDataQuery, PoolDataQueryVariables>;
 export const PoolPriceChartDataDocument = gql`
     query PoolPriceChartData($id: ID!) {
   pool(id: $id) {

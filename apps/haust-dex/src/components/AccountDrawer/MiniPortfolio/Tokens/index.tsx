@@ -12,6 +12,7 @@ import { EmptyWalletModule } from 'nft/components/profile/view/EmptyWalletConten
 import { useEffect, useMemo, useState, memo, useCallback } from 'react'
 import styled from 'styled-components/macro'
 import { EllipsisStyle, ThemedText } from 'theme'
+import { useNavigate } from 'react-router-dom'
 
 import { useToggleAccountDrawer } from '../..'
 import { hideSmallBalancesAtom } from '../../SmallBalanceToggle'
@@ -51,6 +52,7 @@ export default function Tokens({ totalBalance }: { totalBalance?: number }) {
   const nativeCurrency = useNativeCurrency()
   const [isLoading, setIsLoading] = useState(isFirstLoad)
   const { chainId } = useWeb3React()
+  const navigate = useNavigate()
 
   const tokensList = useMemo(() => {
     const allTokens = [nativeCurrency, ...Object.values(tokens)]
@@ -131,6 +133,17 @@ function TokenRow({
   const { balance, refetch } = useTokenBalance(token)
   const tokenId = (token instanceof Token ? token.address : token.symbol) as string
   const [isTokenLoaded, setIsTokenLoaded] = useState(false)
+  const navigate = useNavigate()
+
+  const handleClick = useCallback(() => {
+    const symbol = token.symbol || ''
+    const address = token instanceof Token 
+      ? token.address 
+      : (symbol in TOKEN_ADDRESSES ? TOKEN_ADDRESSES[symbol as keyof typeof TOKEN_ADDRESSES] : undefined)
+    if (address) {
+      navigate(`/explore/token/haust_testnet/${address}`)
+    }
+  }, [token, navigate])
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout
@@ -184,6 +197,7 @@ function TokenRow({
 
   return (
       <PortfolioRow
+        onClick={handleClick}
         left={<PortfolioLogo chainId={token.chainId} currencies={[token]} size="40px" />}
         title={<ThemedText.SubHeader fontSize='14px' fontWeight={500}>{token.name}</ThemedText.SubHeader>}
         descriptor={

@@ -135,7 +135,7 @@ export const TokenRow = ({ token, isHovered, setHoveredIndex, toggleOpen, index,
     toggleOpen()
   }, [addRecentlySearchedAsset, token, toggleOpen, eventProperties])
 
-  const tokenDetailsPath = getTokenDetailsURL(token)
+  const tokenDetailsPath = getTokenDetailsURL({address: token.address})
   // Close the modal on escape
   useEffect(() => {
     const keyDownHandler = (event: KeyboardEvent) => {

@@ -129,10 +129,11 @@ const IconStyle = css`
   margin-left: 10px;
 `
 
-const LinkIcon = styled(ExternalLinkIconFeather)`
+const LinkIcon = styled(ExternalLinkIconFeather)<{ $color?: string }>`
   ${IconStyle}
   ${ClickableStyle}
   ${LinkStyle}
+  stroke: ${({ theme, $color }) => $color ?? theme.accentAction};
 `
 
 const CopyIcon = styled(Copy)`
@@ -203,11 +204,12 @@ export function ExternalLinkIcon({
   target = '_blank',
   href,
   rel = 'noopener noreferrer',
+  color,
   ...rest
-}: Omit<HTMLProps<HTMLAnchorElement>, 'as' | 'ref' | 'onClick'> & { href: string }) {
+}: Omit<HTMLProps<HTMLAnchorElement>, 'as' | 'ref' | 'onClick'> & { href: string; color?: string }) {
   return (
     <LinkIconWrapper target={target} rel={rel} href={href} onClick={handleClickExternalLink} {...rest}>
-      <LinkIcon />
+      <LinkIcon $color={color} />
     </LinkIconWrapper>
   )
 }

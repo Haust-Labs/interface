@@ -1,7 +1,7 @@
 import { Trans } from '@lingui/macro'
 import { ParentSize } from '@visx/responsive'
 import {TopTokenApi} from "api/TopTokens";
-import {CHAIN_NAME_TO_CHAIN_ID, getTokenDetailsURL, validateUrlChainParam} from "api/util";
+import {CHAIN_NAME_TO_CHAIN_ID, getPoolDetailsURL, getTokenDetailsURL, validateUrlChainParam} from "api/util";
 import SparklineChart from 'components/Charts/SparklineChart'
 import { MouseoverTooltip } from 'components/Tooltip'
 import { formatNumber, formatUSDPrice, NumberType } from 'conedison/format'
@@ -488,8 +488,8 @@ export const LoadedRow = forwardRef((props: LoadedRowProps, ref: ForwardedRef<HT
   return (
     <div ref={ref} data-testid={`pool-table-row-${pool.token0.symbol}`}>
       <StyledLink
-        to={getTokenDetailsURL({address: pool.token0.address})}
-        onClick={(e) => e.preventDefault()}
+        to={getPoolDetailsURL({address: pool.id})}
+        onClick={noop}
       >
         <PoolRow
           header={false}

@@ -54,15 +54,6 @@ const TokenActions = styled.div`
   color: ${({ theme }) => theme.textSecondary};
 `
 
-const DividerLine = styled(Hr)`
-  margin-top: 40px;
-  margin-bottom: 40px;
-  @media screen and (max-width: ${({ theme }) => theme.breakpoint.sm}px) {
-    opacity: 0;
-    margin-bottom: 0;
-  }
-`
-
 function useOnChainToken(address: string | undefined, skip: boolean) {
   const token = useTokenFromActiveNetwork(skip || !address ? undefined : address)
 

@@ -8,9 +8,10 @@ import { AboutContainer, AboutHeader } from './About'
 import { BreadcrumbNavLink } from './BreadcrumbNavLink'
 import { TokenPrice } from './PriceChart'
 import { StatPair, StatsWrapper, StatWrapper } from './StatsSection'
+import { BREAKPOINTS } from 'theme'
 
 export const Hr = styled.hr`
-  background-color: ${({ theme }) => theme.backgroundOutline};
+  background-color: ${({ theme }) => theme.neutralBorder};
   border: none;
   height: 0.5px;
 `
@@ -33,14 +34,21 @@ export const TokenDetailsLayout = styled.div`
   }
 `
 export const LeftPanel = styled.div`
-  flex: 1;
-  max-width: 1160px;
+  gap: 40px;
+  max-width: 680px;
   overflow: hidden;
+  justify-content: flex-start;
+  width: 100%;
+
+  @media (max-width: ${BREAKPOINTS.lg}px) {
+    max-width: unset;
+  }
 `
+
 export const RightPanel = styled.div`
   display: none;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
   width: 360px;
 
   @media screen and (min-width: ${({ theme }) => theme.breakpoint.lg}px) {

@@ -179,11 +179,6 @@ export function VolumeChart({ height, data, feeTier, timePeriod, stale }: Volume
       Model={VolumeChartModel}
       params={params}
       height={height}
-      TooltipBody={
-        feeTier === undefined // i.e. if is token volume chart
-          ? undefined
-          : ({ data }: { data: SingleHistogramData }) => <FeesTooltipDisplay data={data} feeTier={feeTier} />
-      }
     >
       {(crosshairData) => <VolumeChartHeader crosshairData={crosshairData} volumes={data} timePeriod={timePeriod} />}
     </Chart>
