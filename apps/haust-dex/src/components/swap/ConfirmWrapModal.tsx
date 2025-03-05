@@ -66,17 +66,8 @@ export default function ConfirmWrapModal({
     () =>
       wrapErrorMessage ? (
         <TransactionErrorContent onDismiss={onDismiss} message={wrapErrorMessage} />
-      ) : (
-        <ConfirmationModalContent
-          title={<Trans>Confirm {isWrap ? 'Wrap' : 'Unwrap'}</Trans>}
-          onDismiss={onDismiss}
-          topContent={() => (
-            <></>
-          )}
-          bottomContent={modalBottom}
-        />
-      ),
-    [wrapErrorMessage, onDismiss, isWrap, modalBottom]
+      ) : null,
+    [wrapErrorMessage, onDismiss]
   )
 
   return (

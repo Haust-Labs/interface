@@ -78,7 +78,7 @@ export function AddressQRModal({ accountAddress }: { accountAddress: Address }) 
             </Flex>
           </QRCodeDisplay>
           <ThemedText.BodySmall color={colors.gray450} style={{ marginTop: '8px', color: colors.gray450 }}>
-            You can send and receive tokens on the Haust Testnet.
+            You can send and receive tokens on the Haust Network Testnet.
           </ThemedText.BodySmall>
         </Flex>
       </ModalWrapper>

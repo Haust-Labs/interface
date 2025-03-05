@@ -327,7 +327,7 @@ interface ConfirmationModalProps {
   isOpen: boolean
   onDismiss: () => void
   hash: string | undefined
-  content: () => ReactNode
+  content?: () => ReactNode
   attemptingTxn: boolean
   pendingText: ReactNode
   currencyToAdd?: Currency | undefined
@@ -360,7 +360,7 @@ export default function TransactionConfirmationModal({
           currencyToAdd={currencyToAdd}
         />
       ) : (
-        content()
+        content && content()
       )}
     </Modal>
   )

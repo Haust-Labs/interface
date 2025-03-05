@@ -53,7 +53,7 @@ const CHAIN_INFO: ChainInfoMap = {
     docs: 'https://haust.network/',
     explorer: 'https://haust-testnet-blockscout.eu-north-2.gateway.fm/',
     infoLink: '',
-    label: 'HAUST Testnet',
+    label: 'Haust Network Testnet',
     logoUrl: haustLogo,
     circleLogoUrl: haustLogo,
     squareLogoUrl: haustLogo,

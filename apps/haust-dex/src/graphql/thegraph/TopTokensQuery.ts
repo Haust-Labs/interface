@@ -1,9 +1,11 @@
 import { ApolloError, useQuery } from "@apollo/client";
 import gql from "graphql-tag";
+import { getCorrectName } from "hooks/useCorrectNaming";
 import { useMemo } from "react";
 
 import { TopTokensQuery } from "./__generated__/types-and-hooks";
 import { apolloClient } from "./apollo";
+
 export enum Duration {
   hour = "hour",
   day = "day",
@@ -80,6 +82,15 @@ export default function useTopTokensQuery(interval: number): {
   isLoading: boolean;
   data: TopTokensData;
 } {
+  const allowedTokenIds = useMemo(() => [
+    "0x6c25c1cb4b8677982791328471be1bfb187687c1".toLowerCase(),
+    "0x87054392461F52a513d83EF2e06af50f4e2F6614".toLowerCase(),
+    "0x1AfB500AFfBBc8a7FC8aB0f5C4D06c59AC87B111".toLowerCase(),
+    "0x48C3C36CE1DF7d5852FB4cda746015a9971A882E".toLowerCase(),
+    "0x595BC82909f2311Cf19E865bc82e7930b103540C".toLowerCase(),
+    "0x6c25c1cb4b8677982791328471be1bfb187687c1_haust".toLowerCase(),
+  ], []);
+
   const {
     data: rawData,
     loading: isLoading,
@@ -88,15 +99,6 @@ export default function useTopTokensQuery(interval: number): {
     pollInterval: interval,
     client: apolloClient,
   });
-
-  const allowedTokenIds = [
-    "0x6c25c1cb4b8677982791328471be1bfb187687c1".toLowerCase(),
-    "0x87054392461F52a513d83EF2e06af50f4e2F6614".toLowerCase(),
-    "0x1AfB500AFfBBc8a7FC8aB0f5C4D06c59AC87B111".toLowerCase(),
-    "0x48C3C36CE1DF7d5852FB4cda746015a9971A882E".toLowerCase(),
-    "0x595BC82909f2311Cf19E865bc82e7930b103540C".toLowerCase(),
-    "0x6c25c1cb4b8677982791328471be1bfb187687c1_haust".toLowerCase(),
-  ];
 
   const tokenIds =
     rawData?.tokens
@@ -124,6 +126,8 @@ export default function useTopTokensQuery(interval: number): {
               allowedTokenIds.includes(token.id)
             )
             .map((token: TopTokensQuery["tokens"][number]) => {
+              const correctName = getCorrectName(token.name);
+
               // Calculate day price changes
               const currentDayPrice = Number(token.tokenDayData[0]?.priceUSD);
               const previousDayPrice = Number(token.tokenDayData[1]?.priceUSD);
@@ -146,7 +150,7 @@ export default function useTopTokensQuery(interval: number): {
               return {
                 ...token,
                 address: token.id,
-                name: token.name,
+                name: correctName,
                 priceUsd: token.tokenDayData[0]?.priceUSD || "0",
                 symbol: token.symbol.toUpperCase(),
                 totalValueLockedUsd:
@@ -251,6 +255,6 @@ export default function useTopTokensQuery(interval: number): {
         ),
       },
     }),
-    [rawData, hourData, error, isLoading, hourDataLoading]
+    [rawData, hourData, error, isLoading, hourDataLoading, allowedTokenIds]
   );
 }

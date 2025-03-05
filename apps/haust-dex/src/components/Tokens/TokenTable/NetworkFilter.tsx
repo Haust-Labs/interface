@@ -42,7 +42,7 @@ const InternalLinkMenuItem = styled(InternalMenuItem)<{ disabled?: boolean }>`
     `}
 `
 const MenuTimeFlyout = styled.span<{ open: boolean }>`
-  min-width: 240px;
+  min-width: 270px;
   max-height: 350px;
   overflow: auto;
   background-color: ${({ theme }) => theme.backgroundBackdrop};

@@ -122,8 +122,8 @@ const MOCK_VOLUME_DATA: any = {
 
 const MOCK_TVL_DATA: any = {
   entries: Array.from({ length: 24 }, (_, i) => ({
-    time: Math.floor(Date.now() / 1000) - i * 3600,
-    values: [5000000 + Math.random() * 1000000],
+    time: Math.floor(Date.now() / 1000) - i * 3600, // Unix timestamp в секундах
+    values: [5000000 + Math.random() * 1000000], // TVL значения
   })).reverse(),
   categories: ['TVL'],
 }
@@ -155,7 +155,7 @@ export default function ChartSection({
   const [timePeriod, setTimePeriod] = useState(TimePeriod.DAY);
   const [chartType, setChartType] = useState(ChartType.PRICE);
   const [priceChartType, setPriceChartType] = useState(initialPriceChartType);
-  const isMediumScreen = window.innerWidth < 768;
+  const isMediumScreen = window.innerWidth < 768; // простая замена useScreenSize
   const { data: priceChartData } = useTokenPriceChart(token, 1000)
   const { data: volumeChartData } = useTokenVolumeChart(token, 1000)
   const { data: tvlChartData } = useTokenTVLChart(token, 1000)

@@ -1,10 +1,11 @@
 import { ApolloError, useQuery } from "@apollo/client";
+import { SupportedChainId } from "constants/chains";
 import gql from "graphql-tag";
+import { getCorrectName } from "hooks/useCorrectNaming";
 import { useMemo } from "react";
+import { Nullish } from "types/common";
 
 import { apolloClient } from "./apollo";
-import { SupportedChainId } from "constants/chains";
-import { Nullish } from "types/common";
 
 interface MarketData {
   volume24H: string;
@@ -62,6 +63,8 @@ export default function useTokenData(
     client: apolloClient,
   });
 
+  const correctName = getCorrectName(queryData?.token?.name);
+
   return useMemo(() => {
     if (!queryData?.token) {
       return {
@@ -100,8 +103,8 @@ export default function useTokenData(
 
     const formattedData: TokenApi = {
       address: tokenData.id,
-      name: tokenData.name,
-      symbol: tokenData.symbol,
+      name: correctName,
+      symbol: tokenData.symbol.toUpperCase(),
       priceUsd: latestDayData?.priceUSD || "0",
       totalValueLockedUsd: tokenData.totalValueLockedUSD,
       decimals: parseInt(tokenData.decimals),
@@ -119,5 +122,5 @@ export default function useTokenData(
       isLoading,
       data: formattedData,
     };
-  }, [queryData, error, isLoading]);
+  }, [queryData, error, isLoading, correctName]);
 }
