@@ -113,15 +113,6 @@ export const ThemedGlobalStyle = createGlobalStyle`
   html {
     color: ${({ theme }) => theme.textPrimary};
     background-color: ${({ theme }) => theme.background} !important;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  body {
-    overflow-y: overlay;
-    overflow-x: hidden;
   }
 
   summary::-webkit-details-marker {
@@ -134,23 +125,5 @@ export const ThemedGlobalStyle = createGlobalStyle`
 
   :root {
     ${({ theme }) => rootCssString(theme.darkMode)}
-  }
-
-  ::-webkit-scrollbar {
-    width: 0;
-    background: transparent;
-  }
-
-  *:hover::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background-color: ${({ theme }) => theme.darkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'};
-    border-radius: 4px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: ${({ theme }) => theme.darkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'};
   }
 `
