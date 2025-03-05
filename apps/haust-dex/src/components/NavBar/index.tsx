@@ -16,6 +16,7 @@ import Blur from './Blur'
 import { SearchBar } from './SearchBar'
 import * as styles from './style.css'
 import { Tabs } from './Tabs/Tabs'
+import { ThemedText } from 'theme'
 
 const Nav = styled.nav<{ $scrolled: boolean }>`
   padding: ${({ $scrolled }) => ($scrolled ? '12px' : '20px 12px')};
@@ -41,45 +42,135 @@ interface MenuItemProps {
   isActive?: boolean
   children: ReactNode
   dataTestId?: string
+  onItemClick?: () => void
 }
 
-const MenuItem = ({ href, dataTestId, id, isActive, children }: MenuItemProps) => {
+const StyledNavLink = styled(NavLink)`
+  text-decoration: none;
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  font-size: 16px;
+  padding: 0px 16px;
+
+  &:hover {
+    background: transparent !important;
+  }
+`
+
+const MenuItem = ({ href, dataTestId, id, isActive, children, onItemClick }: MenuItemProps) => {
   return (
-    <NavLink
+    <StyledNavLink
       to={href}
-      className={isActive ? styles.activeMenuItem : styles.menuItem}
+      className={styles.menuItem}
       id={id}
-      style={{ textDecoration: 'none' }}
       data-testid={dataTestId}
+      onClick={onItemClick}
     >
       {children}
-    </NavLink>
+    </StyledNavLink>
   )
 }
 
-export const PageTabs = () => {
+export const PageTabs = ({ onItemClick }: { onItemClick?: () => void }) => {
   const { pathname } = useLocation()
-
-  const isPoolActive = useIsPoolsPage()
 
   return (
     <>
-      <MenuItem href="/" isActive={pathname === '/'}>
-        <Trans>Trade</Trans>
+      <ThemedText.BodyPrimary style={{padding: '12px 16px'}}>
+        App
+      </ThemedText.BodyPrimary>
+      <MenuItem href="/swap" isActive={pathname === '/swap'} onItemClick={onItemClick}>
+        Trade
       </MenuItem>
-      <MenuItem href="/tokens" isActive={pathname.startsWith('/tokens')}>
-        <Trans>Explore</Trans>
+      <MenuItem href="/explore/tokens" isActive={pathname.startsWith('/explore/tokens')} onItemClick={onItemClick}>
+        Explore
       </MenuItem>
-      <MenuItem href="/pools" isActive={isPoolActive}>
-        <Trans>Pools</Trans>
+      <MenuItem href="/pool" isActive={pathname.startsWith('/pool')} onItemClick={onItemClick}>
+        Pool
       </MenuItem>
     </>
   )
 }
 
+const BurgerMenu = styled.div`
+  display: none;
+
+  @media (max-width: ${({ theme }) => theme.breakpoint.lg}px) {
+    display: flex;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    padding: 8px;
+  }
+`
+
+const BurgerIcon = styled.div`
+  width: 24px;
+  height: 2px;
+  background: ${({ theme }) => theme.textSecondary};
+  position: relative;
+
+  &:before,
+  &:after {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 2px;
+    background: ${({ theme }) => theme.textSecondary};
+    transition: all 0.3s ease;
+  }
+
+  &:before {
+    top: -6px;
+  }
+
+  &:after {
+    bottom: -6px;
+  }
+`
+
+const DropdownMenuLink = styled(NavLink)`
+  padding: 12px 16px;
+  width: 100%;
+  text-decoration: none;
+  
+`
+
+const DropdownMenu = styled.div<{ isOpen: boolean }>`
+  display: ${({ isOpen }) => (isOpen ? 'flex' : 'none')};
+  position: absolute;
+  top: calc(100% + 16px);
+  left: 0;
+  flex-direction: column;
+  background: ${({ theme }) => theme.background};
+  border: 1px solid ${({ theme }) => theme.neutralBorder};
+  border-radius: 12px;
+  padding: 8px 0px;
+  min-width: 160px;
+  z-index: 1000;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+
+  &:before {
+    content: '';
+    position: absolute;
+    top: -16px;
+    left: 0;
+    right: 0;
+    height: 16px;
+  }
+
+  ${DropdownMenuLink} {
+    &:hover {
+      background: transparent;
+    }
+  }
+`
+
 const Navbar = ({ blur }: { blur: boolean }) => {
   const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -106,9 +197,20 @@ const Navbar = ({ blur }: { blur: boolean }) => {
                   })
                 }}
               />
+              <Box display={{ sm: 'block', lg: 'none' }}>
+                <BurgerMenu 
+                  onMouseEnter={() => setIsMenuOpen(true)}
+                  onMouseLeave={() => setIsMenuOpen(false)}
+                >
+                  <BurgerIcon />
+                  <DropdownMenu isOpen={isMenuOpen}>
+                    <PageTabs onItemClick={() => setIsMenuOpen(false)} />
+                  </DropdownMenu>
+                </BurgerMenu>
+              </Box>
             </Box>
             <Row display={{ sm: 'none', lg: 'flex' }}>
-              <Tabs />            
+              <Tabs />
             </Row>
           </Box>
           <Box className={styles.searchContainer}>

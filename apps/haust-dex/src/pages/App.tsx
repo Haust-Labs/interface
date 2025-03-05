@@ -46,25 +46,6 @@ const BodyWrapper = styled.div`
   flex: 1;
 `
 
-const MobileBottomBar = styled.div`
-  z-index: ${Z_INDEX.sticky};
-  position: fixed;
-  display: flex;
-  bottom: 0;
-  right: 0;
-  left: 0;
-  width: 100vw;
-  justify-content: space-between;
-  padding: 8px 8px;
-  height: ${({ theme }) => theme.mobileBottomBarHeight}px;
-  background: ${({ theme }) => theme.backgroundModule};
-  border-top: 1px solid ${({ theme }) => theme.backgroundOutline};
-
-  @media screen and (min-width: ${({ theme }) => theme.breakpoint.md}px) {
-    display: none;
-  }
-`
-
 const HeaderWrapper = styled.div<{ transparent?: boolean }>`
   ${flexRowNoWrap};
   background-color: ${({ theme, transparent }) => !transparent && theme.backgroundSurface};
@@ -187,9 +168,6 @@ export default function App() {
             )}
           </Suspense>
         </BodyWrapper>
-        <MobileBottomBar>
-          <PageTabs />
-        </MobileBottomBar>
       </StatsigProvider>
     </ErrorBoundary>
   )

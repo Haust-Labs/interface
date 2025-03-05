@@ -136,11 +136,11 @@ function TokenRow({
   const navigate = useNavigate()
 
   const handleClick = useCallback(() => {
-    const symbol = token.symbol || ''
-    const address = token instanceof Token 
-      ? token.address 
-      : (symbol in TOKEN_ADDRESSES ? TOKEN_ADDRESSES[symbol as keyof typeof TOKEN_ADDRESSES] : undefined)
-    if (address) {
+    const address = token instanceof NativeCurrency 
+      ? 'NATIVE'
+      : token.address 
+
+      if (address) {
       navigate(`/explore/token/haust_testnet/${address}`)
     }
   }, [token, navigate])

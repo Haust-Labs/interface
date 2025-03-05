@@ -120,7 +120,8 @@ export const searchBarDropdownNft = style([
     backgroundColor: colors.neutralBase,
     backdropFilter: 'blur(60px)',
     borderTop: 'none',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    padding: '0',
   },
 ])
 
@@ -161,6 +162,7 @@ export const suggestionPrimaryContainer = style([
 export const suggestionSecondaryContainer = sprinkles({
   textAlign: 'right',
   alignItems: 'flex-end',
+  gap: '6',
 })
 
 export const primaryText = style([

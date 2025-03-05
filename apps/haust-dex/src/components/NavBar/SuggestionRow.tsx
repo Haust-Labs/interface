@@ -1,9 +1,6 @@
-import {TokenApi} from "api/types";
 import {Chain, getTokenDetailsURL} from "api/util";
 import clsx from 'clsx'
-import TokenSafetyIcon from 'components/TokenSafety/TokenSafetyIcon'
 import { formatUSDPrice } from 'conedison/format'
-import { WARNING_LEVEL} from 'constants/tokenSafety'
 import { Box } from 'nft/components/Box'
 import { Column, Row } from 'nft/components/Flex'
 import { VerifiedIcon } from 'nft/components/icons'
@@ -16,18 +13,18 @@ import { Link, useNavigate } from 'react-router-dom'
 import styled from 'styled-components/macro'
 import { ThemedText } from 'theme'
 
-import { DeltaText, getDeltaArrow } from '../Tokens/TokenDetails/PriceChart'
+import { DeltaText } from '../Tokens/TokenDetails/PriceChart'
 import { useAddRecentlySearchedAsset } from './RecentlySearchedAssets'
 import * as styles from './SearchBar.css'
+import CurrencyLogo from "components/Logo/CurrencyLogo";
+import { useCurrency } from "hooks/Tokens";
+import { DeltaArrow } from "components/Tokens/Delta";
+import useNativeCurrency from "lib/hooks/useNativeCurrency";
+import { TokenData } from "graphql/thegraph/TopTokensQuery";
 
 const PriceChangeContainer = styled.div`
   display: flex;
   align-items: center;
-`
-
-const ArrowCell = styled.span`
-  padding-top: 5px;
-  padding-right: 3px;
 `
 
 interface CollectionRowProps {
@@ -115,7 +112,7 @@ export const CollectionRow = ({
 }
 
 interface TokenRowProps {
-  token: TokenApi
+  token: TokenData
   isHovered: boolean
   setHoveredIndex: (index: number | undefined) => void
   toggleOpen: () => void
@@ -126,6 +123,9 @@ interface TokenRowProps {
 export const TokenRow = ({ token, isHovered, setHoveredIndex, toggleOpen, index, eventProperties }: TokenRowProps) => {
   const addRecentlySearchedAsset = useAddRecentlySearchedAsset()
   const navigate = useNavigate()
+  const nativeCurrency = useNativeCurrency()
+  const tokenCurrency = useCurrency(token.address)
+  const currency = token.symbol === 'HAUST' ? nativeCurrency : tokenCurrency
 
   const handleClick = useCallback(() => {
     const address = token.address
@@ -135,7 +135,10 @@ export const TokenRow = ({ token, isHovered, setHoveredIndex, toggleOpen, index,
     toggleOpen()
   }, [addRecentlySearchedAsset, token, toggleOpen, eventProperties])
 
-  const tokenDetailsPath = getTokenDetailsURL({address: token.address})
+  const tokenDetailsPath = token.address.toLowerCase().includes('_haust')
+    ? `/explore/token/${token.chain}/NATIVE`
+    : getTokenDetailsURL({address: token.address})
+
   // Close the modal on escape
   useEffect(() => {
     const keyDownHandler = (event: KeyboardEvent) => {
@@ -151,8 +154,6 @@ export const TokenRow = ({ token, isHovered, setHoveredIndex, toggleOpen, index,
     }
   }, [toggleOpen, isHovered, token, navigate, handleClick, tokenDetailsPath])
 
-  const arrow = getDeltaArrow(+token.marketData.pricePercentChange, 18)
-
   return (
     <Link
       data-cy={`searchbar-token-row-${token.symbol}`}
@@ -163,34 +164,25 @@ export const TokenRow = ({ token, isHovered, setHoveredIndex, toggleOpen, index,
       className={styles.suggestionRow}
       style={{ background: isHovered ? vars.color.lightGrayOverlay : 'none' }}
     >
-      <Row style={{ width: '65%' }}>
-        {/*<QueryTokenLogo*/}
-        {/*  token={token}*/}
-        {/*  symbol={token.symbol}*/}
-        {/*  size="36px"*/}
-        {/*  backupImg={undefined} // TODO add logo*/}
-        {/*  style={{ paddingRight: '8px' }}*/}
-        {/*/>*/}
-        <Column className={styles.suggestionPrimaryContainer}>
-          <Row gap="4" width="full">
-            <Box className={styles.primaryText}>{token.name}</Box>
-            <TokenSafetyIcon warning={{ level: WARNING_LEVEL.MEDIUM, message: (<div>Test</div>), canProceed : true }} />
-          </Row>
-          <Box className={styles.secondaryText}>{token.symbol}</Box>
+      <Row gap="8" style={{ width: '65%' }}>
+        <CurrencyLogo currency={currency} size="36px" />
+        <Column gap="6">
+          <ThemedText.BodyPrimary>{token.name}</ThemedText.BodyPrimary>
+          <ThemedText.BodySecondary fontSize={13} fontWeight={485}>{token.symbol}</ThemedText.BodySecondary>
         </Column>
       </Row>
 
       <Column className={styles.suggestionSecondaryContainer}>
         {!!token.priceUsd && (
           <>
-            <Row gap="4">
-              <Box className={styles.primaryText}>{formatUSDPrice(token.priceUsd)}</Box>
+            <Row gap="6">
+            <ThemedText.BodyPrimary>{formatUSDPrice(token.priceUsd)}</ThemedText.BodyPrimary>
             </Row>
             <PriceChangeContainer>
-              <ArrowCell>{arrow}</ArrowCell>
+              <DeltaArrow delta={+token.marketData.pricePercentChange} />
               <ThemedText.BodySmall>
                 <DeltaText delta={+token.marketData.pricePercentChange}>
-                  {Math.abs(+token.marketData.pricePercentChange ?? 0).toFixed(2)}%
+                  {Math.abs(+token.marketData.pricePercentChange).toFixed(2)}%
                 </DeltaText>
               </ThemedText.BodySmall>
             </PriceChangeContainer>

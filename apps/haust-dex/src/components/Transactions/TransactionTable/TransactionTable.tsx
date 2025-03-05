@@ -1,22 +1,16 @@
 import { Trans } from '@lingui/macro'
-import {useTopTokensApi} from 'api/TopTokens';
-import {validateUrlChainParam} from "api/util";
-import { PAGE_SIZE, useTopTokens } from 'graphql/data/TopTokens'
+import { PAGE_SIZE } from 'graphql/data/TopTokens'
 import { ReactNode } from 'react'
-import { AlertTriangle, ArrowUp } from 'react-feather'
-import {useParams} from "react-router-dom";
+import { AlertTriangle } from 'react-feather'
 import styled from 'styled-components/macro'
 import { useState, useEffect } from 'react'
 import React from 'react'
 import { useAtomValue } from 'jotai/utils'
-import { sortMethodAtom, sortAscendingAtom, TransactionSortMethod } from '../state'
+import { sortMethodAtom, sortAscendingAtom } from '../state'
 
 import { MAX_WIDTH_MEDIA_BREAKPOINT } from '../constants'
-import useTopTokensQuery from 'graphql/thegraph/TopTokensQuery';
 import ms from 'ms.macro';
 import { CornerLeftUp } from 'react-feather'
-import usePollsData from 'graphql/thegraph/PollsDataQuery';
-import { TOKEN_ADDRESSES } from 'constants/tokens';
 import { filterStringAtom } from 'components/Tokens/state';
 import useTransactionHistory from 'graphql/thegraph/TransactionHistoryQuery';
 import { HeaderRow, LoadedRow, LoadingRow, ColumnVisibility, GridConfig, DEFAULT_COLUMN_VISIBILITY } from './TransactionRow';

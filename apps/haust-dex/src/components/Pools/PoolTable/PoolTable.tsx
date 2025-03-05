@@ -1,9 +1,8 @@
 import { Trans } from '@lingui/macro'
-import {useTopTokensApi} from 'api/TopTokens';
 import {validateUrlChainParam} from "api/util";
-import { PAGE_SIZE, useTopTokens } from 'graphql/data/TopTokens'
+import { PAGE_SIZE } from 'graphql/data/TopTokens'
 import { ReactNode } from 'react'
-import { AlertTriangle, ArrowUp } from 'react-feather'
+import { AlertTriangle } from 'react-feather'
 import {useParams} from "react-router-dom";
 import styled from 'styled-components/macro'
 import { useState, useEffect } from 'react'
@@ -13,7 +12,6 @@ import { sortMethodAtom, sortAscendingAtom, PoolSortMethod } from '../state'
 
 import { MAX_WIDTH_MEDIA_BREAKPOINT } from '../constants'
 import { HeaderRow, LoadedRow, LoadingRow } from './PoolRow'
-import useTopTokensQuery from 'graphql/thegraph/TopTokensQuery';
 import ms from 'ms.macro';
 import { CornerLeftUp } from 'react-feather'
 import usePollsData from 'graphql/thegraph/PollsDataQuery';
