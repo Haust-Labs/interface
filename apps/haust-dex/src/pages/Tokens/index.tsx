@@ -44,11 +44,6 @@ const FiltersWrapper = styled.div`
   flex-direction: row;
   justify-content: flex-end;
   gap: 8px;
-
-  @media only screen and (max-width: ${MEDIUM_MEDIA_BREAKPOINT}) {
-    flex-direction: column;
-    gap: 8px;
-  }
 `
 
 const TabsContainer = styled.div`
@@ -83,7 +78,7 @@ const ContentWrapper = styled.div`
   justify-content: space-between;
   align-items: center;
 
-  @media only screen and (max-width: ${MEDIUM_MEDIA_BREAKPOINT}) {
+  @media only screen and (max-width: ${({ theme }) => theme.breakpoint.md}px) {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;

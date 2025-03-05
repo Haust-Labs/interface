@@ -23,9 +23,6 @@ const SearchBarContainer = styled.div<{ $isExpanded: boolean }>`
   height: 40px;
   position: relative;
 
-  @media only screen and (max-width: ${MEDIUM_MEDIA_BREAKPOINT}) {
-    width: ${({ $isExpanded }) => ($isExpanded ? '100%' : '44px')};
-  }
 
   :hover {
     background-color: ${({ theme }) => (theme.backgroundSurface)};

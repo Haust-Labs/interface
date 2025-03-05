@@ -83,7 +83,7 @@ export function AdvancedSwapDetails({
           <>
             <RowBetween>
               <ThemedText.BodySmall style={{ display: 'flex', alignItems: 'center', gap: '4px', color: theme.textSecondary }}>
-                <Trans>Fee ({(trade.swaps[0].route.pools[0] as Pool).fee  / 10000}%)</Trans>
+                  Fee ({(trade.swaps[0].route.pools[0] as Pool).fee  / 10000}%)
                 <MouseoverTooltip
                   text={
                     <Trans>

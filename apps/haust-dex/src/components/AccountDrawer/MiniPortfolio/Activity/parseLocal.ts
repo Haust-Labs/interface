@@ -92,10 +92,10 @@ function parseSend(
   const currency = getCurrency(currencyId, chainId, tokens);
   const formattedAmount = currency
     ? formatCurrencyAmount(CurrencyAmount.fromRawAmount(currency, amount))
-    : t`Unknown`;
+    : `Unknown`;
 
   return {
-    descriptor: t`Send ${formattedAmount} ${currency?.symbol} to ${recipient}`,
+    descriptor: `Send ${formattedAmount} ${currency?.symbol} to ${recipient}`,
     otherAccount: recipient,
     currencies: [currency],
   };

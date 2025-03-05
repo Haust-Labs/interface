@@ -61,6 +61,10 @@ const MenuTimeFlyout = styled.span<{ open: boolean }>`
   transform: translateY(${({ open }) => (open ? '0' : '-20px')});
   transition: all 200ms ease-in-out;
   visibility: ${({ open }) => (open ? 'visible' : 'hidden')};
+  
+  @media only screen and (max-width: ${({ theme }) => theme.breakpoint.md}px) {
+      left: 0px;
+  }
 `
 const StyledMenu = styled.div`
   display: flex;

@@ -62,7 +62,7 @@ const SectionContainer = styled(Flex)`
   width: 100%;
   gap: 4px;
 
-  @media (max-width: ${({ theme }) => theme.breakpoint.sm}px) {
+  @media (max-width: ${({ theme }) => theme.breakpoint.md}px) {
     background-color: ${({ theme }) => theme.backgroundModule};
     border-radius: 20px;
     height: 120px;
@@ -80,7 +80,7 @@ const SectionTitle = styled(Text)`
 function VolumeChartSection() {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>(TimePeriod.DAY)
   const theme = useTheme()
-  const isSmallScreen = !useScreenSize()['sm']
+  const isSmallScreen = !useScreenSize()['md']
   const { data, isLoading } = useUniswapVolume(ms`30s`)
   // const refitChartContent = useAtomValue(refitChartContentAtom)
 
@@ -129,6 +129,7 @@ function VolumeChartSection() {
   )
 
   const cumulativeVolume = useMemo(() => getCumulativeVolume(entries), [entries])
+  console.log(cumulativeVolume, 'cumulativeVolume');
   
   if (isSmallScreen) {
     return (
@@ -221,7 +222,7 @@ function TVLChartSection() {
     [entries, theme],
   )
 
-  const isSmallScreen = !useScreenSize()['sm']
+  const isSmallScreen = !useScreenSize()['md']
   if (isSmallScreen) {
     const currentTVL = lastEntry?.values.reduce((acc, curr) => acc + curr, 0)
     return <MinimalStatDisplay title="Haust TVL" value={currentTVL} />

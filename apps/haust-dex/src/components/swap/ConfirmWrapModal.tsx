@@ -32,9 +32,9 @@ export default function ConfirmWrapModal({
 }: ConfirmWrapModalProps) {
   // text to show while loading
   const pendingText = useMemo(() => (
-    <Trans>
+    <div>
       {isWrap ? 'Wrapping' : 'Unwrapping'} {inputAmount?.toSignificant(6)} {inputAmount?.currency?.symbol}
-    </Trans>
+    </div>
   ), [isWrap, inputAmount])
 
   const modalBottom = useCallback(() => {
