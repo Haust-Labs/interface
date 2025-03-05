@@ -115,6 +115,8 @@ export const ThemedGlobalStyle = createGlobalStyle`
     background-color: ${({ theme }) => theme.background} !important;
     overflow-y: auto;
     overflow-x: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
   body {
@@ -135,8 +137,12 @@ export const ThemedGlobalStyle = createGlobalStyle`
   }
 
   ::-webkit-scrollbar {
+    width: 0;
+    background: transparent;
+  }
+
+  *:hover::-webkit-scrollbar {
     width: 8px;
-    background-color: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
