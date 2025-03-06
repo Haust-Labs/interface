@@ -32,12 +32,12 @@ const query = gql`
 `;
 
 const tokenHourDataQuery = gql`
-  query TokenHourData($tokenIds: [String!]!) {
+  query TokenHourData($tokenId: String!) {
     tokenHourDatas(
       first: 120
       orderBy: periodStartUnix
       orderDirection: desc
-      where: { token_in: $tokenIds }
+      where: { token: $tokenId }
     ) {
       periodStartUnix
       priceUSD
@@ -82,14 +82,17 @@ export default function useTopTokensQuery(interval: number): {
   isLoading: boolean;
   data: TopTokensData;
 } {
-  const allowedTokenIds = useMemo(() => [
-    "0x6c25c1cb4b8677982791328471be1bfb187687c1".toLowerCase(),
-    "0x87054392461F52a513d83EF2e06af50f4e2F6614".toLowerCase(),
-    "0x1AfB500AFfBBc8a7FC8aB0f5C4D06c59AC87B111".toLowerCase(),
-    "0x48C3C36CE1DF7d5852FB4cda746015a9971A882E".toLowerCase(),
-    "0x595BC82909f2311Cf19E865bc82e7930b103540C".toLowerCase(),
-    "0x6c25c1cb4b8677982791328471be1bfb187687c1_haust".toLowerCase(),
-  ], []);
+  const allowedTokenIds = useMemo(
+    () => [
+      "0x6c25c1cb4b8677982791328471be1bfb187687c1".toLowerCase(),
+      "0x87054392461F52a513d83EF2e06af50f4e2F6614".toLowerCase(),
+      "0x1AfB500AFfBBc8a7FC8aB0f5C4D06c59AC87B111".toLowerCase(),
+      "0x48C3C36CE1DF7d5852FB4cda746015a9971A882E".toLowerCase(),
+      "0x595BC82909f2311Cf19E865bc82e7930b103540C".toLowerCase(),
+      "0x6c25c1cb4b8677982791328471be1bfb187687c1_haust".toLowerCase(),
+    ],
+    []
+  );
 
   const {
     data: rawData,
@@ -100,19 +103,62 @@ export default function useTopTokensQuery(interval: number): {
     client: apolloClient,
   });
 
-  const tokenIds =
-    rawData?.tokens
-      .filter((token: any) => allowedTokenIds.includes(token.id))
-      .map((token: any) => token.id) || [];
+  // Create separate queries for hour data
+  const token1Query = useQuery(tokenHourDataQuery, {
+    variables: { tokenId: allowedTokenIds[0] },
+    client: apolloClient,
+    skip: !rawData?.tokens,
+  });
 
-  const { data: hourData, loading: hourDataLoading } = useQuery(
-    tokenHourDataQuery,
-    {
-      variables: { tokenIds },
-      client: apolloClient,
-      skip: tokenIds.length === 0,
-    }
-  );
+  const token2Query = useQuery(tokenHourDataQuery, {
+    variables: { tokenId: allowedTokenIds[1] },
+    client: apolloClient,
+    skip: !rawData?.tokens,
+  });
+
+  const token3Query = useQuery(tokenHourDataQuery, {
+    variables: { tokenId: allowedTokenIds[2] },
+    client: apolloClient,
+    skip: !rawData?.tokens,
+  });
+
+  const token4Query = useQuery(tokenHourDataQuery, {
+    variables: { tokenId: allowedTokenIds[3] },
+    client: apolloClient,
+    skip: !rawData?.tokens,
+  });
+
+  const token5Query = useQuery(tokenHourDataQuery, {
+    variables: { tokenId: allowedTokenIds[4] },
+    client: apolloClient,
+    skip: !rawData?.tokens,
+  });
+
+  const hourDataLoading =
+    token1Query.loading ||
+    token2Query.loading ||
+    token3Query.loading ||
+    token4Query.loading ||
+    token5Query.loading;
+
+  const hourData = useMemo(() => {
+    const allHourData = {
+      tokenHourDatas: [
+        ...(token1Query.data?.tokenHourDatas || []),
+        ...(token2Query.data?.tokenHourDatas || []),
+        ...(token3Query.data?.tokenHourDatas || []),
+        ...(token4Query.data?.tokenHourDatas || []),
+        ...(token5Query.data?.tokenHourDatas || []),
+      ],
+    };
+    return allHourData;
+  }, [
+    token1Query.data,
+    token2Query.data,
+    token3Query.data,
+    token4Query.data,
+    token5Query.data,
+  ]);
 
   return useMemo(
     () => ({
@@ -138,7 +184,7 @@ export default function useTopTokensQuery(interval: number): {
 
               // Calculate hour price changes
               const tokenHourData = hourData?.tokenHourDatas?.filter(
-                (t: any) => t.token.id === token.id
+                (t: any) => t.token.id.toLowerCase() === token.id.toLowerCase()
               );
               const currentHourPrice = Number(tokenHourData?.[0]?.priceUSD);
               const previousHourPrice = Number(tokenHourData?.[1]?.priceUSD);
@@ -173,7 +219,6 @@ export default function useTopTokensQuery(interval: number): {
                 "0x6c25c1cb4b8677982791328471be1bfb187687c1".toLowerCase()
             )
             .map((whaustToken: TopTokensQuery["tokens"][number]) => {
-              // Calculate hour price changes for HAUST
               const currentDayPrice = Number(
                 whaustToken.tokenDayData[0]?.priceUSD
               );
@@ -224,8 +269,9 @@ export default function useTopTokensQuery(interval: number): {
             }
           ) => {
             const tokenHourData = hourData?.tokenHourDatas?.filter(
-              (t: any) => t.token.id === token.id
+              (t: any) => t.token.id.toLowerCase() === token.id.toLowerCase()
             );
+
             const sparklineData = tokenHourData
               ? tokenHourData
                   .slice()

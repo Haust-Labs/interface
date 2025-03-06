@@ -83,9 +83,6 @@ export const SearchBarDropdown = ({ toggleOpen, tokens, queryText, hasInput, isL
   const [hoveredIndex, setHoveredIndex] = useState<number | undefined>(0)
   const [displayedTokens, setDisplayedTokens] = useState<TokenData[]>(tokens)
 
-  const { data: searchHistory } = useRecentlySearchedAssets()
-  const shortenedHistory = useMemo(() => searchHistory?.slice(0, 2) ?? [...Array<SearchToken>(2)], [searchHistory])
-
   const { pathname } = useLocation()
   const isNFTPage = useIsNftPage()
   const isTokenPage = pathname.includes('/tokens')
@@ -137,21 +134,6 @@ export const SearchBarDropdown = ({ toggleOpen, tokens, queryText, hasInput, isL
         ) : (
           <Column gap="20">
             {tokenSearchResults}
-            {shortenedHistory.length > 0 && (
-              <SearchBarDropdownSection
-                hoveredIndex={hoveredIndex}
-                startingIndex={displayedTokens.length}
-                setHoveredIndex={setHoveredIndex}
-                toggleOpen={toggleOpen}
-                suggestions={shortenedHistory}
-                eventProperties={{
-                  suggestion_type: null,
-                }}
-                header={<Trans>Recent searches</Trans>}
-                headerIcon={<ClockIcon color={colors.neutralLightest} />}
-                isLoading={!searchHistory}
-              />
-            )}
           </Column>
         )
 
@@ -162,12 +144,10 @@ export const SearchBarDropdown = ({ toggleOpen, tokens, queryText, hasInput, isL
     displayedTokens,
     hoveredIndex,
     toggleOpen,
-    shortenedHistory,
     hasInput,
     isNFTPage,
     isTokenPage,
     queryText,
-    searchHistory,
   ])
 
   return (

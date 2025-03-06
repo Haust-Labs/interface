@@ -12,7 +12,6 @@ import { filterTimeAtom } from '../state'
 import FilterOption from './FilterOption'
 
 export const DISPLAYS: Record<TimePeriod, string> = {
-  [TimePeriod.HOUR]: '1H volume',
   [TimePeriod.DAY]: '1D volume',
   [TimePeriod.WEEK]: '1W volume',
   [TimePeriod.MONTH]: '1M volume',
@@ -20,7 +19,6 @@ export const DISPLAYS: Record<TimePeriod, string> = {
 }
 
 export const ORDERED_TIMES: TimePeriod[] = [
-  TimePeriod.HOUR,
   TimePeriod.DAY,
   TimePeriod.WEEK,
   TimePeriod.MONTH,

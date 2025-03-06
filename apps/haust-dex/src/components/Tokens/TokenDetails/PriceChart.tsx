@@ -184,14 +184,6 @@ export function PriceChart({ width, height, prices: originalPrices, timePeriod }
     const startDateWithOffset = new Date((startingPrice.timestamp.valueOf() + offsetTime) * 1000)
     const endDateWithOffset = new Date((endingPrice.timestamp.valueOf() - offsetTime) * 1000)
     switch (timePeriod) {
-      case TimePeriod.HOUR:
-        return [
-          hourFormatter(locale),
-          dayHourFormatter(locale),
-          (timeMinute.every(5) ?? timeMinute)
-            .range(startDateWithOffset, endDateWithOffset, 2)
-            .map((x) => x.valueOf() / 1000),
-        ]
       case TimePeriod.DAY:
         return [
           hourFormatter(locale),
@@ -265,7 +257,7 @@ export function PriceChart({ width, height, prices: originalPrices, timePeriod }
    * Higher values make the curve more rigid, lower values smooth the curve but make it less "sticky" to real data points,
    * making it unacceptable for shorter durations / smaller variances.
    */
-  const curveTension = timePeriod === TimePeriod.HOUR ? 1 : 0.9
+  const curveTension = timePeriod === TimePeriod.DAY ? 1 : 0.9
 
   const getX = useMemo(() => (p: PricePoint) => timeScale(p.timestamp), [timeScale])
   const getY = useMemo(() => (p: PricePoint) => rdScale(p.value), [rdScale])

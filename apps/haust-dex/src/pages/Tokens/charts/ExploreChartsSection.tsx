@@ -134,7 +134,7 @@ function VolumeChartSection() {
   if (isSmallScreen) {
     return (
       <MinimalStatDisplay
-        title="Uniswap Volume"
+        title="Haust Volume"
         value={cumulativeVolume}
         time="Past Month"
       />
@@ -145,7 +145,7 @@ function VolumeChartSection() {
     <SectionContainer>
       <Flex row justifyContent="space-between" alignItems="center" style={{ marginBottom: '10px' }}>
         <SectionTitle style={{ marginBottom: '10px' }}>
-          Uniswap Volume
+        Haust Volume
         </SectionTitle>
         <SegmentedControl
           options={TIME_SELECTOR_OPTIONS}

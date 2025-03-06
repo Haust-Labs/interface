@@ -21,7 +21,6 @@ const TDP_CHART_SELECTOR_OPTIONS = [ChartType.PRICE, ChartType.VOLUME, ChartType
 type TokenDetailsChartType = (typeof TDP_CHART_SELECTOR_OPTIONS)[number]
 
 export enum TimePeriod {
-  HOUR = 'H',
   DAY = 'D',
   WEEK = 'W',
   MONTH = 'M',
@@ -29,7 +28,6 @@ export enum TimePeriod {
 }
 
 export enum TimePeriodDisplay {
-  HOUR = '1H',
   DAY = '1D',
   WEEK = '1W',
   MONTH = '1M',
@@ -37,7 +35,6 @@ export enum TimePeriodDisplay {
 }
 
 export const DISPLAYS: Record<TimePeriod, TimePeriodDisplay> = {
-  [TimePeriod.HOUR]: TimePeriodDisplay.HOUR,
   [TimePeriod.DAY]: TimePeriodDisplay.DAY,
   [TimePeriod.WEEK]: TimePeriodDisplay.WEEK,
   [TimePeriod.MONTH]: TimePeriodDisplay.MONTH,
@@ -45,7 +42,6 @@ export const DISPLAYS: Record<TimePeriod, TimePeriodDisplay> = {
 }
 
 export const ORDERED_TIMES: TimePeriod[] = [
-  TimePeriod.HOUR,
   TimePeriod.DAY,
   TimePeriod.WEEK,
   TimePeriod.MONTH,
@@ -130,8 +126,6 @@ const MOCK_TVL_DATA: any = {
 
 export function getTimePeriodFromDisplay(display: TimePeriodDisplay): TimePeriod {
   switch (display) {
-    case TimePeriodDisplay.HOUR:
-      return TimePeriod.HOUR
     case TimePeriodDisplay.DAY:
       return TimePeriod.DAY
     case TimePeriodDisplay.WEEK:

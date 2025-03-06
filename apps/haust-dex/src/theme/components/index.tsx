@@ -248,7 +248,7 @@ const CopiedTooltip = styled.div<{ isCopyContractTooltip?: boolean }>`
   font-size: 12px;
 `
 
-function Tooltip({ isCopyContractTooltip, tooltipX }: { isCopyContractTooltip: boolean; tooltipX?: number }) {
+export function Tooltip({ isCopyContractTooltip, tooltipX }: { isCopyContractTooltip: boolean; tooltipX?: number }) {
   return (
     <ToolTipWrapper isCopyContractTooltip={isCopyContractTooltip} tooltipX={tooltipX}>
       <StyledTooltipTriangle />

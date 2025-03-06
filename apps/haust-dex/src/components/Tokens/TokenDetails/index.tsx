@@ -99,11 +99,12 @@ type TokenDetailsProps = {
   tokenPriceQuery?: any | undefined
 }
 
-function TDPSwapComponent() {
+function TDPSwapComponent({ token }: { token: Currency }) {
   return (
     <Flex gap="$gap12">
       <Swap
         syncTabToUrl={false}
+        initialOutputCurrency={token}
       />
     </Flex>
   )
@@ -206,7 +207,7 @@ export default function TokenDetails({
         <RightPanel>
           {showRightPanel && (
             <>
-              <TDPSwapComponent />
+              <TDPSwapComponent token={detailedToken} />
               <BalanceSummary token={detailedToken} />
             </>
           )}

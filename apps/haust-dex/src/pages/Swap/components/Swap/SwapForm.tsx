@@ -134,7 +134,13 @@ function largerPercentValue(a?: Percent, b?: Percent) {
   return undefined
 }
 
-export default function SwapForm({ className }: { className?: string }) {
+export default function SwapForm({ 
+  className,
+  initialOutputCurrency 
+}: { 
+  className?: string;
+  initialOutputCurrency?: Currency;
+}) {
   const navigate = useNavigate()
   const { account, chainId, provider } = useWeb3React()
   const loadedUrlParams = useDefaultsFromURLSearch()
@@ -505,6 +511,11 @@ export default function SwapForm({ className }: { className?: string }) {
     }))
   }, [])
 
+  useEffect(() => {
+    if (initialOutputCurrency) {
+      onCurrencySelection(Field.OUTPUT, initialOutputCurrency)
+    }
+  }, [initialOutputCurrency, onCurrencySelection])
 
   return (
     <>

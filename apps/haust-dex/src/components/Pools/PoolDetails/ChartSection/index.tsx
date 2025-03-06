@@ -33,7 +33,7 @@ import usePoolChart from "graphql/thegraph/PoolChartDataQuery"
 
 
 const PDP_CHART_HEIGHT_PX = 356
-const PDP_CHART_SELECTOR_OPTIONS = [ChartType.VOLUME, ChartType.PRICE] as const
+const PDP_CHART_SELECTOR_OPTIONS = [ChartType.VOLUME, ChartType.PRICE, ChartType.LIQUIDITY] as const
 export type PoolsDetailsChartType = (typeof PDP_CHART_SELECTOR_OPTIONS)[number]
 
 const TimePeriodSelectorContainer = styled.div`
@@ -130,8 +130,6 @@ export default function ChartSection({
   // Convert GraphQL TimePeriod to Chart TimePeriod
   const chartTimePeriod = useMemo(() => {
     switch (timePeriod) {
-      case GraphQLTimePeriod.HOUR:
-        return ChartTimePeriod.HOUR
       case GraphQLTimePeriod.DAY:
         return ChartTimePeriod.DAY
       case GraphQLTimePeriod.WEEK:
@@ -189,6 +187,8 @@ export default function ChartSection({
         )
       case ChartType.VOLUME:
         return <VolumeChart {...commonProps} data={chartData.volume} />
+      case ChartType.LIQUIDITY:
+          return <LiquidityChart {...commonProps} data={chartData.liquidity} />
       default:
         return null
     }
@@ -205,7 +205,7 @@ export default function ChartSection({
             onSelectOption={setChartType}
           />
         </ChartTypeSelectorContainer>
-        {/* {chartType !== ChartType.LIQUIDITY && ( */}
+        {chartType !== ChartType.LIQUIDITY && (
           <TimePeriodSelectorContainer>
             <SegmentedControl
               options={filteredTimeOptions.options}
@@ -225,7 +225,7 @@ export default function ChartSection({
               }}
             />
           </TimePeriodSelectorContainer>
-        {/* )} */}
+        )}
       </ChartActionsContainer>
     </div>
   )
@@ -301,6 +301,15 @@ const FadeInSubheader = styled(ThemedText.SubHeader)`
   ${textFadeIn}
 `
 
+function formatPriceDisplay(price: number): string {
+  if (price > 1000000) {
+    return '>1000000'
+  } else if (price < 0.000001) {
+    return '<0.01'
+  }
+  return price.toFixed(2)
+}
+
 function LiquidityTooltipDisplay({
   data,
   tokenADescriptor,
@@ -358,27 +367,22 @@ function LiquidityChart({
   const tokenBDescriptor = tokenB.symbol ?? 'Token B'
   const theme = useTheme()
 
-  // Use mock data directly instead of fetching
-  const tickData = {
+  const tickData = useMemo(() => ({
     barData: data.barData,
     activeRangeData: data.activeRangeData,
     activeRangePercentage: data.activeRangePercentage
-  }
-  const activeTick = 0 // Mock active tick
-  const loading = false
+  }), [data.barData, data.activeRangeData, data.activeRangePercentage])
+  
+  const activeTick = data.activeRangeData?.tick ?? 0
 
   const params = useMemo(() => ({
     data: tickData.barData,
-    tokenAColor: isReversed ? theme.accentAction : theme.accentAction,
-    tokenBColor: isReversed ? theme.accentAction : theme.accentAction,
+    tokenAColor: isReversed ? theme.accentAction : theme.accentActionSoft,
+    tokenBColor: isReversed ? theme.accentActionSoft : theme.accentAction,
     highlightColor: theme.accentAction,
     activeTick,
     activeTickProgress: tickData.activeRangePercentage,
-  }), [isReversed, theme])
-
-  if (loading) {
-    return <LoadingChart />
-  }
+  }), [isReversed, theme, tickData, activeTick])
 
   return (
     <Chart
@@ -402,8 +406,8 @@ function LiquidityChart({
         const displayPoint = crosshair ?? tickData.activeRangeData
         const display = (
           <div>
-            <FadeInHeading>{`1 ${tokenADescriptor} = ${displayPoint?.price0} ${tokenBDescriptor}`}</FadeInHeading>
-            <FadeInHeading>{`1 ${tokenBDescriptor} = ${displayPoint?.price1} ${tokenADescriptor}`}</FadeInHeading>
+            <FadeInHeading>{`1 ${tokenADescriptor} = ${formatPriceDisplay(Number(displayPoint?.price0))} ${tokenBDescriptor}`}</FadeInHeading>
+            <FadeInHeading>{`1 ${tokenBDescriptor} = ${formatPriceDisplay(Number(displayPoint?.price1))} ${tokenADescriptor}`}</FadeInHeading>
             {displayPoint && displayPoint.tick === activeTick && (
               <FadeInSubheader color="neutral2" paddingTop="4px">
                 Active range
@@ -416,41 +420,3 @@ function LiquidityChart({
     </Chart>
   )
 }
-
-// Mock data for charts
-const MOCK_PRICE_DATA = Array.from({ length: 30 }, (_, i) => ({
-  time: (new Date(2024, 0, i + 1).getTime() / 1000) as UTCTimestamp,
-  value: 1800 + Math.random() * 200,
-  open: 1800 + Math.random() * 200,
-  close: 1800 + Math.random() * 200,
-  high: 1900 + Math.random() * 200,
-  low: 1700 + Math.random() * 200,
-}))
-
-const MOCK_VOLUME_DATA = Array.from({ length: 30 }, (_, i) => ({
-  time: (new Date(2024, 0, i + 1).getTime() / 1000) as UTCTimestamp,
-  value: 1000000 + Math.random() * 500000,
-}))
-
-// const MOCK_LIQUIDITY_DATA = {
-//   barData: Array.from({ length: 20 }, (_, i) => ({
-//     tick: i * 100 - 1000,
-//     liquidity: 1000000 + Math.random() * 500000,
-//     price0: (1 + i * 0.001).toString(),
-//     price1: (1000 - i * 1).toString(),
-//     time: i * 1000 as UTCTimestamp,
-//     amount0Locked: 1000 + Math.random() * 500,
-//     amount1Locked: 1000 + Math.random() * 500,
-//   })),
-//   activeRangeData: {
-//     tick: 0,
-//     price0: "1.0",
-//     price1: "1000",
-//     liquidity: 1500000,
-//     time: 10000 as UTCTimestamp,
-//     amount0Locked: 1200,
-//     amount1Locked: 1200,
-//   },
-//   activeRangePercentage: 50,
-// }
-

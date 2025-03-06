@@ -12,7 +12,7 @@ import { useCallback, useState } from "react"
 import { ChevronRight, Copy } from "react-feather"
 import { useNavigate } from "react-router-dom"
 import styled, { useTheme } from "styled-components/macro"
-import { BREAKPOINTS, ClickableStyle, EllipsisStyle, ExternalLink, ThemedText } from "theme"
+import { BREAKPOINTS, ClickableStyle, EllipsisStyle, ExternalLink, ThemedText, Tooltip } from "theme"
 import { isAddress, shortenAddress } from "utils"
 import { ExplorerDataType, getExplorerLink } from "utils/getExplorerLink"
 import { DetailBubble, SmallDetailBubble } from "./shared"
@@ -175,6 +175,7 @@ export function PoolDetailsLink({ address, tokens, loading }: PoolDetailsLinkPro
           // >
             <CopyAddress data-testid={`copy-address-${address}`} onClick={copy}>
               {shortenAddress(address, truncateAddress ? 2 : undefined)}
+              {isCopied && <Tooltip isCopyContractTooltip={false} />}
               <StyledCopyIcon />
             </CopyAddress>
           // </MouseoverTooltip>
