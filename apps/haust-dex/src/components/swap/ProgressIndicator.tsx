@@ -107,7 +107,7 @@ export default function ProgressIndicator({
         actionRequiredTitle: `Approve in wallet`,
         inProgressTitle: `Approve in wallet`,
         learnMoreLinkText: `Why do I have to approve a token?`,
-        learnMoreLinkHref: 'uniswapUrls.helpArticleUrls.approvalsExplainer',
+        learnMoreLinkHref: 'https://haust.network/',
       },
       [ConfirmModalState.PERMITTING]: {
         icon: <Sign />,
@@ -116,7 +116,7 @@ export default function ProgressIndicator({
         actionRequiredTitle: `Sign message in wallet`,
         inProgressTitle: `Sign message in wallet`,
         learnMoreLinkText: `Why are signatures required?`,
-        learnMoreLinkHref: 'uniswapUrls.helpArticleUrls.approvalsExplainer',
+        learnMoreLinkHref: 'https://haust.network/',
       },
       [ConfirmModalState.PENDING_CONFIRMATION]: {
         icon: <Swap />,
@@ -125,7 +125,7 @@ export default function ProgressIndicator({
         actionRequiredTitle: `Confirm swap in wallet`,
         inProgressTitle: `Confirm swap in wallet`,
         learnMoreLinkText: `Learn more about swaps`,
-        learnMoreLinkHref: `uniswapUrls.helpArticleUrls.limitsInfo`,
+        learnMoreLinkHref: `https://haust.network/`,
       },
     }),
     [trade, inputTokenColor, theme.accentAction],
