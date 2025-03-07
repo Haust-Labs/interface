@@ -50,6 +50,11 @@ const TabsContainer = styled.div`
   display: flex;
   gap: 24px;
   max-width: ${MAX_WIDTH_MEDIA_BREAKPOINT};
+
+  @media only screen and (max-width: ${({ theme }) => theme.breakpoint.md}px) {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
 `
 
 const Tab = styled.div`
@@ -90,10 +95,6 @@ const ResponsiveButtonPrimary = styled(ButtonPrimary)`
   font-size: 16px;
   padding: 8px 16px;
   width: fit-content;
-  ${({ theme }) => theme.deprecated_mediaWidth.deprecated_upToSmall`
-    flex: 1 1 auto;
-    width: 100%;
-  `};
 `
 
 export enum ExploreTab {
@@ -182,7 +183,8 @@ const Tokens = ({ initialTab }: { initialTab?: ExploreTab }) => {
         {currentKey === ExploreTab.Pools && 
           <ResponsiveButtonPrimary data-cy="join-pool-button" id="join-pool-button" as={Link} to="/add/">
                 + Add liquidity
-             </ResponsiveButtonPrimary>}
+          </ResponsiveButtonPrimary>
+        }
           <NetworkFilter />
           {currentKey === ExploreTab.Tokens && <TimeSelector />}
           {currentKey !== ExploreTab.Transactions && <SearchBar />}

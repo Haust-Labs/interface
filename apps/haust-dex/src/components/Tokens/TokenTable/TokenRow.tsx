@@ -97,13 +97,9 @@ const StyledTokenRow = styled.div<{
   }
 
   @media only screen and (max-width: ${SMALL_MEDIA_BREAKPOINT}) {
-    grid-template-columns: 2fr 3fr;
+    grid-template-columns: 1fr;
     min-width: unset;
     border-bottom: 0.5px solid ${({ theme }) => theme.backgroundModule};
-
-    :last-of-type {
-      border-bottom: none;
-    }
   }
 `
 
@@ -159,13 +155,12 @@ const StyledHeaderRow = styled.div`
   }
 
   @media only screen and (max-width: ${SMALL_MEDIA_BREAKPOINT}) {
-    grid-template-columns: 2fr 3fr;
+    grid-template-columns: 1fr;
     min-width: unset;
-    justify-content: space-between;
   }
 `
 
-const ListNumberCell = styled(Cell)<{ header: boolean }>`
+const ListNumberCell = styled(Cell)`
   color: ${({ theme }) => theme.textSecondary};
   min-width: 32px;
   font-size: 14px;
@@ -198,6 +193,10 @@ const NameCell = styled(Cell)`
 `
 const PriceCell = styled(DataCell)`
   padding-right: 8px;
+  
+  @media only screen and (max-width: ${SMALL_MEDIA_BREAKPOINT}) {
+    display: none;
+  }
 `
 const PercentChangeCell = styled(DataCell)`
   padding-right: 8px;
@@ -242,6 +241,10 @@ const SparkLineCell = styled(Cell)`
   display: flex;
   justify-content: flex-end;
   min-width: 100px;
+
+  @media only screen and (max-width: ${MAX_WIDTH_MEDIA_BREAKPOINT}) {
+    display: none;
+  }
 `
 const SparkLine = styled(Cell)`
   width: 124px;

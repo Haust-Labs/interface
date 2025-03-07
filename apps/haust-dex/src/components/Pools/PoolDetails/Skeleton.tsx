@@ -36,7 +36,6 @@ export const TokenDetailsLayout = styled.div`
 export const LeftPanel = styled.div`
   gap: 40px;
   max-width: 680px;
-  overflow: hidden;
   justify-content: flex-start;
   width: 100%;
 

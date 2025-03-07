@@ -1,11 +1,12 @@
 import { Trans } from '@lingui/macro'
 import { Currency } from '@uniswap/sdk-core'
 import { useWeb3React } from '@web3-react/core'
-import { formatCurrencyAmount, NumberType } from 'conedison/format'
+import { formatCurrencyAmount, formatNumber, formatUSDPrice, NumberType } from 'conedison/format'
 import { NATIVE_CHAIN_ID } from 'constants/tokens'
 import { useDummyGateEnabled } from 'featureFlags/flags/dummyFeatureGate'
 import { CHAIN_ID_TO_BACKEND_NAME } from 'graphql/data/util'
 import { useStablecoinValue } from 'hooks/useStablecoinPrice'
+import { useTokenBalance } from 'hooks/useTokenBalance'
 import useCurrencyBalance from 'lib/hooks/useCurrencyBalance'
 import styled from 'styled-components/macro'
 import { StyledInternalLink } from 'theme'
@@ -17,7 +18,7 @@ const Wrapper = styled.div`
   border-bottom: none;
   background-color: ${({ theme }) => theme.backgroundSurface};
   border-radius: 20px 20px 0px 0px;
-  bottom: 52px;
+  bottom: 0px;
   color: ${({ theme }) => theme.textSecondary};
   display: flex;
   flex-direction: row;
@@ -30,6 +31,7 @@ const Wrapper = styled.div`
   padding: 12px 16px;
   position: fixed;
   width: 100%;
+  z-index: 1000;
 
   @media screen and (min-width: ${({ theme }) => theme.breakpoint.md}px) {
     bottom: 0px;
@@ -84,9 +86,9 @@ const SwapButton = styled(StyledInternalLink)`
 
 export default function MobileBalanceSummaryFooter({ token }: { token: Currency }) {
   const { account } = useWeb3React()
-  const balance = useCurrencyBalance(account, token)
-  const formattedBalance = formatCurrencyAmount(balance, NumberType.TokenNonTx)
-  const formattedUsdValue = formatCurrencyAmount(useStablecoinValue(balance), NumberType.FiatTokenStats)
+  const balance = useTokenBalance(token)
+  const formattedBalanceUSD = formatUSDPrice(balance.balance?.balanceUSD, NumberType.FiatTokenPrice)
+  const formattedBalance = formatNumber(balance.balance?.balance, NumberType.TokenNonTx)
   const chain = CHAIN_ID_TO_BACKEND_NAME[token.chainId].toLowerCase()
   const isDummyGateFlagEnabled = useDummyGateEnabled()
 
@@ -99,7 +101,7 @@ export default function MobileBalanceSummaryFooter({ token }: { token: Currency 
             <BalanceValue>
               {formattedBalance} {token.symbol}
             </BalanceValue>
-            <FiatValue>{formattedUsdValue}</FiatValue>
+            <FiatValue>{formattedBalanceUSD}</FiatValue>
           </Balance>
         </BalanceInfo>
       )}

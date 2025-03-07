@@ -1,7 +1,7 @@
 import { TimePeriod } from 'graphql/data/util'
 import { useOnClickOutside } from 'hooks/useOnClickOutside'
 import { useAtom } from 'jotai'
-import { useRef } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { Check, ChevronDown, ChevronUp } from 'react-feather'
 import { useModalIsOpen, useToggleModal } from 'state/application/hooks'
 import { ApplicationModal } from 'state/application/reducer'
@@ -16,6 +16,13 @@ export const DISPLAYS: Record<TimePeriod, string> = {
   [TimePeriod.WEEK]: '1W volume',
   [TimePeriod.MONTH]: '1M volume',
   [TimePeriod.YEAR]: '1Y volume',
+}
+
+export const MOBILE_DISPLAYS: Record<TimePeriod, string> = {
+  [TimePeriod.DAY]: '1D',
+  [TimePeriod.WEEK]: '1W',
+  [TimePeriod.MONTH]: '1M',
+  [TimePeriod.YEAR]: '1Y',
 }
 
 export const ORDERED_TIMES: TimePeriod[] = [
@@ -111,12 +118,22 @@ export default function TimeSelector() {
   const toggleMenu = useToggleModal(ApplicationModal.TIME_SELECTOR)
   useOnClickOutside(node, open ? toggleMenu : undefined)
   const [activeTime, setTime] = useAtom(filterTimeAtom)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= parseInt(MOBILE_MEDIA_BREAKPOINT))
+
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= parseInt(MOBILE_MEDIA_BREAKPOINT))
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   return (
     <StyledMenu ref={node}>
       <FilterOption onClick={toggleMenu} aria-label="timeSelector" active={open} data-testid="time-selector">
         <StyledMenuContent>
-          {DISPLAYS[activeTime]}
+          {isMobile ? MOBILE_DISPLAYS[activeTime] : DISPLAYS[activeTime]}
           <Chevron open={open}>
             <ChevronDown width={20} height={15} viewBox="0 0 24 20" />
           </Chevron>
@@ -132,7 +149,7 @@ export default function TimeSelector() {
               toggleMenu()
             }}
           >
-            <div>{DISPLAYS[time]}</div>
+            <div>{isMobile ? MOBILE_DISPLAYS[time] : DISPLAYS[time]}</div>
             {time === activeTime && <Check color={theme.accentAction} size={16} />}
           </InternalLinkMenuItem>
         ))}

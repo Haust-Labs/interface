@@ -47,15 +47,19 @@ export enum HistoryDuration {
 
 const TIME_SELECTOR_OPTIONS = [{ value: TimePeriod.DAY }, { value: TimePeriod.WEEK }, { value: TimePeriod.MONTH }]
 
-const ChartsContainer = styled(Flex)({
-  flexDirection: 'row',
-  gap: '56px',
-  maxWidth: MAX_WIDTH_MEDIA_BREAKPOINT,
-  width: '100%',
-  marginLeft: 'auto',
-  marginRight: 'auto',
-  paddingBottom: '56px',
-})
+const ChartsContainer = styled(Flex)`
+  flex-direction: row;
+  gap: 56px;
+  max-width: ${MAX_WIDTH_MEDIA_BREAKPOINT}px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-bottom: 56px;
+
+  @media (max-width: ${({ theme }) => theme.breakpoint.md}px) {
+    gap: 20px;
+  }
+`
 
 const SectionContainer = styled(Flex)`
   position: relative;
@@ -67,6 +71,10 @@ const SectionContainer = styled(Flex)`
     border-radius: 20px;
     height: 120px;
     padding: 20px;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoint.sm}px) {
+    min-height: 80px;
   }
 `
 
@@ -262,10 +270,23 @@ function MinimalStatDisplay({ title, value, time }: { title: ReactNode; value: n
 
   return (
     <SectionContainer>
-      <SectionTitle>{title}</SectionTitle>
-      <Text color={theme.textPrimary} variant="heading2Bolder">{formatNumber(value, NumberType.ChartFiatValue)}</Text>
+      <SectionTitle style={{ fontSize: 'clamp(12px, 3vw, 16px)' }}>{title}</SectionTitle>
+      <Text 
+        color={theme.textPrimary} 
+        variant="heading2Bolder"
+        style={{ 
+          fontSize: 'clamp(20px, 4vw, 36px)',
+          lineHeight: '1.2'
+        }}
+      >
+        {formatNumber(value, NumberType.ChartFiatValue)}
+      </Text>
       {time && (
-        <Text variant="body3" color={theme.textSecondary}>
+        <Text 
+          variant="body3" 
+          color={theme.textSecondary}
+          style={{ fontSize: 'clamp(10px, 2.5vw, 14px)' }}
+        >
           {time}
         </Text>
       )}

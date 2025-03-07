@@ -20,11 +20,9 @@ export function TransactionsTable({
     mobile: '1fr 2fr'
   }
   return (
-    <div data-testid={`tdp-pools-table-${referenceToken?.toLowerCase()}`}>
       <TransactionTable
         columnVisibility={columnVisibility}
         gridConfig={gridConfig}
       />
-    </div>
   )
 }
