@@ -22,8 +22,8 @@ import { tradeMeaningfullyDiffers } from "utils/tradeMeaningFullyDiffer";
 type PendingConfirmModalState = Extract<
   ConfirmModalState,
   | ConfirmModalState.APPROVING_TOKEN
-  | ConfirmModalState.PENDING_CONFIRMATION
   | ConfirmModalState.PERMITTING
+  | ConfirmModalState.PENDING_CONFIRMATION
 >;
 
 export function useConfirmModalState({
@@ -58,7 +58,6 @@ export function useConfirmModalState({
         return;
       }
       setApprovalError(errorType);
-      setCurrentState(ConfirmModalState.REVIEWING);
     },
     []
   );
@@ -69,12 +68,21 @@ export function useConfirmModalState({
 
       switch (step) {
         case ConfirmModalState.APPROVING_TOKEN:
+          if (allowance.state === AllowanceState.REQUIRED) {
+            try {
+              await allowance.approve();
+            } catch (e) {
+              console.log("catchUserReject", e);
+              catchUserReject(e, PendingModalError.TOKEN_APPROVAL_ERROR);
+            }
+          }
+          break;
         case ConfirmModalState.PERMITTING:
           if (allowance.state === AllowanceState.REQUIRED) {
             try {
-              await allowance.approveAndPermit();
+              await allowance.permit();
             } catch (e) {
-              console.log('catchUserReject', e);
+              console.log("catchUserReject", e);
               catchUserReject(e, PendingModalError.TOKEN_APPROVAL_ERROR);
             }
           }
@@ -93,7 +101,7 @@ export function useConfirmModalState({
 
   const generateRequiredSteps = useCallback(() => {
     const steps: PendingConfirmModalState[] = [];
-    
+
     if (
       allowance.state === AllowanceState.REQUIRED &&
       allowance.needsSetupApproval
@@ -120,16 +128,16 @@ export function useConfirmModalState({
 
   useEffect(() => {
     if (currentState === ConfirmModalState.REVIEWING) return;
-
     if (
       currentState === ConfirmModalState.APPROVING_TOKEN &&
-      allowance.state === AllowanceState.ALLOWED
+      allowance.state === AllowanceState.REQUIRED &&
+      !allowance.needsSetupApproval &&
+      !doesTradeDiffer
     ) {
       performStep(ConfirmModalState.PERMITTING);
     }
     if (
-      (currentState === ConfirmModalState.APPROVING_TOKEN ||
-        currentState === ConfirmModalState.PERMITTING) &&
+      currentState === ConfirmModalState.PERMITTING &&
       allowance.state === AllowanceState.ALLOWED &&
       !doesTradeDiffer
     ) {

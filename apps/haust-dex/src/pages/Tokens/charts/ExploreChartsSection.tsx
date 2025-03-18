@@ -137,7 +137,6 @@ function VolumeChartSection() {
   )
 
   const cumulativeVolume = useMemo(() => getCumulativeVolume(entries), [entries])
-  console.log(cumulativeVolume, 'cumulativeVolume');
   
   if (isSmallScreen) {
     return (

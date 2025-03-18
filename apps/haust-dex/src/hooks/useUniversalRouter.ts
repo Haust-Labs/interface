@@ -62,7 +62,6 @@ export function useUniversalRouterSwapCallback(
           const { calldata: data, value } = SwapRouter.swapERC20CallParameters(trade, {
             slippageTolerance: options.slippageTolerance,
             deadlineOrPreviousBlockhash: options.deadline?.toString(),
-            inputTokenPermit: options.permit,
             fee: options.feeOptions,
           })
 

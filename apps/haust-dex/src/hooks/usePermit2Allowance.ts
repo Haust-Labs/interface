@@ -18,6 +18,7 @@ import {
 } from "state/transactions/hooks";
 
 import { PERMIT2_ADDRESS } from "../constants/addresses";
+import { TransactionType } from "state/transactions/types";
 
 enum ApprovalState {
   PENDING,
@@ -114,27 +115,14 @@ export default function usePermit2Allowance(
     setSignature(undefined);
   }, [amount?.toExact(), token?.address]);
 
-  const isSigned = useMemo(() => {
-    if (!amount || !signature) return false;
-    return (
-      signature.details.token === token?.address &&
-      signature.spender === spender &&
-      signature.sigDeadline >= now
-    );
-  }, [amount, now, signature, spender, token?.address]);
-
-  const {
-    permitAllowance,
-    expiration: permitExpiration,
-    nonce,
-  } = usePermitAllowance(token, account, spender);
-
-  const updatePermitAllowance = useUpdatePermitAllowance(
-    amount,
-    spender,
-    nonce,
-    setSignature
+  const { permitAllowance, expiration: permitExpiration } = usePermitAllowance(
+    token,
+    account,
+    spender
   );
+
+  const updatePermitAllowance = useUpdatePermitAllowance(amount, spender);
+
   const isPermitted = useMemo(() => {
     if (!amount || !permitAllowance || !permitExpiration) return false;
     return (
@@ -145,22 +133,31 @@ export default function usePermit2Allowance(
   }, [amount, now, permitAllowance, permitExpiration]);
 
   const shouldRequestApproval = !(isApproved || isApprovalLoading);
-  const shouldRequestSignature = !(isPermitted || isSigned);
+  const shouldRequestPermit = !isPermitted;
   const addTransaction = useTransactionAdder();
   const approveAndPermit = useCallback(async () => {
     if (shouldRequestApproval) {
       const { response, info } = await updateTokenAllowance();
       addTransaction(response, info);
     }
-    if (shouldRequestSignature) {
-      await updatePermitAllowance();
+    if (shouldRequestPermit) {
+      const response = await updatePermitAllowance();
+      if (response) {
+        addTransaction(response, {
+          type: TransactionType.APPROVAL,
+          tokenAddress: token?.address || "",
+          spender: spender || "",
+        });
+      }
     }
   }, [
     addTransaction,
     shouldRequestApproval,
-    shouldRequestSignature,
+    shouldRequestPermit,
     updatePermitAllowance,
     updateTokenAllowance,
+    token?.address,
+    spender,
   ]);
 
   const approve = useCallback(async () => {
@@ -172,7 +169,7 @@ export default function usePermit2Allowance(
     if (token) {
       if (!tokenAllowance || !permitAllowance) {
         return { state: AllowanceState.LOADING };
-      } else if (!(isPermitted || isSigned)) {
+      } else if (!isPermitted) {
         return {
           token,
           state: AllowanceState.REQUIRED,
@@ -181,7 +178,7 @@ export default function usePermit2Allowance(
           approve,
           permit: updatePermitAllowance,
           needsSetupApproval: !isApproved,
-          needsPermitSignature: shouldRequestSignature,
+          needsPermitSignature: shouldRequestPermit,
           isApprovalPending,
           allowedAmount: tokenAllowance,
         };
@@ -194,7 +191,7 @@ export default function usePermit2Allowance(
           approve,
           permit: updatePermitAllowance,
           needsSetupApproval: true,
-          needsPermitSignature: shouldRequestSignature,
+          needsPermitSignature: shouldRequestPermit,
           isApprovalPending,
           allowedAmount: tokenAllowance,
         };
@@ -203,7 +200,6 @@ export default function usePermit2Allowance(
     return {
       token,
       state: AllowanceState.ALLOWED,
-      permitSignature: !isPermitted && isSigned ? signature : undefined,
       needsSetupApproval: false,
       needsPermitSignature: false,
     };
@@ -213,13 +209,11 @@ export default function usePermit2Allowance(
     isApprovalLoading,
     isApproved,
     isPermitted,
-    isSigned,
     updatePermitAllowance,
     permitAllowance,
-    signature,
     token,
     tokenAllowance,
-    shouldRequestSignature,
+    shouldRequestPermit,
     isApprovalPending,
   ]);
 }
