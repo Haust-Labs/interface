@@ -14,6 +14,9 @@ import { ExploreChartsSection } from './charts/ExploreChartsSection'
 import PoolTable from 'components/Pools/PoolTable/PoolTable'
 import { ButtonPrimary } from 'components/Button'
 import TransactionTable from 'components/Transactions/TransactionTable/TransactionTable'
+import { WrongNetworkCard } from 'pages/Pool'
+import { isSupportedChainId } from 'lib/hooks/routing/clientSideSmartOrderRouter'
+import { useWeb3React } from '@web3-react/core'
 const ExploreContainer = styled.div`
   width: 100%;
   min-width: 320px;
@@ -128,6 +131,7 @@ const Pages: Array<Page> = [
 ]
 
 const Tokens = ({ initialTab }: { initialTab?: ExploreTab }) => {
+  const { chainId } = useWeb3React()
   const resetFilterString = useResetAtom(filterStringAtom)
   const location = useLocation()
   const navigate = useNavigate()
@@ -163,6 +167,10 @@ const Tokens = ({ initialTab }: { initialTab?: ExploreTab }) => {
 
   const { component: Page } = Pages[currentTab]
   const currentKey = Pages[currentTab].key
+
+  if (chainId && !isSupportedChainId(chainId)) {
+    return <WrongNetworkCard title="Explorer" />
+  }
 
   return (
     <ExploreContainer>

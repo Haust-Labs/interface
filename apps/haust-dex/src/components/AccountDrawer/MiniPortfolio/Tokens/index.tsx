@@ -20,6 +20,7 @@ import { PortfolioLogo } from '../PortfolioLogo'
 import PortfolioRow, { PortfolioSkeleton, PortfolioTabWrapper } from '../PortfolioRow'
 import { useWeb3React } from '@web3-react/core'
 import { isSupportedChain } from 'constants/chains'
+import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
 
 const HIDE_SMALL_USD_BALANCES_THRESHOLD = 0.00000000000000001
 const PREFERRED_TOKENS_ORDER = ['HAUST', 'WHAUST', 'USDT', 'USDC', 'WBTC', 'WETH']
@@ -53,6 +54,7 @@ export default function Tokens({ totalBalance }: { totalBalance?: number }) {
   const [isLoading, setIsLoading] = useState(isFirstLoad)
   const { chainId } = useWeb3React()
   const navigate = useNavigate()
+  const { switchNetwork } = useSwitchNetwork()
 
   const tokensList = useMemo(() => {
     const allTokens = [nativeCurrency, ...Object.values(tokens)]
@@ -91,7 +93,7 @@ export default function Tokens({ totalBalance }: { totalBalance?: number }) {
   }, [])
 
   if (chainId && !isSupportedChain(chainId)) {
-    return <EmptyWalletModule type="chain" onNavigateClick={toggleWalletDrawer} />
+    return <EmptyWalletModule type="chain" onNavigateClick={toggleWalletDrawer} onSwitchNetwork={() => switchNetwork()}/>
   }
 
   if (!totalBalance && totalBalance === 0) {

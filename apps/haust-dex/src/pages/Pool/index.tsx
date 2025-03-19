@@ -20,6 +20,7 @@ import { PositionsHeader, PositionStatus } from './PositionHeader'
 import PositionListItem from 'components/PositionListItem'
 import { atom, useAtom } from 'jotai'
 import { TOKEN_ADDRESSES } from 'constants/tokens'
+import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
 
 const PageWrapper = styled(AutoColumn)`
   padding: 68px 8px 0;
@@ -129,9 +130,9 @@ function PositionsLoadingPlaceholder() {
   )
 }
 
-function WrongNetworkCard() {
+export function WrongNetworkCard({ title }: { title: string }) {
   const theme = useTheme()
-
+  const { switchNetwork } = useSwitchNetwork()
   return (
     <>
       <PageWrapper>
@@ -139,7 +140,7 @@ function WrongNetworkCard() {
           <AutoColumn gap="lg" style={{ width: '100%' }}>
             <TitleRow padding="0">
               <ThemedText.LargeHeader>
-                <Trans>Pools</Trans>
+                {title}
               </ThemedText.LargeHeader>
             </TitleRow>
 
@@ -150,6 +151,12 @@ function WrongNetworkCard() {
                   <div data-testid="pools-unsupported-err">
                     <Trans>Your connected network is unsupported.</Trans>
                   </div>
+                  <ButtonPrimary
+                    style={{ marginTop: '2em', padding: '8px 16px' }}
+                    onClick={switchNetwork}
+                  >
+                    <Trans>Switch network</Trans>
+                  </ButtonPrimary>
                 </ThemedText.DeprecatedBody>
               </ErrorContainer>
             </MainContentWrapper>
@@ -214,7 +221,7 @@ export default function Pool() {
   }, [setStatusFilter])
 
   if (chainId && !isSupportedChainId(chainId)) {
-    return <WrongNetworkCard />
+    return <WrongNetworkCard title="Pools" />
   }
 
   if (!account) {

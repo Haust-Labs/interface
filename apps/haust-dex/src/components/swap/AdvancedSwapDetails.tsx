@@ -114,7 +114,7 @@ export function AdvancedSwapDetails({
                 </MouseoverTooltip>
               </ThemedText.BodySmall>
               <ThemedText.BodySmall>
-                {formatTransactionAmount(0.001)} ETH
+                {formatTransactionAmount(0.001)} HAUST
               </ThemedText.BodySmall>
             </RowBetween>
           </>

@@ -9,6 +9,9 @@ const COLOR_SCHEMES = {
   METAMASK: {
     background: `linear-gradient(135deg, ${colors.primaryBase}, ${colors.aquaBlue}, ${colors.primaryDark})`,
   },
+  RABBY: {
+    background: `linear-gradient(135deg, ${colors.primaryBase}, ${colors.aquaBlue}, ${colors.primaryDark})`,
+  },
   COINBASE: {
     background: `linear-gradient(45deg, ${colors.neutralLightest}, ${colors.aquaBlue}, ${colors.primaryDark})`,
   },

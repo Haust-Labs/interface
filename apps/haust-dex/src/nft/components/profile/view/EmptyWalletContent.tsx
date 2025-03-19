@@ -70,26 +70,30 @@ const EMPTY_WALLET_CONTENT: { [key in EmptyWalletContentType]: EmptyWalletConten
     urlPath: '/pool',
   },
   chain: {
-    subtitle: <Trans>To use Haust DEX switch the network in your wallet’s settings.</Trans>,
+    subtitle: <Trans>To use Haust DEX switch the network in your wallet's settings or profile.</Trans>,
+    actionText: <Trans>Switch network</Trans>,
   }
 }
 
 interface EmptyWalletContentProps {
   type?: EmptyWalletContentType
   onNavigateClick?: () => void
+  onSwitchNetwork?: () => void
 }
 
-const EmptyWalletContent = ({ type = 'nft', onNavigateClick }: EmptyWalletContentProps) => {
+const EmptyWalletContent = ({ type = 'nft', onNavigateClick, onSwitchNetwork }: EmptyWalletContentProps) => {
   const navigate = useNavigate()
 
   const content = EMPTY_WALLET_CONTENT[type]
 
   const actionButtonClick = useCallback(() => {
-    if (content.urlPath) {
+    if (type === 'chain' && onSwitchNetwork) {
+      onSwitchNetwork()
+    } else if (content.urlPath) {
       onNavigateClick?.()
       navigate(content.urlPath)
     }
-  }, [content.urlPath, navigate, onNavigateClick])
+  }, [content.urlPath, navigate, onNavigateClick, onSwitchNetwork, type])
 
   return (
     <>
