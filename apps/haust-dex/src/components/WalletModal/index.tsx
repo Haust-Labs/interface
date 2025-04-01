@@ -157,7 +157,8 @@ export default function WalletModal() {
                     key={connection.getName()}
                     connection={connection}
                     activate={() => tryActivation(connection)}
-                    pendingConnectionType={pendingConnection?.type} />
+                    pendingConnectionType={pendingConnection?.type}
+                    isDetected={connection.isDetected?.() ?? false} />
                 ) : null
                 )}
               </OptionGrid>

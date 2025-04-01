@@ -5,6 +5,7 @@ import { useIsDarkMode } from 'theme/components/ThemeToggle'
 import { flexColumnNoWrap, flexRowNoWrap } from 'theme/styles'
 
 import NewBadge from './NewBadge'
+import { DetectedBadge } from './shared'
 
 const OptionCardLeft = styled.div`
   ${flexColumnNoWrap};
@@ -65,8 +66,9 @@ type OptionProps = {
   connection: Connection
   activate: () => void
   pendingConnectionType?: ConnectionType
+  isDetected?: boolean;
 }
-export default function Option({ connection, pendingConnectionType, activate }: OptionProps) {
+export default function Option({ connection, pendingConnectionType, activate, isDetected }: OptionProps) {
   const isPending = pendingConnectionType === connection.type
   const isDarkMode = useIsDarkMode()
   return (
@@ -84,6 +86,7 @@ export default function Option({ connection, pendingConnectionType, activate }: 
         {connection.isNew && <NewBadge />}
       </OptionCardLeft>
       {isPending && <Loader />}
+      {isDetected && <DetectedBadge />}
     </OptionCardClickable>
   )
 }

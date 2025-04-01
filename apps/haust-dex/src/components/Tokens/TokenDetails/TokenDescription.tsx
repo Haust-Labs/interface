@@ -5,7 +5,7 @@ import { useTDPContext } from "pages/TokenDetails/TDPContext"
 import styled, { useTheme } from "styled-components/macro"
 import { ExternalLink } from "theme"
 import { getTokenDescription } from './description'
-import { getExplorerLink } from "utils/getExplorerLink"
+import { ExplorerDataType, getExplorerLink } from "utils/getExplorerLink"
 import { SupportedChainId } from "constants/chains"
 import { EtherscanLogo } from "components/Icons/Etherscan"
 import { Globe } from "components/Icons/Globe"
@@ -94,7 +94,9 @@ export function TokenDescription({ currency }: { currency: Currency }) {
 
   const tokenDescription = getTokenDescription(currency?.symbol ?? '')
   const { homepageUrl, twitterName, description } = tokenDescription ?? {}
-  const explorerUrl = getExplorerLink(SupportedChainId.HAUST_TESTNET)
+  const explorerUrl = currency?.isNative 
+    ? getExplorerLink(SupportedChainId.HAUST_TESTNET, currency.wrapped.address)
+    : getExplorerLink(SupportedChainId.HAUST_TESTNET, currency?.wrapped.address, ExplorerDataType.TOKEN)
 
   const [isDescriptionTruncated, toggleIsDescriptionTruncated] = useReducer((x) => !x, true)
   const truncatedDescription = truncateDescription(description ?? '', TRUNCATE_CHARACTER_COUNT)

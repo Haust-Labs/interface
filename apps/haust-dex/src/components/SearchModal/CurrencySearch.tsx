@@ -26,6 +26,7 @@ import CommonBases from './CommonBases'
 import { CurrencyRow, formatAnalyticsEventProperties } from './CurrencyList'
 import CurrencyList from './CurrencyList'
 import { PaddedColumn, SearchInput, Separator } from './styleds'
+import { checkWarning } from 'constants/tokenSafety'
 
 const ContentWrapper = styled(Column)`
   background-color: ${({ theme }) => theme.backgroundModule};
@@ -74,6 +75,7 @@ export function CurrencySearch({
   const isAddressSearch = isAddress(debouncedQuery)
   const searchToken = useToken(debouncedQuery)
   const searchTokenIsAdded = useIsUserAddedToken(searchToken)
+  const hasWarning = searchToken ? checkWarning(searchToken.address, searchToken.chainId) : false
 
   // const { data: tokens, loading: isTokensLoading } = useSearchTokensApi(debouncedQuery);
   // const { tokens: topTokens, loadingTokens } = useTopTokensApi();
@@ -264,7 +266,7 @@ export function CurrencySearch({
         )}
       </PaddedColumn>
       <Separator />
-      {searchToken && !searchTokenIsAdded ? (
+      {searchToken && !searchTokenIsAdded && !hasWarning ? (
         <Column style={{ padding: '20px 0', height: '100%' }}>
           <CurrencyRow
             currency={searchToken}
@@ -303,9 +305,9 @@ export function CurrencySearch({
         </div>
       ) : (
         <Column style={{ padding: '20px', height: '100%' }}>
-          <ThemedText.DeprecatedMain color={theme.textTertiary} textAlign="center" mb="20px">
-            <Trans>No results found.</Trans>
-          </ThemedText.DeprecatedMain>
+          <ThemedText.BodySecondary style={{ color: theme.textSecondary }} textAlign="center" mb="20px">
+           This token isn't currently traded on Haust DEX
+          </ThemedText.BodySecondary>
         </Column>
       )}
     </ContentWrapper>

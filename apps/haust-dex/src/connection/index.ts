@@ -42,6 +42,7 @@ export interface Connection {
   shouldDisplay(): boolean;
   overrideActivate?: () => boolean;
   isNew?: boolean;
+  isDetected?: () => boolean;
 }
 
 function onError(error: Error) {
@@ -87,6 +88,7 @@ const metaMaskConnection: Connection = {
   type: ConnectionType.INJECTED,
   getIcon: () => METAMASK_ICON,
   shouldDisplay: () => true,
+  isDetected: () => getIsMetaMaskWallet(),
   overrideActivate: () => {
     if (!getIsMetaMaskWallet()) {
       window.open("https://metamask.io/", "inst_metamask");
@@ -199,6 +201,7 @@ const coinbaseWalletConnection: Connection = {
   hooks: web3CoinbaseWalletHooks,
   type: ConnectionType.COINBASE_WALLET,
   getIcon: () => COINBASE_ICON,
+  isDetected: () => getIsCoinbaseWallet(),
   shouldDisplay: () =>
     Boolean(
       (isMobile && !getIsInjectedMobileBrowser()) ||
@@ -231,6 +234,7 @@ const rabbyConnection: Connection = {
   type: ConnectionType.RABBY,
   getIcon: () => RABBY_ICON,
   shouldDisplay: () => true,
+  isDetected: () => getIsRabbyWallet(),
   overrideActivate: () => {
     if (!getIsRabbyWallet()) {
       window.open("https://rabby.io/", "rabby");
