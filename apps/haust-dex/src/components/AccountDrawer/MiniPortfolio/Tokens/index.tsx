@@ -136,16 +136,18 @@ function TokenRow({
   const tokenId = (token instanceof Token ? token.address : token.symbol) as string
   const [isTokenLoaded, setIsTokenLoaded] = useState(false)
   const navigate = useNavigate()
+  const toggleWalletDrawer = useToggleAccountDrawer()
 
   const handleClick = useCallback(() => {
     const address = token instanceof NativeCurrency 
       ? 'NATIVE'
       : token.address 
 
-      if (address) {
+    if (address) {
       navigate(`/explore/token/haust_testnet/${address}`)
+      toggleWalletDrawer()
     }
-  }, [token, navigate])
+  }, [token, navigate, toggleWalletDrawer])
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout

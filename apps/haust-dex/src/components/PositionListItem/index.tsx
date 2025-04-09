@@ -142,6 +142,11 @@ const FeeStat = styled(Flex)`
   gap: 4px;
   flex: 1;
   min-width: 0;
+
+  ${({ theme }) => theme.deprecated_mediaWidth.deprecated_upToSmall`
+    align-items: center;
+    text-align: center;
+  `};
 `
 
 const StatsContainer = styled.div`
@@ -158,22 +163,43 @@ const ChartAndRangeContainer = styled.div`
   padding: 24px;
   width: 100%;
   gap: 24px;
+
+  ${({ theme }) => theme.deprecated_mediaWidth.deprecated_upToSmall`
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+  `};
 `
 
 const InfoContainer = styled.div`
   flex: 1;
   min-width: 200px;
+
+  ${({ theme }) => theme.deprecated_mediaWidth.deprecated_upToSmall`
+    width: 100%;
+    min-width: unset;
+  `};
 `
 
 const ChartContainer = styled.div`
   flex: 2;
   max-width: 220px;
+
+  ${({ theme }) => theme.deprecated_mediaWidth.deprecated_upToSmall`
+    width: 100%;
+    max-width: none;
+  `};
 `
 
 const PriceRangeContainer = styled(Flex)`
   min-width: 224px;
   align-self: flex-start;
   width: fit-content;
+
+  ${({ theme }) => theme.deprecated_mediaWidth.deprecated_upToSmall`
+    display: none;
+  `};
 `
 
 const PriceContainer = styled(Flex)`

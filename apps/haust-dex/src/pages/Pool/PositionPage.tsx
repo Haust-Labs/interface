@@ -176,6 +176,15 @@ const NFTImage = styled.img`
   z-index: 1;
 `
 
+const NFTContainer = styled.div`
+  margin-right: 12px;
+  width: 100%;
+  
+  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.sm}px`}) {
+    margin-right: 0;
+  }
+`
+
 function CurrentPriceCard({
   inverted,
   pool,
@@ -729,11 +738,7 @@ function PositionPageContent() {
             <RowBetween></RowBetween>
           </AutoColumn>
           <ResponsiveRow align="flex-start">
-            <HideSmall
-              style={{
-                marginRight: '12px',
-              }}
-            >
+            <NFTContainer>
               {'result' in metadata ? (
                 <DarkCard
                   width="100%"
@@ -743,7 +748,6 @@ function PositionPageContent() {
                     alignItems: 'center',
                     flexDirection: 'column',
                     justifyContent: 'space-around',
-                    minWidth: '340px',
                   }}
                 >
                   <NFT image={metadata.result.image} height={400} />
@@ -757,14 +761,11 @@ function PositionPageContent() {
                 <DarkCard
                   width="100%"
                   height="100%"
-                  style={{
-                    minWidth: '340px',
-                  }}
                 >
                   <Loader />
                 </DarkCard>
               )}
-            </HideSmall>
+            </NFTContainer>
             <AutoColumn gap="sm" style={{ width: '100%', height: '100%' }}>
               <DarkCard>
                 <AutoColumn gap="md" style={{ width: '100%' }}>

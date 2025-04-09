@@ -30,7 +30,7 @@ const deprecated_mediaWidthTemplates: { [width in keyof typeof MEDIA_WIDTHS]: ty
 
 export const BREAKPOINTS = {
   xs: 396,
-  sm: 640,
+  sm: 680,
   md: 768,
   lg: 1024,
   navSearchInputVisible: 1100,
@@ -113,6 +113,12 @@ export const ThemedGlobalStyle = createGlobalStyle`
   html {
     color: ${({ theme }) => theme.textPrimary};
     background-color: ${({ theme }) => theme.background} !important;
+    min-height: 100dvh;
+  }
+
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+    min-height: 100dvh;
   }
 
   summary::-webkit-details-marker {
@@ -125,5 +131,10 @@ export const ThemedGlobalStyle = createGlobalStyle`
 
   :root {
     ${({ theme }) => rootCssString(theme.darkMode)}
+  }
+
+  #root {
+    min-height: 100dvh;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 `
