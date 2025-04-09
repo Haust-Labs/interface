@@ -88,4 +88,7 @@ export const portfolioFadeInAnimation = css`
 
 export const PortfolioTabWrapper = styled.div`
   ${portfolioFadeInAnimation}
+  @media screen and (max-width: 768px) {
+    padding-bottom: 120px;
+  }
 `
