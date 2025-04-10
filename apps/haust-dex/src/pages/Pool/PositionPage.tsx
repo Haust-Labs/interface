@@ -1,13 +1,13 @@
 import type { TransactionResponse } from '@ethersproject/providers'
 import { Trans } from '@lingui/macro'
-import { Currency, CurrencyAmount, Fraction, Percent, Price, Token } from '@uniswap/sdk-core'
+import { Currency, CurrencyAmount, Percent, Price, Token } from '@uniswap/sdk-core'
 import { NonfungiblePositionManager, Pool, Position } from '@uniswap/v3-sdk'
 import { useWeb3React } from '@web3-react/core'
 import {useTokenApi} from "api/Token";
 import BigNumber from "bignumber.js";
 // import { sendEvent } from 'components/analytics'
 import Badge from 'components/Badge'
-import { ButtonConfirmed, ButtonGray, ButtonPrimary } from 'components/Button'
+import { ButtonConfirmed, ButtonPrimary } from 'components/Button'
 import { DarkCard, LightCard } from 'components/Card'
 import { AutoColumn } from 'components/Column'
 import DoubleCurrencyLogo from 'components/DoubleLogo'
@@ -31,12 +31,12 @@ import { useV3PositionFees } from 'hooks/useV3PositionFees'
 import { useV3PositionFromTokenId } from 'hooks/useV3Positions'
 import { useSingleCallResult } from 'lib/hooks/multicall'
 import useNativeCurrency from 'lib/hooks/useNativeCurrency'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect,useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Bound } from 'state/mint/v3/actions'
 import { useIsTransactionPending, useTransactionAdder } from 'state/transactions/hooks'
 import styled, { useTheme } from 'styled-components/macro'
-import { ExternalLink, HideExtraSmall, HideSmall, ThemedText } from 'theme'
+import { ExternalLink, HideExtraSmall, ThemedText } from 'theme'
 import { currencyId } from 'utils/currencyId'
 import { formatCurrencyAmount } from 'utils/formatCurrencyAmount'
 import { formatTickPrice } from 'utils/formatTickPrice'
@@ -52,6 +52,7 @@ import { TransactionType } from '../../state/transactions/types'
 import { calculateGasMargin } from '../../utils/calculateGasMargin'
 import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
 import { LoadingRows } from './styleds'
+
 const getTokenLink = (chainId: any, address: string) => {
   if (isGqlSupportedChain(chainId)) {
     const chainName = CHAIN_IDS_TO_NAMES[chainId]
@@ -293,11 +294,21 @@ function getSnapshot(src: HTMLImageElement, canvas: HTMLCanvasElement, targetHei
   }
 }
 
-function NFT({ image, height: targetHeight }: { image: string; height: number }) {
+export function NFT({ image, height: targetHeight }: { image: string; height: number }) {
   const [animate, setAnimate] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const imageRef = useRef<HTMLImageElement>(null)
+
+  useEffect(() => {
+    if (imageLoaded && imageRef.current && canvasRef.current) {
+      const timer = setTimeout(() => {
+        getSnapshot(imageRef.current!, canvasRef.current!, targetHeight)
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [imageLoaded, targetHeight])
 
   return (
     <NFTGrid
@@ -305,22 +316,21 @@ function NFT({ image, height: targetHeight }: { image: string; height: number })
         setAnimate(true)
       }}
       onMouseLeave={() => {
-        // snapshot the current frame so the transition to the canvas is smooth
         if (imageRef.current && canvasRef.current) {
           getSnapshot(imageRef.current, canvasRef.current, targetHeight)
         }
         setAnimate(false)
       }}
     >
-      <NFTCanvas ref={canvasRef} />
+      <NFTCanvas ref={canvasRef} style={{ display: imageLoaded ? 'block' : 'none' }} />
       <NFTImage
         ref={imageRef}
         src={image}
-        hidden={!animate}
+        hidden={!animate && imageLoaded}
+        style={{ display: !imageLoaded ? 'block' : animate ? 'block' : 'none' }}
         onLoad={() => {
-          // snapshot for the canvas
           if (imageRef.current && canvasRef.current) {
-            getSnapshot(imageRef.current, canvasRef.current, targetHeight)
+            setImageLoaded(true)
           }
         }}
       />
