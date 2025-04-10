@@ -11,6 +11,7 @@ import mintV3 from './mint/v3/reducer'
 import { routingApi } from './routing/slice'
 import send from './send/reducer'
 import swap from './swap/reducer'
+import { tokensSlice } from './tokens/slice'
 import transactions from './transactions/reducer'
 import user from './user/reducer'
 import wallets from './wallets/reducer'
@@ -31,4 +32,5 @@ export default {
   logs,
   send,
   [routingApi.reducerPath]: routingApi.reducer,
+  tokens: tokensSlice.reducer,
 }

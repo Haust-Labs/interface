@@ -36,6 +36,9 @@ export const TokenDetailsLayout = styled.div`
 export const LeftPanel = styled.div`
   flex: 1;
   max-width: 700px;
+  @media screen and (max-width: ${({ theme }) => theme.breakpoint.xs}px) {
+    max-width: 350px;
+  }
 `
 export const RightPanel = styled.div`
   display: none;

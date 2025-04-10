@@ -7,25 +7,25 @@ import { LoadingBubble } from 'components/Tokens/loading'
 import { formatDelta } from 'components/Tokens/TokenDetails/PriceChart'
 import { formatNumber, NumberType } from 'conedison/format'
 import {useGetConnection} from 'connection'
+import { isSupportedChain } from 'constants/chains'
 import {shortenAddress} from 'nft/utils/address'
-import {useCallback, useEffect, useState, useRef} from 'react'
+import {useCallback, useEffect,useState} from 'react'
+import React from 'react'
 import {ArrowDownRight, ArrowUpRight, Copy, IconProps, Power, Settings} from 'react-feather'
 import { useOpenModal } from 'state/application/hooks'
 import { ApplicationModal } from 'state/application/reducer'
 import {useAppDispatch} from 'state/hooks'
+import { useTokensWithBalances } from 'state/tokens/hooks'
 import {updateSelectedWallet} from 'state/user/reducer'
 import styled, {useTheme} from 'styled-components/macro'
 import {CopyHelper, ThemedText} from 'theme'
 import { formatLargeBalance } from 'utils/formatNumbers'
-import React from 'react'
 
-import { useWalletBalance } from '../../hooks/useWalletBalance'
 import StatusIcon from '../Identicon/StatusIcon'
 import { ActionTile } from './ActionTile'
 import IconButton, {IconHoverText} from './IconButton'
 import { MiniPortfolio } from './MiniPortfolio'
 import { portfolioFadeInAnimation } from './MiniPortfolio/PortfolioRow'
-import { isSupportedChain } from 'constants/chains'
 
 const AuthenticatedHeaderWrapper = styled.div`
   padding: 20px 16px 0 16px;
@@ -132,7 +132,7 @@ function AuthenticatedHeader({ account, openSettings }: { account: string; openS
   const openReceiveModal = useOpenModal(ApplicationModal.RECEIVE_CRYPTO)
 
   const [initialLoading, setInitialLoading] = useState(true)
-  const { totalBalance, loading, refetch, absoluteChange, percentChange } = useWalletBalance()
+  const { totalBalance, absoluteChange, percentChange, isLoading } = useTokensWithBalances()
 
   const getConnection = useGetConnection()
   const connection = getConnection(connector)
@@ -144,27 +144,12 @@ function AuthenticatedHeader({ account, openSettings }: { account: string; openS
     dispatch(updateSelectedWallet({ wallet: undefined }))
   }, [connector, dispatch])
 
-  const lastRefetchTime = useRef(0)
-  
-  useEffect(() => {
-    if (!isSupportedChain(chainId)) return
-
-    const interval = setInterval(() => {
-      const now = Date.now()
-      if (now - lastRefetchTime.current >= 4900) {
-        lastRefetchTime.current = now
-        refetch?.()
-      }
-    }, 5000)
-
-    return () => clearInterval(interval)
-  }, [refetch, chainId])
 
   useEffect(() => {
-    if (!loading && initialLoading) {
+    if (!isLoading && initialLoading) {
       setInitialLoading(false)
     }
-  }, [loading, initialLoading])
+  }, [isLoading, initialLoading])
 
   return (
     <AuthenticatedHeaderWrapper>

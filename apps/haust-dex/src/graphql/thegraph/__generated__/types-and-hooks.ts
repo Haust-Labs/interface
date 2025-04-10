@@ -4050,7 +4050,7 @@ export type PoolChartDataQueryVariables = Exact<{
 }>;
 
 
-export type PoolChartDataQuery = { __typename?: 'Query', pool?: { __typename?: 'Pool', totalValueLockedToken0: any, totalValueLockedToken1: any, poolDayData: Array<{ __typename?: 'PoolDayData', tvlUSD: any, close: any, date: number, high: any, low: any, open: any, tick?: any, token0Price: any, token1Price: any, volumeUSD: any, pool: { __typename?: 'Pool', totalValueLockedToken0: any, totalValueLockedToken1: any } }> } };
+export type PoolChartDataQuery = { __typename?: 'Query', pool?: { __typename?: 'Pool', tick?: any, liquidity: any, token0Price: any, token1Price: any, totalValueLockedToken0: any, totalValueLockedToken1: any, ticks: Array<{ __typename?: 'Tick', tickIdx: any, liquidityGross: any, liquidityNet: any, price0: any, price1: any, createdAtTimestamp: any }>, poolDayData: Array<{ __typename?: 'PoolDayData', tvlUSD: any, close: any, date: number, high: any, low: any, open: any, tick?: any, token0Price: any, token1Price: any, volumeUSD: any }> } };
 
 export type PoolDataQueryVariables = Exact<{
   poolAddress: Scalars['ID'];
@@ -4116,7 +4116,7 @@ export type TopTokensQueryVariables = Exact<{
 export type TopTokensQuery = { __typename?: 'Query', tokens: Array<{ __typename?: 'Token', id: string, name: string, symbol: string, volumeUSD: any, totalSupply: any, decimals: any, tokenDayData: Array<{ __typename?: 'TokenDayData', date: number, priceUSD: any }> }> };
 
 export type TokenHourDataQueryVariables = Exact<{
-  tokenIds: Array<Scalars['String']> | Scalars['String'];
+  tokenId: Scalars['String'];
 }>;
 
 
@@ -4455,8 +4455,20 @@ export type PollsDataQueryResult = Apollo.QueryResult<PollsDataQuery, PollsDataQ
 export const PoolChartDataDocument = gql`
     query PoolChartData($id: ID!) {
   pool(id: $id) {
+    tick
+    liquidity
+    token0Price
+    token1Price
     totalValueLockedToken0
     totalValueLockedToken1
+    ticks(orderBy: createdAtTimestamp, orderDirection: asc) {
+      tickIdx
+      liquidityGross
+      liquidityNet
+      price0
+      price1
+      createdAtTimestamp
+    }
     poolDayData(orderBy: date, orderDirection: desc) {
       tvlUSD
       close
@@ -4468,10 +4480,6 @@ export const PoolChartDataDocument = gql`
       token0Price
       token1Price
       volumeUSD
-      pool {
-        totalValueLockedToken0
-        totalValueLockedToken1
-      }
     }
   }
 }
@@ -4889,12 +4897,12 @@ export type TopTokensQueryHookResult = ReturnType<typeof useTopTokensQuery>;
 export type TopTokensLazyQueryHookResult = ReturnType<typeof useTopTokensLazyQuery>;
 export type TopTokensQueryResult = Apollo.QueryResult<TopTokensQuery, TopTokensQueryVariables>;
 export const TokenHourDataDocument = gql`
-    query TokenHourData($tokenIds: [String!]!) {
+    query TokenHourData($tokenId: String!) {
   tokenHourDatas(
     first: 120
     orderBy: periodStartUnix
     orderDirection: desc
-    where: {token_in: $tokenIds}
+    where: {token: $tokenId}
   ) {
     periodStartUnix
     priceUSD
@@ -4917,7 +4925,7 @@ export const TokenHourDataDocument = gql`
  * @example
  * const { data, loading, error } = useTokenHourDataQuery({
  *   variables: {
- *      tokenIds: // value for 'tokenIds'
+ *      tokenId: // value for 'tokenId'
  *   },
  * });
  */

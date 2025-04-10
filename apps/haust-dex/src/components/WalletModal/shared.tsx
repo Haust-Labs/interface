@@ -5,13 +5,7 @@ import { useTheme } from "styled-components/macro"
 export const DetectedBadge = () => {
   const theme = useTheme()
   return (
-    <Flex
-      sx={{
-        '@media screen and (max-width: 396px)': {
-          display: 'none',
-        },
-      }}
-    >
+    <Flex>
       <Text variant="body2" color={theme.textSecondary}>
         Detected
       </Text>

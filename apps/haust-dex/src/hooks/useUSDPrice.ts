@@ -21,7 +21,7 @@ export function useUSDPrice(currencyAmount?: CurrencyAmount<Currency>): {
   const [isLoading, setIsLoading] = useState(true);
 
   const { data: priceData, isLoading: isPriceLoading } =
-    useCurrentTokenPrice(currencyAmount?.currency.wrapped.address, 10000);
+    useCurrentTokenPrice(currencyAmount?.currency.wrapped.address, 100000);
 
     useEffect(() => {
     if (priceData?.bundle && priceData?.token && currencyAmount) {

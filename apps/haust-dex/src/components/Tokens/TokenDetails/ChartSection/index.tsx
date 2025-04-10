@@ -53,16 +53,20 @@ export const DEFAULT_PILL_TIME_SELECTOR_OPTIONS = ORDERED_TIMES.map((time: TimeP
 })) as SegmentedControlOption[]
 
 export const ChartActionsContainer = styled(Flex)`
-  flex-direction: row-reverse;
+  flex-direction: row;
   width: 100%;
   justify-content: space-between;
   align-items: center;
   margin-top: 12px;
-  $md: {
+  
+  @media (max-width: 468px) {
     flex-direction: column;
     gap: 16px;
-  },
-})
+
+    > div:last-child {
+      width: 100%;
+    }
+  }
 `
 
 /** Represents a variety of query result shapes, discriminated via additional `chartType` field. */
@@ -86,6 +90,7 @@ export type TDPChartState = {
 
 const InvalidChartMessage = () => <div>invalid chart</div>
 
+// Обновим формат MOCK_PRICE_DATA в соответствии с PriceChartData
 const MOCK_PRICE_DATA: any = {
   entries: Array.from({ length: 24 }, (_, i) => {
     const timestamp = Math.floor((Date.now() - i * 3600000) / 1000) as UTCTimestamp
