@@ -38,7 +38,7 @@ export function useV3PositionFees(
           },
           { from: owner } // need to simulate the call as the owner
         )
-        .then((results) => {
+        .then((results: { amount0: BigNumber; amount1: BigNumber }) => {
           setAmounts([results.amount0, results.amount1])
         })
     }

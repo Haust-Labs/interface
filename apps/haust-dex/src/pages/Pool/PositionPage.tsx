@@ -123,7 +123,7 @@ const DoubleArrow = styled.span`
   color: ${({ theme }) => theme.textTertiary};
   margin: 0 1rem;
 `
-const ResponsiveRow = styled(RowBetween)`
+export const ResponsiveRow = styled(RowBetween)`
   @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.sm}px`}) {
     flex-direction: column;
     align-items: flex-start;
@@ -160,10 +160,10 @@ const ResponsiveButtonConfirmed = styled(ButtonConfirmed)`
   }
 `
 
-const NFTGrid = styled.div`
+const NFTGrid = styled.div<{ $minHeight?: number }>`
   display: grid;
   grid-template: 'overlap';
-  min-height: 400px;
+  min-height: ${({ $minHeight }) => ($minHeight ? `${$minHeight}px` : '400px')};
 `
 
 const NFTCanvas = styled.canvas`
@@ -177,7 +177,7 @@ const NFTImage = styled.img`
   z-index: 1;
 `
 
-const NFTContainer = styled.div`
+export const NFTContainer = styled.div`
   margin-right: 12px;
   width: 100%;
   
@@ -294,7 +294,17 @@ function getSnapshot(src: HTMLImageElement, canvas: HTMLCanvasElement, targetHei
   }
 }
 
-export function NFT({ image, height: targetHeight }: { image: string; height: number }) {
+export function NFT({ 
+  image, 
+  height: targetHeight, 
+  minHeight,
+  disableHover = false
+}: { 
+  image: string; 
+  height: number;
+  minHeight?: number;
+  disableHover?: boolean;
+}) {
   const [animate, setAnimate] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
 
@@ -308,18 +318,20 @@ export function NFT({ image, height: targetHeight }: { image: string; height: nu
       }, 100)
       return () => clearTimeout(timer)
     }
+    return undefined
   }, [imageLoaded, targetHeight])
 
   return (
     <NFTGrid
+      $minHeight={minHeight}
       onMouseEnter={() => {
-        setAnimate(true)
+        if (!disableHover) setAnimate(true)
       }}
       onMouseLeave={() => {
-        if (imageRef.current && canvasRef.current) {
+        if (!disableHover && imageRef.current && canvasRef.current) {
           getSnapshot(imageRef.current, canvasRef.current, targetHeight)
+          setAnimate(false)
         }
-        setAnimate(false)
       }}
     >
       <NFTCanvas ref={canvasRef} style={{ display: imageLoaded ? 'block' : 'none' }} />
