@@ -103,7 +103,7 @@ function TransactionSubmittedContent({
   hash: string | undefined
   chainId: number
   currencyToAdd?: Currency | undefined
-  inline?: boolean // not in modal
+  inline?: boolean
   lpToAdd?: {
     address: string
     tokenId: string
@@ -123,11 +123,6 @@ function TransactionSubmittedContent({
   const logoURL = useCurrencyLogoURIs(token)[0]
 
   const [success, setSuccess] = useState<boolean | undefined>()
-
-  const isMetaMask = provider?.provider?.isMetaMask
-  const isRabby = (provider?.provider as any)?.isRabby
-
-  const shouldShowLPToken = isMetaMask && !isRabby
 
   const addToken = useCallback(() => {
     if (!token?.symbol || !connector.watchAsset) return
@@ -174,7 +169,7 @@ function TransactionSubmittedContent({
           </RowBetween>
         )}
         
-        {!lpToAdd || !shouldShowLPToken && (
+        {!lpToAdd && (
         <ConfirmedIcon inline={inline}>
           <ArrowUpCircle strokeWidth={1} size={inline ? '40px' : '75px'} color={theme.accentActive} />
         </ConfirmedIcon>
@@ -200,7 +195,7 @@ function TransactionSubmittedContent({
               </ThemedText.MediumHeader>
             )
           )}
-          {lpToAdd && shouldShowLPToken && (
+          {lpToAdd && (
           <AutoColumn gap="24px" style={{ margin: '20px 0' }}>
             <LightCard style={{ 
               background: 'rgba(0, 0, 0, 0.2)',
@@ -262,7 +257,7 @@ function TransactionSubmittedContent({
             </LightCard>
           </AutoColumn>
           )}
-          {lpToAdd && connector.watchAsset && shouldShowLPToken && (
+          {lpToAdd && connector.watchAsset && (
             !success ? (
               <ButtonLight mt="12px" padding="6px 12px" width="fit-content" onClick={addLpToken}>
                 <RowFixed>

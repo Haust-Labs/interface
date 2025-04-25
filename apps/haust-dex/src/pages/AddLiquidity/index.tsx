@@ -610,6 +610,11 @@ function AddLiquidity() {
     addressesAreEquivalent(owner, account) || addressesAreEquivalent(existingPositionDetails?.operator, account)
   const showOwnershipWarning = Boolean(hasExistingPosition && account && !ownsNFT)
 
+  const isMetaMask = provider?.provider?.isMetaMask
+  const isRabby = (provider?.provider as any)?.isRabby
+
+  const shouldShowLPToken = isMetaMask && !isRabby
+
   return (
     <>
       <ScrollablePage>
@@ -618,7 +623,7 @@ function AddLiquidity() {
           onDismiss={handleDismissConfirmation}
           attemptingTxn={attemptingTxn}
           hash={txHash}
-          lpToAdd={positionManager && (newTokenId || tokenId) ? {
+          lpToAdd={shouldShowLPToken && positionManager && (newTokenId || tokenId) ? {
             address: positionManager?.address ?? '',
             tokenId: (newTokenId || tokenId)?.toString() ?? '',
             image: gatewayUrl ?? '',
