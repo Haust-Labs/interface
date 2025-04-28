@@ -13,6 +13,7 @@ const initialState: ConnectionState = {
     [ConnectionType.NETWORK]: undefined,
     [ConnectionType.GNOSIS_SAFE]: undefined,
     [ConnectionType.RABBY]: undefined,
+    [ConnectionType.HAUST_WALLET]: undefined,
   },
 };
 

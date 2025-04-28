@@ -11,6 +11,7 @@ import METAMASK_ICON from "assets/images/metamask.svg";
 import MOONSEENROSE_LOGO from "assets/images/moonseenrose-logo.png";
 import WALLET_CONNECT_ICON from "assets/images/walletConnectIcon.svg";
 import RABBY_ICON from "assets/images/logo-rabby.svg";
+import HAUST_ICON from "assets/svg/wallet.svg";
 import { SupportedChainId } from "constants/chains";
 import { useCallback, useSyncExternalStore } from "react";
 import { isMobile } from "utils/userAgent";
@@ -31,6 +32,7 @@ export enum ConnectionType {
   NETWORK = "NETWORK",
   GNOSIS_SAFE = "GNOSIS_SAFE",
   RABBY = "RABBY",
+  HAUST_WALLET = "HAUST_WALLET"
 }
 
 export interface Connection {
@@ -65,17 +67,6 @@ const getIsCoinbaseWalletBrowser = () => isMobile && getIsCoinbaseWallet();
 const getIsMetaMaskBrowser = () => isMobile && getIsMetaMaskWallet();
 const getIsInjectedMobileBrowser = () =>
   getIsCoinbaseWalletBrowser() || getIsMetaMaskBrowser();
-
-const getShouldAdvertiseMetaMask = () =>
-  !getIsMetaMaskWallet() &&
-  !isMobile &&
-  (!getIsInjected() || getIsCoinbaseWallet());
-const getIsGenericInjector = () =>
-  getIsInjected() && !getIsMetaMaskWallet() && !getIsCoinbaseWallet();
-
-const [web3Injected, web3InjectedHooks] = initializeConnector<MetaMask>(
-  (actions) => new MetaMask({ actions, onError })
-);
 
 const [web3MetaMask, web3MetaMaskHooks] = initializeConnector<MetaMask>(
   (actions) => new MetaMask({ actions, onError })
@@ -233,19 +224,32 @@ const rabbyConnection: Connection = {
   hooks: web3RabbyHooks,
   type: ConnectionType.RABBY,
   getIcon: () => RABBY_ICON,
-  shouldDisplay: () => true,
+  shouldDisplay: () => getIsRabbyWallet(),
   isDetected: () => getIsRabbyWallet(),
-  overrideActivate: () => {
-    if (!getIsRabbyWallet()) {
-      window.open("https://rabby.io/", "rabby");
-      return true;
-    }
-    return false;
-  },
+};
+
+const getIsHaustWallet = () => {
+  const { ethereum } = window as any;
+  return ethereum?.isHaust === true;
+};
+
+const [web3Haust, web3HaustHooks] = initializeConnector<MetaMask>(
+  (actions) => new MetaMask({ actions, onError })
+);
+
+const haustConnection: Connection = {
+  getName: () => "Haust Wallet",
+  connector: web3Haust,
+  hooks: web3HaustHooks,
+  type: ConnectionType.HAUST_WALLET,
+  getIcon: () => HAUST_ICON,
+  shouldDisplay: () => getIsHaustWallet(),
+  isDetected: () => getIsHaustWallet(),
 };
 
 export function getConnections() {
   return [
+    haustConnection,
     metaMaskConnection,
     rabbyConnection,
     walletConnectV2Connection,
@@ -279,6 +283,8 @@ export function useGetConnection() {
           return gnosisSafeConnection;
         case ConnectionType.RABBY:
           return rabbyConnection;
+        case ConnectionType.HAUST_WALLET:
+          return haustConnection;
       }
     }
   }, []);
