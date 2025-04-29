@@ -1,19 +1,16 @@
 import { BigNumber } from '@ethersproject/bignumber'
 import { Trans } from '@lingui/macro'
 import { Currency, Percent, Price, Token } from '@uniswap/sdk-core'
-import { Pool, Position } from '@uniswap/v3-sdk'
+import { Position } from '@uniswap/v3-sdk'
 import { useWeb3React } from '@web3-react/core'
 import { PortfolioLogo } from 'components/AccountDrawer/MiniPortfolio/PortfolioLogo'
 import RangeBadge from 'components/Badge/RangeBadge'
 import { LiquidityPositionRangeChart } from 'components/ChartsV2/LiquidityPositionRangeChart/LiquidityPositionRangeChart'
-import DoubleCurrencyLogo from 'components/DoubleLogo'
-import HoverInlineText from 'components/HoverInlineText'
-import Loader from 'components/Icons/LoadingSpinner'
 import { Flex } from 'components/layout/Flex'
 import { RowBetween } from 'components/Row'
 import { Text } from 'components/Text/Text'
 import { MouseoverTooltip } from 'components/Tooltip'
-import { formatNumber, formatUSDPrice } from 'conedison/format'
+import { formatUSDPrice } from 'conedison/format'
 import { SupportedChainId } from 'constants/chains'
 import {
   WRAPPED_NATIVE_CURRENCY,
@@ -21,18 +18,19 @@ import {
 import { useToken } from 'hooks/Tokens'
 import useIsTickAtLimit from 'hooks/useIsTickAtLimit'
 import { usePool } from 'hooks/usePools'
-import { useUSDPrice } from 'hooks/useUSDPrice'
+import { useV3Incentive } from 'hooks/useV3Incentive'
 import { useV3PositionFees } from 'hooks/useV3PositionFees'
-import tryParseCurrencyAmount from 'lib/utils/tryParseCurrencyAmount'
 import { PositionStatus } from 'pages/Pool/PositionHeader'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Bound } from 'state/mint/v3/actions'
 import styled, { useTheme } from 'styled-components/macro'
-import { HideSmall, MEDIA_WIDTHS, SmallOnly, ThemedText } from 'theme'
+import { MEDIA_WIDTHS, ThemedText } from 'theme'
 import { formatTickPrice } from 'utils/formatTickPrice'
 import { unwrappedToken } from 'utils/unwrappedToken'
 import { hasURL } from 'utils/urlChecks'
+
+import RewardLabel from './rewardLabel'
 
 const LinkRow = styled(Link)`
   align-items: center;
@@ -221,6 +219,20 @@ const Wrapper = styled.div`
     0 24px 32px rgba(0, 0, 0, 0.01);
 `
 
+const StakingLabel = styled(ThemedText.UtilityBadge)`
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  margin-top: 2px !important;
+  font-size: 12px !important;
+  background-color: ${({ theme }) => theme.accentSuccess};
+  color: ${({ theme }) => theme.white};
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-left: 4px !important;
+  font-weight: 500;
+`
+
 interface PositionListItemProps {
   token0: string
   token1: string
@@ -233,6 +245,7 @@ interface PositionListItemProps {
   formattedUsdFees?: string
   apr?: number
   filterStatus?: PositionStatus[]
+  staked?: boolean
 }
 
 export function getPriceOrderingFromPositionForUI(position?: Position): {
@@ -289,17 +302,25 @@ export default function PositionListItem({
   formattedUsdValue,
   formattedUsdFees,
   apr,
-  filterStatus
+  filterStatus,
+  staked
 }: PositionListItemProps) {
   const { chainId } = useWeb3React()
   const theme = useTheme()
   const token0 = useToken(token0Address)
   const token1 = useToken(token1Address)
+  const {incentiveEvents, loading: incentivesLoading} = useV3Incentive()
 
   const currency0 = token0 ? unwrappedToken(token0) : undefined
   const currency1 = token1 ? unwrappedToken(token1) : undefined
   // construct Position from details returned
   const [, pool, poolAddress] = usePool(currency0 ?? undefined, currency1 ?? undefined, feeAmount)
+
+  // Add type guard to ensure incentive is not undefined before passing to hook
+  const rewardIncentive = incentiveEvents?.find(incentive => 
+    incentive.pool === poolAddress && 
+    incentive.tokenIds?.includes(Number(tokenId))
+  )
 
   const position = useMemo(() => {
     if (pool) {
@@ -383,23 +404,51 @@ export default function PositionListItem({
     return (aprData.toFixed(2)) + '%'
   }, [aprData])
 
+  // Check if staking is available for this pool
+  const isStakingAvailable = useMemo(() => {
+    if (!poolAddress || !incentiveEvents) return false
+    const now = Math.floor(Date.now() / 1000)
+    return incentiveEvents.some((incentive) => 
+      incentive.pool.toLowerCase() === poolAddress.toLowerCase() &&
+      Number(incentive.endTime) > now
+    )
+  }, [incentiveEvents, poolAddress])
+
   if (shouldHidePosition) {
     return null
   }
 
   if (filterStatus?.length) {
-      if (removed && !filterStatus.includes(PositionStatus.CLOSED)) {
-        return null
+    if (filterStatus.length === 1) {
+      // Single filter selected
+      if (filterStatus.includes(PositionStatus.STAKED)) {
+        if (!staked) return null
+      } else if (filterStatus.includes(PositionStatus.CLOSED)) {
+        if (!removed) return null
+      } else if (filterStatus.includes(PositionStatus.IN_RANGE)) {
+        if (staked || outOfRange || removed) return null
+      } else if (filterStatus.includes(PositionStatus.OUT_OF_RANGE)) {
+        if (staked || !outOfRange || removed) return null
       }
+    } else {
+      // Multiple filters selected
+      if (removed) {
+        if (!filterStatus.includes(PositionStatus.CLOSED)) return null
+      } else {
+        // If position is staked, only check for STAKED filter
+        if (staked) {
+          if (!filterStatus.includes(PositionStatus.STAKED)) return null
+        } else {
+          // For non-staked positions, check range filters
+          const matchesInRange = filterStatus.includes(PositionStatus.IN_RANGE) && !outOfRange
+          const matchesOutOfRange = filterStatus.includes(PositionStatus.OUT_OF_RANGE) && outOfRange
 
-      if (!removed) {
-        const matchesInRange = filterStatus.includes(PositionStatus.IN_RANGE) && !outOfRange
-        const matchesOutOfRange = filterStatus.includes(PositionStatus.OUT_OF_RANGE) && outOfRange
-
-        if (!matchesInRange && !matchesOutOfRange) {
-          return null
+          if (!matchesInRange && !matchesOutOfRange) {
+            return null
+          }
         }
       }
+    }
   }
 
   return (
@@ -415,11 +464,22 @@ export default function PositionListItem({
                     <ThemedText.SubHeader>
                       {currencyQuote?.symbol}&nbsp;/&nbsp;{currencyBase?.symbol}
                     </ThemedText.SubHeader>
-                    <RangeBadge removed={removed} inRange={!outOfRange} />
+                    <RangeBadge removed={removed} inRange={!outOfRange} staked={staked} />
                   </VerticalContainer>
                   <FeeTierText>
                     <Trans>{new Percent(feeAmount, 1_000_000).toSignificant()}%</Trans>
                   </FeeTierText>
+                  {isStakingAvailable && !staked && (
+                    <StakingLabel>
+                        Staking Available
+                    </StakingLabel>
+                  )}
+                  {rewardIncentive && (
+                    <RewardLabel
+                      incentive={rewardIncentive}
+                      tokenId={tokenId}
+                    />
+                  )}
                 </PrimaryPositionIdData>
               </RowBetween>
             </InfoContainer>

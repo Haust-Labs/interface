@@ -17,6 +17,7 @@ import {
   NONFUNGIBLE_POSITION_MANAGER_ADDRESSES,
   QUOTER_ADDRESSES,
   TICK_LENS_ADDRESSES,
+  UNISWAP_V3_STAKER_ADDRESSES,
   V2_ROUTER_ADDRESS,
   V3_MIGRATOR_ADDRESSES,
 } from 'constants/addresses'
@@ -30,9 +31,9 @@ import {
   QuoterV2Json,
   TickLensJson,
   UniswapInterfaceMulticallJson,
-  V3MigratorJson,
-} from 'sdks/v3-periphery'
-import { NonfungiblePositionManager, Quoter, QuoterV2, TickLens, UniswapInterfaceMulticall } from 'types/v3'
+  UniswapV3StakerJson,
+  V3MigratorJson} from 'sdks/v3-periphery'
+import { NonfungiblePositionManager, Quoter, QuoterV2, TickLens, UniswapInterfaceMulticall, UniswapV3Staker } from 'types/v3'
 import { V3Migrator } from 'types/v3/V3Migrator'
 
 import { getContract } from '../utils'
@@ -45,6 +46,7 @@ const { abi: TickLensABI } = TickLensJson
 const { abi: MulticallABI } = UniswapInterfaceMulticallJson
 const { abi: NFTPositionManagerABI } = NonfungiblePositionManagerJson
 const { abi: V2MigratorABI } = V3MigratorJson
+const { abi: UniswapV3StakerABI } = UniswapV3StakerJson
 
 // returns null on errors
 export function useContract<T extends Contract = Contract>(
@@ -126,10 +128,18 @@ export function useInterfaceMulticall() {
   return useContract<UniswapInterfaceMulticall>(MULTICALL_ADDRESS, MulticallABI, false) as UniswapInterfaceMulticall
 }
 
-export function useV3NFTPositionManagerContract(withSignerIfPossible?: boolean): NonfungiblePositionManager | null {
-  return useContract<NonfungiblePositionManager>(
+export function useV3NFTPositionManagerContract(withSignerIfPossible?: boolean): any | null {
+  return useContract<any>(
     NONFUNGIBLE_POSITION_MANAGER_ADDRESSES,
     NFTPositionManagerABI,
+    withSignerIfPossible
+  )
+}
+
+export function useUniswapV3StakerContract(withSignerIfPossible?: boolean): UniswapV3Staker | null {
+  return useContract<UniswapV3Staker>(
+    UNISWAP_V3_STAKER_ADDRESSES,
+    UniswapV3StakerABI,
     withSignerIfPossible
   )
 }

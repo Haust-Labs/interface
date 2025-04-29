@@ -9,6 +9,7 @@ import {
   AddLiquidityV2PoolTransactionInfo,
   AddLiquidityV3PoolTransactionInfo,
   ApproveTransactionInfo,
+  ClaimRewardsV3TransactionInfo,
   ClaimTransactionInfo,
   CollectFeesTransactionInfo,
   CreateV3PoolTransactionInfo,
@@ -20,6 +21,7 @@ import {
   QueueTransactionInfo,
   RemoveLiquidityV3TransactionInfo,
   SendTransactionInfo,
+  StakeLiquidityV3TransactionInfo,
   TransactionInfo,
   TransactionType,
   WrapTransactionInfo,
@@ -88,6 +90,25 @@ function SendSummary({ info }: { info: SendTransactionInfo }) {
     <Trans>
       Send <FormattedCurrencyAmountManaged rawAmount={info.amount} currencyId={info.currencyId} sigFigs={6} /> to {info.recipient}
     </Trans>
+  )
+}
+
+function StakeLiquidityV3Summary({ info }: { info: StakeLiquidityV3TransactionInfo }) {
+  const token0 = useCurrency(info.token0Id)
+  const token1 = useCurrency(info.token1Id)
+
+  return (
+    <div>
+      Stake {token0?.symbol}/{token1?.symbol} LP position #{info.tokenId}
+    </div>
+  )
+}
+
+function ClaimStakingRewardSummary({ info }: { info: ClaimRewardsV3TransactionInfo }) {
+  return (
+    <div>
+      Claim rewards for {info.tokenId}
+    </div>
   )
 }
 
@@ -327,5 +348,11 @@ export function TransactionSummary({ info }: { info: TransactionInfo }) {
 
     case TransactionType.SEND:
       return <SendSummary info={info} />
+
+    case TransactionType.STAKE_LIQUIDITY_V3:
+      return <StakeLiquidityV3Summary info={info} />
+
+    case TransactionType.CLAIM_STAKING_REWARD:
+      return <ClaimStakingRewardSummary info={info} />
   }
 }

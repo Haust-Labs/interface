@@ -35,7 +35,8 @@ export enum PositionStatus {
   UNSPECIFIED = 0,
   IN_RANGE = 1,
   OUT_OF_RANGE = 2,
-  CLOSED = 3
+  CLOSED = 3,
+  STAKED = 4
 }
 
 export function getProtocolStatusLabel(status: PositionStatus): string | undefined {
@@ -46,6 +47,8 @@ export function getProtocolStatusLabel(status: PositionStatus): string | undefin
         return 'Out of range'
       case PositionStatus.CLOSED:
         return 'Closed'
+      case PositionStatus.STAKED:
+        return 'Staked'
     }
     return undefined
 }
@@ -59,6 +62,9 @@ export const lpStatusConfig = {
     },
     [PositionStatus.CLOSED]: {
       color: colors.neutralLightest,
+    },
+    [PositionStatus.STAKED]: {
+      color: colors.primaryMid,
     },
     [PositionStatus.UNSPECIFIED]: undefined,
 }
@@ -74,10 +80,8 @@ export function PositionsHeader({
   selectedStatus,
   onStatusChange,
 }: PositionsHeaderProps) {
-  const navigate = useNavigate()
-
   const statusFilterOptions = useMemo(() => {
-    return [PositionStatus.IN_RANGE, PositionStatus.OUT_OF_RANGE, PositionStatus.CLOSED].map((status) => {
+    return [PositionStatus.IN_RANGE, PositionStatus.OUT_OF_RANGE, PositionStatus.STAKED, PositionStatus.CLOSED].map((status) => {
       const config = lpStatusConfig[status]
 
       if (!config) {

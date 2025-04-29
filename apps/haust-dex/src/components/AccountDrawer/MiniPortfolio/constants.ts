@@ -128,6 +128,16 @@ const TransactionTitleTable: { [key in TransactionType]: { [state in Transaction
     [TransactionStatus.Confirmed]: t`Submitted proposal`,
     [TransactionStatus.Failed]: t`Submit proposal failed`,
   },
+  [TransactionType.STAKE_LIQUIDITY_V3]: {
+    [TransactionStatus.Pending]: 'Staking liquidity',
+    [TransactionStatus.Confirmed]: 'Staked liquidity',
+    [TransactionStatus.Failed]: 'Stake liquidity failed',
+  },
+  [TransactionType.CLAIM_STAKING_REWARD]: {
+    [TransactionStatus.Pending]: 'Claiming rewards',
+    [TransactionStatus.Confirmed]: 'Claimed rewards',
+    [TransactionStatus.Failed]: 'Claim rewards failed',
+  },
 }
 
 const AlternateTransactionTitleTable: { [key in TransactionType]?: { [state in TransactionStatus]: string } } = {

@@ -41,6 +41,9 @@ export function useV3PositionFees(
         .then((results: { amount0: BigNumber; amount1: BigNumber }) => {
           setAmounts([results.amount0, results.amount1])
         })
+        .catch((error: any) => {
+          console.error('Error fetching position fees:', error)
+        })
     }
   }, [positionManager, tokenIdHexString, owner, latestBlockNumber])
 

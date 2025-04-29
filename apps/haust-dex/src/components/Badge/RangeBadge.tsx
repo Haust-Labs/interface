@@ -36,9 +36,11 @@ const LabelText = styled.div<{ color: string }>`
 export default function RangeBadge({
   removed,
   inRange,
+  staked,
 }: {
   removed: boolean | undefined
   inRange: boolean | undefined
+  staked?: boolean | undefined
 }) {
   const theme = useTheme()
   return (
@@ -46,9 +48,18 @@ export default function RangeBadge({
       {removed ? (
         <MouseoverTooltip text={<Trans>Your position has 0 liquidity, and is not earning fees.</Trans>}>
           <LabelText color={theme.textSecondary}>
-          <ActiveDot $backgroundColor={theme.textSecondary} />
+            <ActiveDot $backgroundColor={theme.textSecondary} />
             <BadgeText>
               <Trans>Closed</Trans>
+            </BadgeText>
+          </LabelText>
+        </MouseoverTooltip>
+      ) : staked ? (
+        <MouseoverTooltip text='This position is staked and earning additional rewards.'>
+          <LabelText color={theme.accentAction}>
+            <ActiveDot $backgroundColor={theme.accentAction} />
+            <BadgeText>
+                Staked
             </BadgeText>
           </LabelText>
         </MouseoverTooltip>

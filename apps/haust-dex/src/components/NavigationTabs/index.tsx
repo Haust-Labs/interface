@@ -60,6 +60,9 @@ export function AddRemoveTabs({
   defaultSlippage,
   positionID,
   children,
+  staked,
+  hideSettings,
+  unstake,
 }: {
   adding: boolean
   creating: boolean
@@ -67,6 +70,9 @@ export function AddRemoveTabs({
   positionID?: string | undefined
   showBackLink?: boolean
   children?: ReactNode | undefined
+  staked?: boolean
+  hideSettings?: boolean
+  unstake?: boolean
 }) {
   const theme = useTheme()
   // reset states on back
@@ -103,12 +109,16 @@ export function AddRemoveTabs({
             <Trans>Create a pair</Trans>
           ) : adding ? (
             <Trans>Add Liquidity</Trans>
+          ) : staked ? (
+            <Trans>Stake Liquidity</Trans>
+          ) : unstake ? (
+            <Trans>Claim rewards</Trans>
           ) : (
             <Trans>Remove Liquidity</Trans>
           )}
         </ThemedText.DeprecatedMediumHeader>
         <Box style={{ marginRight: '.5rem' }}>{children}</Box>
-        <SettingsTab placeholderSlippage={defaultSlippage} />
+        {!hideSettings && <SettingsTab placeholderSlippage={defaultSlippage} />}
       </RowBetween>
     </Tabs>
   )

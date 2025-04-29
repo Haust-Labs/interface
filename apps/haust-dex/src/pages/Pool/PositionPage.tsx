@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { TransactionResponse } from '@ethersproject/providers'
 import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Percent, Price, Token } from '@uniswap/sdk-core'
@@ -52,6 +53,8 @@ import { TransactionType } from '../../state/transactions/types'
 import { calculateGasMargin } from '../../utils/calculateGasMargin'
 import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
 import { LoadingRows } from './styleds'
+import { useV3Incentive } from 'hooks/useV3Incentive'
+import { RewardInfo } from './RewardInfo'
 
 const getTokenLink = (chainId: any, address: string) => {
   if (isGqlSupportedChain(chainId)) {
@@ -407,9 +410,15 @@ function PositionPageContent() {
   const { tokenId: tokenIdFromUrl } = useParams<{ tokenId?: string }>()
   const { chainId, account, provider } = useWeb3React()
   const theme = useTheme()
+  const {incentiveEvents, loading: incentivesLoading} = useV3Incentive()
+  
+  const stakedInfo = incentiveEvents?.find(incentive => 
+    incentive.tokenIds?.includes(Number(tokenIdFromUrl))
+  )
 
   const parsedTokenId = tokenIdFromUrl ? BN.from(tokenIdFromUrl) : undefined
   const { loading, position: positionDetails } = useV3PositionFromTokenId(parsedTokenId)
+
   const {
     token0: token0Address,
     token1: token1Address,
@@ -436,8 +445,18 @@ function PositionPageContent() {
   const nativeWrappedSymbol = nativeCurrency.wrapped.symbol
 
   // construct Position from details returned
-  const [poolState, pool] = usePool(token0 ?? undefined, token1 ?? undefined, feeAmount)
+  const [poolState, pool, poolAddress] = usePool(token0 ?? undefined, token1 ?? undefined, feeAmount)
   
+  const incentive = useMemo(() => {
+    if (!incentiveEvents?.length || !poolAddress) return undefined;
+    
+    const now = Math.floor(Date.now() / 1000);
+    return incentiveEvents.find(incentive => 
+      incentive.pool.toLowerCase() === poolAddress.toLowerCase() && 
+      Number(incentive.endTime) > now
+    );
+  }, [incentiveEvents, poolAddress]);
+
   const position = useMemo(() => {
     if (pool && liquidity && typeof tickLower === 'number' && typeof tickUpper === 'number') {
       return new Position({ pool, liquidity: liquidity.toString(), tickLower, tickUpper })
@@ -625,6 +644,8 @@ function PositionPageContent() {
   const above = pool && typeof tickUpper === 'number' ? pool.tickCurrent >= tickUpper : undefined
   const inRange: boolean = typeof below === 'boolean' && typeof above === 'boolean' ? !below && !above : false
 
+  const isPositionStaked = !!stakedInfo
+
   function modalHeader() {
     return (
       <AutoColumn gap="md" style={{ marginTop: '20px' }}>
@@ -727,35 +748,57 @@ function PositionPageContent() {
                     <Trans>{new Percent(feeAmount, 1_000_000).toSignificant()}%</Trans>
                   </BadgeText>
                 </Badge>
-                <RangeBadge removed={removed} inRange={inRange} />
+                <RangeBadge removed={removed} inRange={inRange} staked={isPositionStaked} />
               </RowFixed>
-              {ownsNFT && (
                 <ActionButtonResponsiveRow>
                   {currency0 && currency1 && feeAmount && tokenId ? (
-                    <SmallButtonPrimary
-                      as={Link}
-                      to={`/increase/${currencyId(currency0)}/${currencyId(currency1)}/${feeAmount}/${tokenId}`}
-                      padding="6px 8px"
-                      width="fit-content"
-                      $borderRadius="12px"
-                      style={{ marginRight: '8px' }}
-                    >
-                      <Trans>Increase Liquidity</Trans>
-                    </SmallButtonPrimary>
+                    isPositionStaked ? (
+                      <SmallButtonPrimary
+                        padding="6px 8px"
+                        width="fit-content"
+                        $borderRadius="12px"
+                        style={{ marginRight: '8px', opacity: 0.5 }}
+                        disabled
+                      >
+                        <Trans>Increase Liquidity</Trans>
+                      </SmallButtonPrimary>
+                    ) : (
+                      <SmallButtonPrimary
+                        as={Link}
+                        to={`/increase/${currencyId(currency0)}/${currencyId(currency1)}/${feeAmount}/${tokenId}`}
+                        padding="6px 8px"
+                        width="fit-content"
+                        $borderRadius="12px"
+                        style={{ marginRight: '8px' }}
+                      >
+                        <Trans>Increase Liquidity</Trans>
+                      </SmallButtonPrimary>
+                    )
                   ) : null}
                   {tokenId && !removed ? (
-                    <SmallButtonPrimary
-                      as={Link}
-                      to={`/remove/${tokenId}`}
-                      padding="6px 8px"
-                      width="fit-content"
-                      $borderRadius="12px"
-                    >
-                      <Trans>Remove Liquidity</Trans>
-                    </SmallButtonPrimary>
+                    isPositionStaked ? (
+                      <SmallButtonPrimary
+                        padding="6px 8px"
+                        width="fit-content"
+                        $borderRadius="12px"
+                        style={{ opacity: 0.5 }}
+                        disabled
+                      >
+                        <Trans>Remove Liquidity</Trans>
+                      </SmallButtonPrimary>
+                    ) : (
+                      <SmallButtonPrimary
+                        as={Link}
+                        to={`/remove/${tokenId}`}
+                        padding="6px 8px"
+                        width="fit-content"
+                        $borderRadius="12px"
+                      >
+                        <Trans>Remove Liquidity</Trans>
+                      </SmallButtonPrimary>
+                    )
                   ) : null}
                 </ActionButtonResponsiveRow>
-              )}
             </ResponsiveRow>
             <RowBetween></RowBetween>
           </AutoColumn>
@@ -770,14 +813,10 @@ function PositionPageContent() {
                     alignItems: 'center',
                     flexDirection: 'column',
                     justifyContent: 'space-around',
+                    height: isPositionStaked ? '470px' : '100%'
                   }}
                 >
                   <NFT image={metadata.result.image} height={400} />
-                  {typeof chainId === 'number' && owner && !ownsNFT ? (
-                    <ExternalLink href={getExplorerLink(chainId, owner, ExplorerDataType.ADDRESS)}>
-                      <Trans>Owner</Trans>
-                    </ExternalLink>
-                  ) : null}
                 </DarkCard>
               ) : (
                 <DarkCard
@@ -839,10 +878,28 @@ function PositionPageContent() {
                       </RowBetween>
                     </AutoColumn>
                   </LightCard>
+                  {incentive && !removed && !isPositionStaked && (
+                    <SmallButtonPrimary
+                      as={Link}
+                      to={`/stake/${tokenId}`}
+                      padding="6px 8px"
+                      width="fit-content"
+                      $borderRadius="12px"
+                    >
+                      Stake Position
+                    </SmallButtonPrimary>
+                  )}
                 </AutoColumn>
               </DarkCard>
+              {isPositionStaked && stakedInfo && tokenIdFromUrl && (
+                <RewardInfo tokenId={tokenIdFromUrl} stakedInfo={stakedInfo} />
+              )}
               <DarkCard>
-                <AutoColumn gap="md" style={{ width: '100%' }}>
+                <AutoColumn gap="md" style={{ 
+                  width: '100%',
+                  opacity: isPositionStaked ? '0.3' : '1',
+                  pointerEvents: isPositionStaked ? 'none' : 'auto'
+                }}>
                   <AutoColumn gap="md">
                     <RowBetween style={{ alignItems: 'flex-start' }}>
                       <AutoColumn gap="md">
@@ -863,7 +920,7 @@ function PositionPageContent() {
                           </ThemedText.DeprecatedLargeHeader>
                         )} */}
                       </AutoColumn>
-                      {ownsNFT && (feeValue0?.greaterThan(0) || feeValue1?.greaterThan(0) || !!collectMigrationHash) ? (
+                      {feeValue0?.greaterThan(0) || feeValue1?.greaterThan(0) || !!collectMigrationHash ? (
                         <ResponsiveButtonConfirmed
                           disabled={collecting || !!collectMigrationHash}
                           confirmed={!!collectMigrationHash && !isCollectPending}
@@ -872,24 +929,24 @@ function PositionPageContent() {
                           padding="4px 8px"
                           onClick={() => setShowConfirm(true)}
                         >
-                          {!!collectMigrationHash && !isCollectPending ? (
-                            <ThemedText.DeprecatedMain color={theme.textPrimary}>
-                              <Trans> Collected</Trans>
-                            </ThemedText.DeprecatedMain>
-                          ) : isCollectPending || collecting ? (
-                            <ThemedText.DeprecatedMain color={theme.textPrimary}>
-                              {' '}
-                              <Dots>
-                                <Trans>Collecting</Trans>
-                              </Dots>
-                            </ThemedText.DeprecatedMain>
-                          ) : (
-                            <>
-                              <ThemedText.DeprecatedMain color={theme.white}>
-                                <Trans>Collect fees</Trans>
-                              </ThemedText.DeprecatedMain>
-                            </>
-                          )}
+                              {!!collectMigrationHash && !isCollectPending ? (
+                                <ThemedText.DeprecatedMain color={theme.textPrimary}>
+                                  <Trans> Collected</Trans>
+                                </ThemedText.DeprecatedMain>
+                              ) : isCollectPending || collecting ? (
+                                <ThemedText.DeprecatedMain color={theme.textPrimary}>
+                                  {' '}
+                                  <Dots>
+                                    <Trans>Collecting</Trans>
+                                  </Dots>
+                                </ThemedText.DeprecatedMain>
+                              ) : (
+                                <>
+                                  <ThemedText.DeprecatedMain color={theme.white}>
+                                    <Trans>Collect fees</Trans>
+                                  </ThemedText.DeprecatedMain>
+                                </>
+                              )}
                         </ResponsiveButtonConfirmed>
                       ) : null}
                     </RowBetween>

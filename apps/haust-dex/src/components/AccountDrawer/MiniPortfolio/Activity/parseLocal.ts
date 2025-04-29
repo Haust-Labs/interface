@@ -7,7 +7,7 @@ import {
   TransactionPartsFragment,
   TransactionStatus,
 } from "graphql/data/__generated__/types-and-hooks";
-import { useTokenFromActiveNetwork } from "lib/hooks/useCurrency";
+import useAllActivities from "graphql/thegraph/useAllActivities";
 import { useMemo } from "react";
 import { TokenAddressMap, useCombinedActiveList } from "state/lists/hooks";
 import { useMultichainTransactions } from "state/transactions/hooks";
@@ -15,6 +15,7 @@ import {
   AddLiquidityV2PoolTransactionInfo,
   AddLiquidityV3PoolTransactionInfo,
   ApproveTransactionInfo,
+  ClaimRewardsV3TransactionInfo,
   CollectFeesTransactionInfo,
   CreateV3PoolTransactionInfo,
   ExactInputSwapTransactionInfo,
@@ -22,15 +23,13 @@ import {
   MigrateV2LiquidityToV3TransactionInfo,
   RemoveLiquidityV3TransactionInfo,
   SendTransactionInfo,
+  StakeLiquidityV3TransactionInfo,
   TransactionDetails,
   TransactionType,
-  WrapTransactionInfo,
-} from "state/transactions/types";
+  WrapTransactionInfo} from "state/transactions/types";
 
 import { getActivityTitle } from "../constants";
 import { Activity, ActivityMap } from "./types";
-import { isAddress } from "utils";
-import useAllActivities from "graphql/thegraph/useAllActivities";
 
 function getCurrency(
   currencyId: string,
@@ -203,6 +202,23 @@ function parseMigrateCreateV3(
   return { descriptor, currencies: [baseCurrency, quoteCurrency] };
 }
 
+function parseStakeLiquidityV3(
+  stake: StakeLiquidityV3TransactionInfo,
+  chainId: SupportedChainId,
+  tokens: TokenAddressMap
+): Partial<Activity> {
+  const baseCurrency = getCurrency(stake.token0Id, chainId, tokens);
+  const quoteCurrency = getCurrency(stake.token1Id, chainId, tokens);
+
+  return { descriptor: `Stake LP position #${stake.tokenId}`, currencies: [baseCurrency, quoteCurrency] };
+}
+
+function parseClaimStakingReward(
+  claim: ClaimRewardsV3TransactionInfo,
+): Partial<Activity> {
+  return { descriptor: `Claim rewards for LP position #${claim.tokenId}`, currencies: [] };
+}
+
 export function parseLocalActivity(
   details: TransactionDetails,
   chainId: SupportedChainId,
@@ -254,6 +270,10 @@ export function parseLocalActivity(
       info.type === TransactionType.CREATE_V3_POOL
     ) {
       additionalFields = parseMigrateCreateV3(info, chainId, tokens);
+    } else if (info.type === TransactionType.STAKE_LIQUIDITY_V3) {
+      additionalFields = parseStakeLiquidityV3(info, chainId, tokens);
+    } else if (info.type === TransactionType.CLAIM_STAKING_REWARD) {
+      additionalFields = parseClaimStakingReward(info);
     } else if (info.type === TransactionType.SEND) {
       additionalFields = parseSend(info, chainId, tokens);
     }

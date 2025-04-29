@@ -1,26 +1,25 @@
 import { Trans } from '@lingui/macro'
 import { useWeb3React } from '@web3-react/core'
 import { useToggleAccountDrawer } from 'components/AccountDrawer'
-import { ButtonPrimary, ButtonText } from 'components/Button'
+import { ButtonPrimary } from 'components/Button'
 import { AutoColumn } from 'components/Column'
-import { RowBetween, RowFixed } from 'components/Row'
+import PositionListItem from 'components/PositionListItem'
+import { RowBetween } from 'components/Row'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
+import { TOKEN_ADDRESSES } from 'constants/tokens'
+import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
 import { useV3Positions } from 'hooks/useV3Positions'
-import { useMemo, useState, useEffect, useCallback } from 'react'
+import { atom, useAtom } from 'jotai'
+import { isSupportedChainId } from 'lib/hooks/routing/clientSideSmartOrderRouter'
+import { useCallback, useMemo } from 'react'
 import { AlertTriangle, Inbox } from 'react-feather'
-import { Link } from 'react-router-dom'
 import { useUserHideClosedPositions } from 'state/user/hooks'
 import styled, { css, useTheme } from 'styled-components/macro'
 import { ThemedText } from 'theme'
 import { PositionDetails } from 'types/position'
 
-import { LoadingRows } from './styleds'
-import { isSupportedChainId } from 'lib/hooks/routing/clientSideSmartOrderRouter'
 import { PositionsHeader, PositionStatus } from './PositionHeader'
-import PositionListItem from 'components/PositionListItem'
-import { atom, useAtom } from 'jotai'
-import { TOKEN_ADDRESSES } from 'constants/tokens'
-import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
+import { LoadingRows } from './styleds'
 
 const PageWrapper = styled(AutoColumn)`
   padding: 68px 8px 0;
@@ -51,18 +50,6 @@ const TitleRow = styled(RowBetween)`
     width: 100%;
   `};
 `
-const ButtonRow = styled(RowFixed)`
-  & > *:not(:last-child) {
-    margin-left: 8px;
-  }
-
-  ${({ theme }) => theme.deprecated_mediaWidth.deprecated_upToSmall`
-    width: 100%;
-    flex-direction: row;
-    justify-content: space-between;
-    flex-direction: row-reverse;
-  `};
-`
 
 const ErrorContainer = styled.div`
   align-items: center;
@@ -86,17 +73,6 @@ const NetworkIcon = styled(AlertTriangle)`
 
 const InboxIcon = styled(Inbox)`
   ${IconStyle}
-`
-
-const ResponsiveButtonPrimary = styled(ButtonPrimary)`
-  border-radius: 12px;
-  font-size: 16px;
-  padding: 6px 8px;
-  width: fit-content;
-  ${({ theme }) => theme.deprecated_mediaWidth.deprecated_upToSmall`
-    flex: 1 1 auto;
-    width: 100%;
-  `};
 `
 
 const MainContentWrapper = styled.main`
@@ -168,43 +144,35 @@ export function WrongNetworkCard({ title }: { title: string }) {
   )
 }
 
-const statusFilterAtom = atom<PositionStatus[]>([PositionStatus.IN_RANGE, PositionStatus.OUT_OF_RANGE])
+const statusFilterAtom = atom<PositionStatus[]>([PositionStatus.IN_RANGE, PositionStatus.OUT_OF_RANGE, PositionStatus.STAKED])
 
 export default function Pool() {
   const { account, chainId } = useWeb3React()
   const toggleWalletDrawer = useToggleAccountDrawer()
   const theme = useTheme()
-  const [userHideClosedPositions, setUserHideClosedPositions] = useUserHideClosedPositions()
+  const [userHideClosedPositions] = useUserHideClosedPositions()
   const [statusFilter, setStatusFilter] = useAtom(statusFilterAtom)
-
-  const [, setForceUpdate] = useState(0)
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setForceUpdate(prev => prev + 1)
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [])
 
   const { positions, loading: positionsLoading } = useV3Positions(account)
   
-  const isValidToken = (address: string) => {
+  const isValidToken = useCallback((address: string) => {
     return Object.values(TOKEN_ADDRESSES).some(
       tokenAddress => tokenAddress?.address?.toLowerCase() === address.toLowerCase()
     )
-  }
+  }, [])
 
-  const [openPositions, closedPositions] = positions?.reduce<[PositionDetails[], PositionDetails[]]>(
-    (acc, p) => {
-      if (isValidToken(p.token0) && isValidToken(p.token1)) {
-        acc[p.liquidity?.isZero() ? 1 : 0].push(p)
-      }
-      return acc
-    },
-    [[], []]
-  ) ?? [[], []]
-
+  const [openPositions, closedPositions] = useMemo(() => {
+    if (!positions) return [[], []]
+    return positions.reduce<[PositionDetails[], PositionDetails[]]>(
+      (acc, p) => {
+        if (isValidToken(p.token0) && isValidToken(p.token1)) {
+          acc[p.liquidity?.isZero() ? 1 : 0].push(p)
+        }
+        return acc
+      },
+      [[], []]
+    )
+  }, [positions, isValidToken])
 
   const filteredPositions = useMemo(
     () => [...openPositions, ...(userHideClosedPositions ? [] : closedPositions)],
@@ -260,7 +228,6 @@ export default function Pool() {
   }
 
   const showConnectAWallet = Boolean(!account)
-
   return (
     <>
       <PageWrapper>
@@ -276,6 +243,7 @@ export default function Pool() {
               <>
                 {filteredPositions.map((p) => (
                   <PositionListItem 
+                    staked={p.staked}
                     key={p.tokenId.toString()} 
                     {...p} 
                     filterStatus={statusFilter}

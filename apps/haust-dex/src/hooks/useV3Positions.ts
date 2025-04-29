@@ -7,7 +7,10 @@ import {
 import { useMemo } from "react";
 import { PositionDetails } from "types/position";
 
-import { useV3NFTPositionManagerContract } from "./useContract";
+import {
+  useUniswapV3StakerContract,
+  useV3NFTPositionManagerContract,
+} from "./useContract";
 
 interface UseV3PositionsResults {
   loading: boolean;
@@ -97,7 +100,8 @@ export function useV3Positions(
   account: string | null | undefined
 ): UseV3PositionsResults {
   const positionManager = useV3NFTPositionManagerContract();
-
+  const staker = useUniswapV3StakerContract(true);
+  
   const { loading: balanceLoading, result: balanceResult } =
     useSingleCallResult(positionManager, "balanceOf", [account ?? undefined]);
 
@@ -135,11 +139,43 @@ export function useV3Positions(
     return [];
   }, [account, tokenIdResults]);
 
-  const { positions, loading: positionsLoading } =
+  const {
+    loading: stakedPositionsResultLoading,
+    result: stakedPositionsResult,
+  } = useSingleCallResult(staker, "getAllUsersDepositedNFT", [
+    account ?? undefined,
+  ]);
+
+  const stakedTokenIds = useMemo(() => {
+    if (!account || !stakedPositionsResult || !stakedPositionsResult[0])
+      return [];
+
+    const tokenIdsArray = stakedPositionsResult[0];
+    return tokenIdsArray.map((id: any) => BigNumber.from(id));
+  }, [account, stakedPositionsResult]);
+
+  const { positions: stakedPositions, loading: stakedPositionsLoading } =
+    useV3PositionsFromTokenIds(stakedTokenIds);
+
+  const { positions: regularPositions, loading: regularPositionsLoading } =
     useV3PositionsFromTokenIds(tokenIds);
 
+  const positions = useMemo(() => {
+    const staked =
+      stakedPositions?.map((position) => ({ ...position, staked: true })) ?? [];
+    const regular =
+      regularPositions?.map((position) => ({ ...position, staked: false })) ??
+      [];
+    return [...staked.reverse(), ...regular.reverse()];
+  }, [stakedPositions, regularPositions]);
+
   return {
-    loading: someTokenIdsLoading || balanceLoading || positionsLoading,
+    loading:
+      someTokenIdsLoading ||
+      balanceLoading ||
+      stakedPositionsLoading ||
+      regularPositionsLoading ||
+      stakedPositionsResultLoading,
     positions,
   };
 }
