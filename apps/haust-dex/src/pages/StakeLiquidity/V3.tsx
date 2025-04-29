@@ -168,10 +168,10 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
   }, [])
 
   const pendingText = (
-    <Trans>
+    <div>
       Staking {position?.amount0.toSignificant(6)} {token0?.symbol} and{' '}
       {position?.amount1.toSignificant(6)} {token1?.symbol}
-    </Trans>
+    </div>
   )
 
   function modalHeader() {
@@ -234,6 +234,35 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
         <Wrapper>
           {position ? (
             <AutoColumn gap="lg">                
+                {/* <AutoColumn gap="sm" style={{ width: '100%', height: '100%' }}>
+                  <DarkCard>
+                    <AutoColumn gap="md">
+                      <Label>
+                        <Trans>Position Details</Trans>
+                      </Label>
+                      <LightCard padding="12px 16px">
+                        <AutoColumn gap="md">
+                          <RowBetween>
+                            <ThemedText.DeprecatedMain>
+                              <Trans>Token Amount 0:</Trans>
+                            </ThemedText.DeprecatedMain>
+                            <ThemedText.DeprecatedMain>
+                              {position.amount0.toSignificant(6)}
+                            </ThemedText.DeprecatedMain>
+                          </RowBetween>
+                          <RowBetween>
+                            <ThemedText.DeprecatedMain>
+                              <Trans>Token Amount 1:</Trans>
+                            </ThemedText.DeprecatedMain>
+                            <ThemedText.DeprecatedMain>
+                              {position.amount1.toSignificant(6)}
+                            </ThemedText.DeprecatedMain>
+                          </RowBetween>
+                        </AutoColumn>
+                      </LightCard>
+                    </AutoColumn>
+                  </DarkCard>
+                </AutoColumn> */}
               <RowBetween>
                 <RowFixed>
                   <DoubleCurrencyLogo

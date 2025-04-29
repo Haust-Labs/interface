@@ -26,7 +26,6 @@ export function useV3StakingRewardInfo(
   tokenId: string
 ): UseV3StakingRewardInfoResults {
   const staker = useUniswapV3StakerContract();
-  console.log('staker', incentive, tokenId)
   const { loading, result: activeIncentives } = useSingleCallResult(
     staker,
     "getRewardInfo",

@@ -164,9 +164,9 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
   }, [])
 
   const pendingText = (
-    <Trans>
+    <div>
       Claiming rewards for {tokenId.toString()}
-    </Trans>
+    </div>
   )
 
   function modalHeader() {
