@@ -72,7 +72,7 @@ export default function RewardLabel({
     return () => clearInterval(interval)
   }, [incentive.endTime])
 
-  if (!rewardInfo) {
+  if (!rewardInfo || rewardInfo.reward <= 0.00000001) {
     return null
   }
 

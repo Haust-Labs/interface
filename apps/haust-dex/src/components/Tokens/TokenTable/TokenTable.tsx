@@ -1,5 +1,4 @@
 import { Trans } from '@lingui/macro'
-import {useTopTokensApi} from 'api/TopTokens';
 import {validateUrlChainParam} from "api/util";
 import { PAGE_SIZE, useTopTokens } from 'graphql/data/TopTokens'
 import { ReactNode } from 'react'

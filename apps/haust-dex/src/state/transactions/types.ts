@@ -1,4 +1,4 @@
-import { TradeType } from "@uniswap/sdk-core";
+import { Currency, NativeCurrency, TradeType } from "@uniswap/sdk-core";
 
 export interface SerializableTransactionReceipt {
   to: string;
@@ -43,6 +43,7 @@ export enum TransactionType {
   CANCEL,
   STAKE_LIQUIDITY_V3,
   CLAIM_STAKING_REWARD,
+  UNSTAKE_LIQUIDITY_V3,
 }
 
 interface BaseTransactionInfo {
@@ -185,7 +186,15 @@ export interface StakeLiquidityV3TransactionInfo {
 
 export interface ClaimRewardsV3TransactionInfo {
   type: TransactionType.CLAIM_STAKING_REWARD;
+  rewardToken: NativeCurrency | Currency;
+  rewardAmount: string;
+}
+
+export interface UnstakeLiquidityV3TransactionInfo {
+  type: TransactionType.UNSTAKE_LIQUIDITY_V3;
   tokenId: string;
+  token0Id: string;
+  token1Id: string;
 }
 
 export type TransactionInfo =
@@ -208,7 +217,8 @@ export type TransactionInfo =
   | SubmitProposalTransactionInfo
   | SendTransactionInfo
   | StakeLiquidityV3TransactionInfo
-  | ClaimRewardsV3TransactionInfo;
+  | ClaimRewardsV3TransactionInfo
+  | UnstakeLiquidityV3TransactionInfo;
 
 export interface TransactionDetails {
   hash: string;

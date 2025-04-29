@@ -10,6 +10,8 @@ import styled from 'styled-components/macro'
 import { ThemedText } from 'theme'
 
 import { SmallButtonPrimary } from '../../components/Button'
+import { useUSDPrice } from 'hooks/useUSDPrice'
+import tryParseCurrencyAmount from 'lib/utils/tryParseCurrencyAmount'
 
 // responsive text
 // disable the warning because we don't use the end prop, we just want to filter it out
@@ -41,6 +43,8 @@ export function RewardInfo({tokenId, stakedInfo}: {tokenId: string, stakedInfo: 
     rewardAmount
   }
 
+  const parsedRewardAmount = tryParseCurrencyAmount(rewardAmount?.reward.toString(), rewardToken)
+  const fiatValue = useUSDPrice(parsedRewardAmount)
   return (
         <DarkCard>
           <AutoColumn gap="md" style={{ width: '100%' }}>
@@ -65,7 +69,11 @@ export function RewardInfo({tokenId, stakedInfo}: {tokenId: string, stakedInfo: 
                           ? Number(rewardInfo.rewardAmount.reward) < 0.01
                             ? '<0.01'
                             : Number(rewardInfo.rewardAmount.reward).toFixed(2)
-                          : '-'}
+                          : '-'} {fiatValue?.data 
+                              ? Number(fiatValue.data) < 0.01
+                                ? '(<$0.01)'
+                                : `($${fiatValue.data.toFixed(2)})`
+                              : ''}
                       </ThemedText.DeprecatedMain>
                     </RowFixed>
                   </RowBetween>
@@ -84,7 +92,7 @@ export function RewardInfo({tokenId, stakedInfo}: {tokenId: string, stakedInfo: 
               ) : (
                 <SmallButtonPrimary
                   as={Link}
-                  to={`/unstake/${tokenId}`}
+                  to={`/claim/${tokenId}`}
                   padding="6px 8px"
                   width="fit-content"
                   $borderRadius="12px"

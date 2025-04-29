@@ -4,8 +4,6 @@ import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Percent, Price, Token } from '@uniswap/sdk-core'
 import { NonfungiblePositionManager, Pool, Position } from '@uniswap/v3-sdk'
 import { useWeb3React } from '@web3-react/core'
-import {useTokenApi} from "api/Token";
-import BigNumber from "bignumber.js";
 // import { sendEvent } from 'components/analytics'
 import Badge from 'components/Badge'
 import { ButtonConfirmed, ButtonPrimary } from 'components/Button'
@@ -21,13 +19,12 @@ import TransactionConfirmationModal, { ConfirmationModalContent } from 'componen
 import { formatPrice, NumberType } from 'conedison/format'
 import { CHAIN_IDS_TO_NAMES, isSupportedChain } from 'constants/chains'
 import {BigNumber as BN } from 'ethers';
-import {HistoryDuration} from "graphql/data/__generated__/types-and-hooks";
 import { isGqlSupportedChain } from 'graphql/data/util'
 import { useToken } from 'hooks/Tokens'
 import { useV3NFTPositionManagerContract } from 'hooks/useContract'
 import useIsTickAtLimit from 'hooks/useIsTickAtLimit'
 import { PoolState, usePool } from 'hooks/usePools'
-import useStablecoinPrice from 'hooks/useStablecoinPrice'
+import { useV3Incentive } from 'hooks/useV3Incentive'
 import { useV3PositionFees } from 'hooks/useV3PositionFees'
 import { useV3PositionFromTokenId } from 'hooks/useV3Positions'
 import { useSingleCallResult } from 'lib/hooks/multicall'
@@ -52,9 +49,8 @@ import { usePositionTokenURI } from '../../hooks/usePositionTokenURI'
 import { TransactionType } from '../../state/transactions/types'
 import { calculateGasMargin } from '../../utils/calculateGasMargin'
 import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
-import { LoadingRows } from './styleds'
-import { useV3Incentive } from 'hooks/useV3Incentive'
 import { RewardInfo } from './RewardInfo'
+import { LoadingRows } from './styleds'
 
 const getTokenLink = (chainId: any, address: string) => {
   if (isGqlSupportedChain(chainId)) {
@@ -503,56 +499,7 @@ function PositionPageContent() {
   const [collectMigrationHash, setCollectMigrationHash] = useState<string | null>(null)
   const isCollectPending = useIsTransactionPending(collectMigrationHash ?? undefined)
   const [showConfirm, setShowConfirm] = useState(false)
-
-  // usdc prices always in terms of tokens
-  const price0 = useStablecoinPrice(token0 ?? undefined)
-  const price1 = useStablecoinPrice(token1 ?? undefined)
-
-  const { data: token0Api } = useTokenApi(token0?.address, HistoryDuration.Year);
-  const { data: token1Api } = useTokenApi(token1?.address, HistoryDuration.Year);
   
-  const fiatValueOfLiquidityApi: BigNumber | null = useMemo(() => {
-    if (!token0Api || !token1Api || !position) return null;
-    const price0Api = new BigNumber(token0Api.priceUsd);
-    const price1Api = new BigNumber(token1Api.priceUsd);
-    const amount0 = price0Api.multipliedBy(position.amount0.toFixed());
-    const amount1 = price1Api.multipliedBy(position.amount1.toFixed())
-    return amount0.plus(amount1)
-  }, [position, token0Api, token1Api])
-
-  const fiatValueOfFeesApi: BigNumber | null = useMemo(() => {
-    if (!token0Api || !token1Api || !feeValue0 || !feeValue1) return null
-    const price0Api = new BigNumber(token0Api.priceUsd);
-    const price1Api = new BigNumber(token1Api.priceUsd);
-    const feeValue0Wrapped = feeValue0?.wrapped
-    const feeValue1Wrapped = feeValue1?.wrapped
-
-    if (!feeValue0Wrapped || !feeValue1Wrapped) return null
-    const amount0 = price0Api.multipliedBy(feeValue0.wrapped.toFixed());
-    const amount1 = price1Api.multipliedBy(feeValue1.wrapped.toFixed())
-    return amount0.plus(amount1)
-  }, [feeValue0, feeValue1, token0Api, token1Api])
-
-  const fiatValueOfFees: CurrencyAmount<Currency> | null = useMemo(() => {
-    if (!price0 || !price1 || !feeValue0 || !feeValue1) return null
-
-    // we wrap because it doesn't matter, the quote returns a USDC amount
-    const feeValue0Wrapped = feeValue0?.wrapped
-    const feeValue1Wrapped = feeValue1?.wrapped
-
-    if (!feeValue0Wrapped || !feeValue1Wrapped) return null
-
-    const amount0 = price0.quote(feeValue0Wrapped)
-    const amount1 = price1.quote(feeValue1Wrapped)
-    return amount0.add(amount1)
-  }, [price0, price1, feeValue0, feeValue1])
-
-  const fiatValueOfLiquidity: CurrencyAmount<Token> | null = useMemo(() => {
-    if (!price0 || !price1 || !position) return null
-    const amount0 = price0.quote(position.amount0)
-    const amount1 = price1.quote(position.amount1)
-    return amount0.add(amount1)
-  }, [price0, price1, position])
 
   const addTransaction = useTransactionAdder()
   const positionManager = useV3NFTPositionManagerContract()
@@ -694,7 +641,7 @@ function PositionPageContent() {
     return <PositionPageUnsupportedContent />
   }
 
-  return loading || poolState === PoolState.LOADING || !feeAmount ? (
+  return loading || incentivesLoading || poolState === PoolState.LOADING || !feeAmount ? (
     <LoadingRows>
       <div />
       <div />
@@ -813,7 +760,7 @@ function PositionPageContent() {
                     alignItems: 'center',
                     flexDirection: 'column',
                     justifyContent: 'space-around',
-                    height: isPositionStaked ? '470px' : '100%'
+                    height: isPositionStaked ? '510px' : '100%'
                   }}
                 >
                   <NFT image={metadata.result.image} height={400} />
@@ -887,6 +834,17 @@ function PositionPageContent() {
                       $borderRadius="12px"
                     >
                       Stake Position
+                    </SmallButtonPrimary>
+                  )}
+                  {incentive && !removed && isPositionStaked && (
+                    <SmallButtonPrimary
+                      as={Link}
+                      to={`/unstake/${tokenId}`}
+                      padding="6px 8px"
+                      width="fit-content"
+                      $borderRadius="12px"
+                    >
+                      Unstake position
                     </SmallButtonPrimary>
                   )}
                 </AutoColumn>

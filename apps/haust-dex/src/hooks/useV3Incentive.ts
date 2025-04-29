@@ -22,7 +22,10 @@ export function useV3Incentive(): UseV3IncentivesCreatedResults {
   const { loading, result: activeIncentives } = useSingleCallResult(
     staker,
     "getAllIncentivesWithTokens",
-    []
+    [],
+    {
+      blocksPerFetch: 1,
+    }
   );
 
   const incentiveEvents = useMemo(() => {

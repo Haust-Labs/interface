@@ -32,7 +32,7 @@ import RemoveLiquidityV3 from './RemoveLiquidity/V3'
 import StakeLiquidityV3 from './StakeLiquidity/V3'
 import Swap from './Swap'
 import Tokens, { ExploreTab } from './Tokens'
-import UnStakeLiquidityV3 from './UnStakeLiquidity/V3'
+import ClaimRewardsV3 from './UnStakeLiquidity/V3'
 
 const TokenDetails = lazy(() => import('./TokenDetails'))
 const PoolDetails = lazy(() => import('./PoolDetails'))
@@ -156,8 +156,10 @@ export default function App() {
                 </Route>
 
                 <Route path="stake/:tokenId" element={<StakeLiquidityV3 />} />
-                <Route path="unstake/:tokenId" element={<UnStakeLiquidityV3 />} />
-              
+                <Route path="claim/:tokenId" element={<ClaimRewardsV3 />} />
+                <Route path="unstake/:tokenId" element={<StakeLiquidityV3 />} />
+
+
                 <Route path="remove/v2/:currencyIdA/:currencyIdB" element={<RemoveLiquidity />} />
                 <Route path="remove/:tokenId" element={<RemoveLiquidityV3 />} />
 

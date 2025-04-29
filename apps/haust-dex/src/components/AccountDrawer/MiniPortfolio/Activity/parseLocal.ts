@@ -26,6 +26,7 @@ import {
   StakeLiquidityV3TransactionInfo,
   TransactionDetails,
   TransactionType,
+  UnstakeLiquidityV3TransactionInfo,
   WrapTransactionInfo} from "state/transactions/types";
 
 import { getActivityTitle } from "../constants";
@@ -215,8 +216,24 @@ function parseStakeLiquidityV3(
 
 function parseClaimStakingReward(
   claim: ClaimRewardsV3TransactionInfo,
+  chainId: SupportedChainId,
+  tokens: TokenAddressMap
 ): Partial<Activity> {
-  return { descriptor: `Claim rewards for LP position #${claim.tokenId}`, currencies: [] };
+  const rewardToken = getCurrency('HST', chainId, tokens);
+  const amount = Number(claim.rewardAmount);
+  const formattedAmount = amount < 0.01 ? '<0.01' : amount.toFixed(2);
+  return { descriptor: `Claim ${formattedAmount} ${rewardToken?.symbol}`, currencies: [rewardToken] };
+}
+
+function parseUnstakeLiquidityV3(
+  unstake: UnstakeLiquidityV3TransactionInfo,
+  chainId: SupportedChainId,
+  tokens: TokenAddressMap
+): Partial<Activity> {
+  const baseCurrency = getCurrency(unstake.token0Id, chainId, tokens);
+  const quoteCurrency = getCurrency(unstake.token1Id, chainId, tokens);
+
+  return { descriptor: `Unstake LP position #${unstake.tokenId}`, currencies: [baseCurrency, quoteCurrency] };
 }
 
 export function parseLocalActivity(
@@ -273,7 +290,9 @@ export function parseLocalActivity(
     } else if (info.type === TransactionType.STAKE_LIQUIDITY_V3) {
       additionalFields = parseStakeLiquidityV3(info, chainId, tokens);
     } else if (info.type === TransactionType.CLAIM_STAKING_REWARD) {
-      additionalFields = parseClaimStakingReward(info);
+      additionalFields = parseClaimStakingReward(info, chainId, tokens);
+    } else if (info.type === TransactionType.UNSTAKE_LIQUIDITY_V3) {
+      additionalFields = parseUnstakeLiquidityV3(info, chainId, tokens);
     } else if (info.type === TransactionType.SEND) {
       additionalFields = parseSend(info, chainId, tokens);
     }

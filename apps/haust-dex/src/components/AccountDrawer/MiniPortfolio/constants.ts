@@ -138,6 +138,11 @@ const TransactionTitleTable: { [key in TransactionType]: { [state in Transaction
     [TransactionStatus.Confirmed]: 'Claimed rewards',
     [TransactionStatus.Failed]: 'Claim rewards failed',
   },
+  [TransactionType.UNSTAKE_LIQUIDITY_V3]: {
+    [TransactionStatus.Pending]: 'Unstaking liquidity',
+    [TransactionStatus.Confirmed]: 'Unstaked liquidity',
+    [TransactionStatus.Failed]: 'Unstake liquidity failed',
+  },
 }
 
 const AlternateTransactionTitleTable: { [key in TransactionType]?: { [state in TransactionStatus]: string } } = {
