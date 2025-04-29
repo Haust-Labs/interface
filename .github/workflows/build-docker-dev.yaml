@@ -42,7 +42,7 @@ jobs:
 
       - name: Push Docker image to GHCR
         run: |
-          docker push ghcr.io/${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}:${{ github.ref_name }}
+          docker push ghcr.io/${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}:${{ env.DATE }}
             
       - name: Logout from GitHub Container Registry
         run: docker logout ghcr.io
