@@ -1,20 +1,17 @@
 import { Trans } from '@lingui/macro'
-import { SearchToken } from 'graphql/data/SearchTokens'
+import { TokenData } from 'graphql/thegraph/TopTokensQuery';
 import { useIsNftPage } from 'hooks/useIsNftPage'
 import { Box } from 'nft/components/Box'
 import { Column, Row } from 'nft/components/Flex'
-import {ClockIcon} from "nft/components/icons";
 import { subheadSmall } from 'nft/css/common.css'
 import { GenieCollection } from 'nft/types'
-import { ReactNode, useEffect, useMemo, useState } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
+import { TrendingUp } from 'react-feather';
 import { useLocation } from 'react-router-dom'
 
 import {colors} from "../../theme/colors";
-import { useRecentlySearchedAssets } from './RecentlySearchedAssets'
 import * as styles from './SearchBar.css'
 import { SkeletonRow, TokenRow } from './SuggestionRow'
-import { TrendingUp } from 'react-feather';
-import { TokenData } from 'graphql/thegraph/TopTokensQuery';
 
 interface SearchBarDropdownSectionProps {
   toggleOpen: () => void

@@ -215,7 +215,7 @@ function TransactionSubmittedContent({
               <AutoColumn gap="16px" style={{ padding: '20px' }}>
                 <RowBetween>
                   <ThemedText.SubHeader color="textSecondary">
-                    <Trans>Pool</Trans>
+                      Pool
                   </ThemedText.SubHeader>
                   <ThemedText.SubHeader>
                     <span style={{ fontWeight: '600' }}>
@@ -261,13 +261,13 @@ function TransactionSubmittedContent({
             !success ? (
               <ButtonLight mt="12px" padding="6px 12px" width="fit-content" onClick={addLpToken}>
                 <RowFixed>
-                  <Trans>Add LP-token to wallet</Trans>
+                    Add LP-token to wallet
                 </RowFixed>
               </ButtonLight>
             ) : (
               <ThemedText.MediumHeader textAlign="center" marginTop="12px">
                 <RowFixed>
-                  <Trans>Added LP-token to wallet</Trans>
+                    Added LP-token to wallet
                   <CheckCircle size="16px" stroke={theme.accentSuccess} style={{ marginLeft: '6px' }} />
                 </RowFixed>
               </ThemedText.MediumHeader>

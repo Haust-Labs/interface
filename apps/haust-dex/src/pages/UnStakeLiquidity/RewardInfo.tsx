@@ -3,8 +3,11 @@ import { LightCard } from 'components/Card'
 import { AutoColumn } from 'components/Column'
 import CurrencyLogo from 'components/Logo/CurrencyLogo'
 import { RowBetween, RowFixed } from 'components/Row'
+import { useUSDPrice } from 'hooks/useUSDPrice'
 import { useV3StakingRewardInfo, V3StakingRewardInfo } from 'hooks/useV3StakingRewardInfo'
 import useNativeCurrency from 'lib/hooks/useNativeCurrency'
+import tryParseCurrencyAmount from 'lib/utils/tryParseCurrencyAmount'
+import { useEffect } from 'react'
 import styled from 'styled-components/macro'
 import { ThemedText } from 'theme'
 
@@ -27,7 +30,15 @@ export const ResponsiveRow = styled(RowBetween)`
   }
 `
 
-export function RewardInfo({tokenId, stakedInfo}: {tokenId: string, stakedInfo: V3StakingRewardInfo}) {
+export function RewardInfo({
+  tokenId, 
+  stakedInfo,
+  onRewardAmountChange
+}: {
+  tokenId: string, 
+  stakedInfo: V3StakingRewardInfo,
+  onRewardAmountChange?: (amount: string) => void
+}) {
   const { rewardInfo: rewardAmount } = useV3StakingRewardInfo(
     stakedInfo!,
     tokenId!
@@ -37,6 +48,15 @@ export function RewardInfo({tokenId, stakedInfo}: {tokenId: string, stakedInfo: 
     rewardToken,
     rewardAmount
   }
+
+  const parsedRewardAmount = tryParseCurrencyAmount(rewardAmount?.reward.toString(), rewardToken)
+  const fiatValue = useUSDPrice(parsedRewardAmount)
+
+  useEffect(() => {
+    if (rewardAmount?.reward && onRewardAmountChange) {
+      onRewardAmountChange(rewardAmount.reward.toString())
+    }
+  }, [rewardAmount, onRewardAmountChange])
 
   return (
     <LightCard>
@@ -56,7 +76,11 @@ export function RewardInfo({tokenId, stakedInfo}: {tokenId: string, stakedInfo: 
                 ? Number(rewardInfo.rewardAmount.reward) < 0.01
                   ? '<0.01'
                   : Number(rewardInfo.rewardAmount.reward).toFixed(2)
-                : '-'}
+                : '-'} {fiatValue?.data 
+                  ? Number(fiatValue.data) < 0.01
+                    ? '(<$0.01)'
+                    : `($${fiatValue.data.toFixed(2)})`
+                  : ''}
             </ThemedText.DeprecatedMain>
           </RowFixed>
         </RowBetween>

@@ -1,9 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import { t, Trans } from '@lingui/macro'
-import {useSearchTokensApi} from "api/SearchTokens";
 import clsx from 'clsx'
-import { useNftGraphqlEnabled } from 'featureFlags/flags/nftlGraphql'
-import { useCollectionSearch } from 'graphql/data/nft/CollectionSearch'
+import useTopTokensQuery from 'graphql/thegraph/TopTokensQuery';
 import useDebounce from 'hooks/useDebounce'
 import { useOnClickOutside } from 'hooks/useOnClickOutside'
 import {noop} from "lodash";
@@ -20,7 +18,6 @@ import { colors } from 'theme/colors'
 import { NavIcon } from './NavIcon'
 import * as styles from './SearchBar.css'
 import { SearchBarDropdown } from './SearchBarDropdown'
-import useTopTokensQuery from 'graphql/thegraph/TopTokensQuery';
 
 export const SearchBar = () => {
   const [isOpen, toggleOpen] = useReducer((state: boolean) => !state, false)

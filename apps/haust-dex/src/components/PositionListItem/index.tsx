@@ -429,24 +429,19 @@ export default function PositionListItem({
         if (staked || outOfRange || removed) return null
       } else if (filterStatus.includes(PositionStatus.OUT_OF_RANGE)) {
         if (staked || !outOfRange || removed) return null
+      } else if (filterStatus.includes(PositionStatus.STAKING_AVAILABLE)) {
+        if (!isStakingAvailable || staked || removed) return null
       }
     } else {
-      // Multiple filters selected
-      if (removed) {
-        if (!filterStatus.includes(PositionStatus.CLOSED)) return null
-      } else {
-        // If position is staked, only check for STAKED filter
-        if (staked) {
-          if (!filterStatus.includes(PositionStatus.STAKED)) return null
-        } else {
-          // For non-staked positions, check range filters
-          const matchesInRange = filterStatus.includes(PositionStatus.IN_RANGE) && !outOfRange
-          const matchesOutOfRange = filterStatus.includes(PositionStatus.OUT_OF_RANGE) && outOfRange
+      // Multiple filters selected - show if position matches ANY of the selected filters
+      const matchesStaked = filterStatus.includes(PositionStatus.STAKED) && staked
+      const matchesClosed = filterStatus.includes(PositionStatus.CLOSED) && removed
+      const matchesInRange = filterStatus.includes(PositionStatus.IN_RANGE) && !outOfRange && !staked && !removed
+      const matchesOutOfRange = filterStatus.includes(PositionStatus.OUT_OF_RANGE) && outOfRange && !staked && !removed
+      const matchesStakingAvailable = filterStatus.includes(PositionStatus.STAKING_AVAILABLE) && isStakingAvailable && !staked && !removed
 
-          if (!matchesInRange && !matchesOutOfRange) {
-            return null
-          }
-        }
+      if (!matchesStaked && !matchesClosed && !matchesInRange && !matchesOutOfRange && !matchesStakingAvailable) {
+        return null
       }
     }
   }
@@ -469,7 +464,7 @@ export default function PositionListItem({
                   <FeeTierText>
                     <Trans>{new Percent(feeAmount, 1_000_000).toSignificant()}%</Trans>
                   </FeeTierText>
-                  {isStakingAvailable && !staked && (
+                  {isStakingAvailable && !staked && !removed && (
                     <StakingLabel>
                         Staking Available
                     </StakingLabel>

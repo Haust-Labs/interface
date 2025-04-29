@@ -24,6 +24,7 @@ import {
   StakeLiquidityV3TransactionInfo,
   TransactionInfo,
   TransactionType,
+  UnstakeLiquidityV3TransactionInfo,
   WrapTransactionInfo,
 } from '../../state/transactions/types'
 
@@ -107,7 +108,18 @@ function StakeLiquidityV3Summary({ info }: { info: StakeLiquidityV3TransactionIn
 function ClaimStakingRewardSummary({ info }: { info: ClaimRewardsV3TransactionInfo }) {
   return (
     <div>
-      Claim rewards for {info.tokenId}
+      Claim {info.rewardAmount} {info.rewardToken?.symbol}
+    </div>
+  )
+}
+
+function UnstakeLiquidityV3Summary({ info }: { info: UnstakeLiquidityV3TransactionInfo }) {
+  const token0 = useCurrency(info.token0Id)
+  const token1 = useCurrency(info.token1Id)
+
+  return (
+    <div>
+      Unstake {token0?.symbol}/{token1?.symbol} LP position #{info.tokenId}
     </div>
   )
 }
@@ -354,5 +366,8 @@ export function TransactionSummary({ info }: { info: TransactionInfo }) {
 
     case TransactionType.CLAIM_STAKING_REWARD:
       return <ClaimStakingRewardSummary info={info} />
+
+    case TransactionType.UNSTAKE_LIQUIDITY_V3:
+      return <UnstakeLiquidityV3Summary info={info} />
   }
 }

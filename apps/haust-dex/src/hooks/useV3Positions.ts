@@ -29,7 +29,10 @@ function useV3PositionsFromTokenIds(
   const results = useSingleContractMultipleData(
     positionManager,
     "positions",
-    inputs
+    inputs,
+    {
+      blocksPerFetch: 1,
+    }
   );
 
   const loading = useMemo(
@@ -103,7 +106,9 @@ export function useV3Positions(
   const staker = useUniswapV3StakerContract(true);
   
   const { loading: balanceLoading, result: balanceResult } =
-    useSingleCallResult(positionManager, "balanceOf", [account ?? undefined]);
+    useSingleCallResult(positionManager, "balanceOf", [account ?? undefined], {
+      blocksPerFetch: 1,
+    });
 
   // we don't expect any account balance to ever exceed the bounds of max safe int
   const accountBalance: number | undefined = balanceResult?.[0]?.toNumber();
@@ -122,7 +127,10 @@ export function useV3Positions(
   const tokenIdResults = useSingleContractMultipleData(
     positionManager,
     "tokenOfOwnerByIndex",
-    tokenIdsArgs
+    tokenIdsArgs,
+    {
+      blocksPerFetch: 1,
+    }
   );
   const someTokenIdsLoading = useMemo(
     () => tokenIdResults.some(({ loading }) => loading),
@@ -142,9 +150,11 @@ export function useV3Positions(
   const {
     loading: stakedPositionsResultLoading,
     result: stakedPositionsResult,
-  } = useSingleCallResult(staker, "getAllUsersDepositedNFT", [
+  } = useSingleCallResult(staker, "getAllUsersStakedNFTs", [
     account ?? undefined,
-  ]);
+  ], {
+    blocksPerFetch: 1,
+  });
 
   const stakedTokenIds = useMemo(() => {
     if (!account || !stakedPositionsResult || !stakedPositionsResult[0])
