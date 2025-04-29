@@ -1,5 +1,4 @@
 import { BigNumber } from '@ethersproject/bignumber'
-import { Trans } from '@lingui/macro'
 import { Percent } from '@uniswap/sdk-core'
 import { Position } from '@uniswap/v3-sdk'
 import { useWeb3React } from '@web3-react/core'
@@ -14,25 +13,26 @@ import CurrencyLogo from 'components/Logo/CurrencyLogo'
 import { AddRemoveTabs } from 'components/NavigationTabs'
 import { RowBetween, RowFixed } from 'components/Row'
 import { isSupportedChain } from 'constants/chains'
+import { ethers } from 'ethers'
 import { useToken } from 'hooks/Tokens'
 import { useUniswapV3StakerContract, useV3NFTPositionManagerContract } from 'hooks/useContract'
 import { usePool } from 'hooks/usePools'
 import { usePositionTokenURI } from 'hooks/usePositionTokenURI'
+import { useV3Incentive } from 'hooks/useV3Incentive'
 import { useV3PositionFromTokenId } from 'hooks/useV3Positions'
 import { NFT, NFTContainer, PositionPageUnsupportedContent } from 'pages/Pool/PositionPage'
 import { useCallback, useMemo, useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Text } from 'rebass'
 import { useTransactionAdder } from 'state/transactions/hooks'
+import { TransactionType } from 'state/transactions/types'
 import { ThemedText } from 'theme'
 import { unwrappedToken } from 'utils/unwrappedToken'
 
 import TransactionConfirmationModal, { ConfirmationModalContent } from '../../components/TransactionConfirmationModal'
 import AppBody from '../AppBody'
 import { Wrapper } from './styled'
-import { ethers } from 'ethers'
-import { useV3Incentive } from 'hooks/useV3Incentive'
-import { TransactionType } from 'state/transactions/types'
+import { RewardInfo } from 'pages/UnStakeLiquidity/RewardInfo'
 
 const DEFAULT_REMOVE_V3_LIQUIDITY_SLIPPAGE_TOLERANCE = new Percent(5, 100)
 
@@ -104,6 +104,11 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
   const addTransaction = useTransactionAdder()
   const positionManager = useV3NFTPositionManagerContract()
   const {incentiveEvents, loading: incentiveLoading } = useV3Incentive()
+  const stakedInfo = incentiveEvents?.find(incentive => 
+    incentive.tokenIds?.includes(Number(tokenId))
+  )
+  const isPositionStaked = !!stakedInfo
+
   const poolIncentive = useMemo(() => {
     if (!incentiveEvents?.length || !token0 || !token1 || !feeAmount) return null;
     // Find matching active incentive for this pool
@@ -114,7 +119,7 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
     );
   }, [feeAmount, incentiveEvents, poolAddress, token0, token1]);
 
-  const burn = useCallback(async () => {
+  const stake = useCallback(async () => {
     setAttemptingTxn(true)
     if (!positionManager || !account || !chainId || !provider || !tokenId || !poolIncentive || !staker) {
       return
@@ -160,26 +165,81 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
     }
   }, [positionManager, account, chainId, provider, tokenId, poolIncentive, staker, addTransaction, token0Address, token1Address])
 
+  const unstake = useCallback(async () => {
+    setAttemptingTxn(true)
+    if (!positionManager || !account || !chainId || !provider || !tokenId || !poolIncentive || !staker || !stakedInfo) {
+      return
+    }
+
+    try {
+      const incentiveKey = {
+        rewardToken: stakedInfo.rewardToken,
+        pool: stakedInfo.pool,
+        startTime: stakedInfo.startTime,
+        endTime: stakedInfo.endTime,
+        refundee: stakedInfo.reward
+      }
+
+      const unstakeData = staker.interface.encodeFunctionData("unstakeToken", [
+        incentiveKey,
+        tokenId.toString()
+      ])
+      
+      const claimRewardData = staker.interface.encodeFunctionData("claimReward", [
+        stakedInfo.rewardToken,
+        account,
+        0 // Claim all available rewards
+      ])
+
+      
+      const withdrawData = staker.interface.encodeFunctionData("withdrawToken", [
+        tokenId.toString(),
+        account,
+        '0x'
+      ])
+
+      const calls = [unstakeData, claimRewardData, withdrawData]
+
+      // Execute multicall transaction
+      const tx = await staker.multicall(calls)
+      
+      addTransaction(tx, {
+        type: TransactionType.UNSTAKE_LIQUIDITY_V3,
+        tokenId: tokenId.toString(),
+        token0Id: token0Address ?? '',
+        token1Id: token1Address ?? '',
+      })
+      
+      setTxnHash(tx.hash)
+      setAttemptingTxn(false)
+
+    } catch (error) {
+      setAttemptingTxn(false)
+      console.error('Failed to stake position:', error)
+    }
+  }, [positionManager, account, chainId, provider, tokenId, poolIncentive, staker, stakedInfo, addTransaction, token0Address, token1Address])
+
   const handleDismissConfirmation = useCallback(() => {
     setShowConfirm(false)
     setAttemptingTxn(false)
     setTxnHash('')
-    navigate('/pools')
+    navigate(`/pools/${tokenId}`)
   }, [])
 
   const pendingText = (
-    <Trans>
-      Staking {position?.amount0.toSignificant(6)} {token0?.symbol} and{' '}
+    <div>
+      {isPositionStaked ? 'Unstaking' : 'Staking'} {position?.amount0.toSignificant(6)} {token0?.symbol} and{' '}
       {position?.amount1.toSignificant(6)} {token1?.symbol}
-    </Trans>
+    </div>
   )
+
 
   function modalHeader() {
     return (
       <AutoColumn gap="sm" style={{ padding: '16px' }}>
         <RowBetween align="flex-end">
           <Text fontSize={16} fontWeight={500}>
-            <Trans>{token0?.symbol}:</Trans>
+            {token0?.symbol}:
           </Text>
           <RowFixed>
             <Text fontSize={16} fontWeight={500} marginLeft="6px">
@@ -190,7 +250,7 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
         </RowBetween>
         <RowBetween align="flex-end">
           <Text fontSize={16} fontWeight={500}>
-            <Trans>{token1?.symbol}:</Trans>
+              {token1?.symbol}:
           </Text>
           <RowFixed>
             <Text fontSize={16} fontWeight={500} marginLeft="6px">
@@ -199,8 +259,8 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
             <CurrencyLogo size="20px" style={{ marginLeft: '8px' }} currency={token1} />
           </RowFixed>
         </RowBetween>
-        <ButtonPrimary mt="16px" onClick={burn}>
-          <Trans>Stake</Trans>
+        <ButtonPrimary mt="16px" onClick={isPositionStaked ? unstake : stake}>
+            {isPositionStaked ? 'Unstake' : 'Stake'}
         </ButtonPrimary>
       </AutoColumn>
     )
@@ -215,7 +275,7 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
         hash={txnHash ?? ''}
         content={() => (
           <ConfirmationModalContent
-            title='Stake Liquidity'
+            title={isPositionStaked ? 'Unstake Liquidity' : 'Stake Liquidity'}
             onDismiss={handleDismissConfirmation}
             topContent={modalHeader}
           />
@@ -234,6 +294,35 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
         <Wrapper>
           {position ? (
             <AutoColumn gap="lg">                
+                {/* <AutoColumn gap="sm" style={{ width: '100%', height: '100%' }}>
+                  <DarkCard>
+                    <AutoColumn gap="md">
+                      <Label>
+                        <Trans>Position Details</Trans>
+                      </Label>
+                      <LightCard padding="12px 16px">
+                        <AutoColumn gap="md">
+                          <RowBetween>
+                            <ThemedText.DeprecatedMain>
+                              <Trans>Token Amount 0:</Trans>
+                            </ThemedText.DeprecatedMain>
+                            <ThemedText.DeprecatedMain>
+                              {position.amount0.toSignificant(6)}
+                            </ThemedText.DeprecatedMain>
+                          </RowBetween>
+                          <RowBetween>
+                            <ThemedText.DeprecatedMain>
+                              <Trans>Token Amount 1:</Trans>
+                            </ThemedText.DeprecatedMain>
+                            <ThemedText.DeprecatedMain>
+                              {position.amount1.toSignificant(6)}
+                            </ThemedText.DeprecatedMain>
+                          </RowBetween>
+                        </AutoColumn>
+                      </LightCard>
+                    </AutoColumn>
+                  </DarkCard>
+                </AutoColumn> */}
               <RowBetween>
                 <RowFixed>
                   <DoubleCurrencyLogo
@@ -273,7 +362,7 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
                 <AutoColumn gap="md">
                   <RowBetween>
                     <Text fontSize={16} fontWeight={500}>
-                      <Trans>{currency0?.symbol}:</Trans>
+                      {currency0?.symbol}:
                     </Text>
                     <RowFixed>
                       <Text fontSize={16} fontWeight={500} marginLeft="6px">
@@ -284,7 +373,7 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
                   </RowBetween>
                   <RowBetween>
                     <Text fontSize={16} fontWeight={500}>
-                      <Trans>{currency1?.symbol}:</Trans>
+                      {currency1?.symbol}:
                     </Text>
                     <RowFixed>
                       <Text fontSize={16} fontWeight={500} marginLeft="6px">
@@ -295,6 +384,16 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
                   </RowBetween>
                 </AutoColumn>
               </LightCard>
+              {stakedInfo && (
+                <LightCard>
+                  <AutoColumn gap="sm">
+                    <ThemedText.SubHeader>
+                      Available rewards for unstaking:
+                    </ThemedText.SubHeader>
+                    <RewardInfo tokenId={tokenId.toString()} stakedInfo={stakedInfo} />
+                  </AutoColumn>
+                </LightCard>
+              )}
 
               <div style={{ display: 'flex' }}>
                 <AutoColumn gap="md" style={{ flex: '1' }}>
@@ -303,7 +402,7 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
                     disabled={removed || !position?.amount0}
                     onClick={() => setShowConfirm(true)}
                   >
-                    {removed ? <Trans>Closed</Trans> : <Trans>Stake</Trans>}
+                    {isPositionStaked ? 'Unstake' : 'Stake'}
                   </ButtonConfirmed>
                 </AutoColumn>
               </div>

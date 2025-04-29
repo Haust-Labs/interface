@@ -1,4 +1,3 @@
-import {useTokenApi} from "api/Token";
 import {validateUrlChainParam} from "api/util";
 import TokenDetails from 'components/Tokens/TokenDetails'
 import { TokenDetailsPageSkeleton } from 'components/Tokens/TokenDetails/Skeleton'

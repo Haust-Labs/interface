@@ -1,5 +1,4 @@
 import { BigNumber } from '@ethersproject/bignumber'
-import { Trans } from '@lingui/macro'
 import { Percent } from '@uniswap/sdk-core'
 import { Position } from '@uniswap/v3-sdk'
 import { useWeb3React } from '@web3-react/core'
@@ -19,6 +18,7 @@ import { usePool } from 'hooks/usePools'
 import { usePositionTokenURI } from 'hooks/usePositionTokenURI'
 import { useV3Incentive } from 'hooks/useV3Incentive'
 import { useV3PositionFromTokenId } from 'hooks/useV3Positions'
+import useNativeCurrency from 'lib/hooks/useNativeCurrency'
 import { NFT, NFTContainer, PositionPageUnsupportedContent } from 'pages/Pool/PositionPage'
 import { useCallback, useMemo, useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -35,7 +35,7 @@ import { Wrapper } from './styled'
 const DEFAULT_REMOVE_V3_LIQUIDITY_SLIPPAGE_TOLERANCE = new Percent(5, 100)
 
 // redirect invalid tokenIds
-export default function UnStakeLiquidityV3() {
+export default function ClaimRewardsV3() {
   const { chainId } = useWeb3React()
   const { tokenId } = useParams<{ tokenId: string }>()
   const location = useLocation()
@@ -105,6 +105,9 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
   const [txnHash, setTxnHash] = useState<string | undefined>()
   const addTransaction = useTransactionAdder()
   const staker = useUniswapV3StakerContract()
+  const rewardToken = useNativeCurrency()
+  const [currentRewardAmount, setCurrentRewardAmount] = useState<string>()
+
   const claimRewards = useCallback(async () => {
     setAttemptingTxn(true)
     if (!account || !chainId || !provider || !tokenId || !stakedInfo || !staker) {
@@ -145,7 +148,8 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
       
       addTransaction(tx, {
         type: TransactionType.CLAIM_STAKING_REWARD,
-        tokenId: tokenId.toString(),
+        rewardToken,
+        rewardAmount: currentRewardAmount || '0'
       })
 
       await tx.wait()
@@ -154,29 +158,29 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
       console.error('Failed to claim rewards:', error)
       setAttemptingTxn(false)
     }
-  }, [account, chainId, provider, tokenId, stakedInfo, staker, addTransaction])
+  }, [account, chainId, provider, tokenId, stakedInfo, staker, addTransaction, rewardToken, currentRewardAmount])
 
   const handleDismissConfirmation = useCallback(() => {
     setShowConfirm(false)
     setAttemptingTxn(false)
     setTxnHash('')
-    navigate('/pools')
+    navigate(`/pools/${tokenId}`)
   }, [])
 
   const pendingText = (
-    <Trans>
+    <div>
       Claiming rewards for {tokenId.toString()}
-    </Trans>
+    </div>
   )
 
   function modalHeader() {
     return (
       <AutoColumn gap="sm" style={{ padding: '16px' }}>
         {stakedInfo && (
-          <RewardInfo tokenId={tokenId.toString()} stakedInfo={stakedInfo} />
+          <RewardInfo tokenId={tokenId.toString()} stakedInfo={stakedInfo} onRewardAmountChange={setCurrentRewardAmount} />
         )}
         <ButtonPrimary mt="16px" onClick={claimRewards}>
-          <Trans>Claim rewards</Trans>
+            Claim rewards
         </ButtonPrimary>
       </AutoColumn>
     )
@@ -247,7 +251,7 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
                   )}
                 </NFTContainer>
               {tokenId && stakedInfo && (
-                <RewardInfo tokenId={tokenId.toString()} stakedInfo={stakedInfo} />
+                <RewardInfo tokenId={tokenId.toString()} stakedInfo={stakedInfo} onRewardAmountChange={setCurrentRewardAmount} />
               )}
 
               <div style={{ display: 'flex' }}>
@@ -257,7 +261,7 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
                     disabled={removed || !position?.amount0}
                     onClick={() => setShowConfirm(true)}
                   >
-                    <Trans>Claim rewards</Trans>
+                      Claim rewards
                   </ButtonConfirmed>
                 </AutoColumn>
               </div>
