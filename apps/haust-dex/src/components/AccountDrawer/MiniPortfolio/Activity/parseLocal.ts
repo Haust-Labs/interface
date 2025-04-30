@@ -27,7 +27,8 @@ import {
   TransactionDetails,
   TransactionType,
   UnstakeLiquidityV3TransactionInfo,
-  WrapTransactionInfo} from "state/transactions/types";
+  WrapTransactionInfo,
+} from "state/transactions/types";
 
 import { getActivityTitle } from "../constants";
 import { Activity, ActivityMap } from "./types";
@@ -37,9 +38,7 @@ function getCurrency(
   chainId: SupportedChainId,
   tokens: TokenAddressMap
 ): Currency | undefined {
-  if (
-    currencyId === "HST"
-  ) {
+  if (currencyId === "HST") {
     return nativeOnChain(chainId);
   }
   return tokens[chainId]?.[currencyId]?.token;
@@ -211,7 +210,10 @@ function parseStakeLiquidityV3(
   const baseCurrency = getCurrency(stake.token0Id, chainId, tokens);
   const quoteCurrency = getCurrency(stake.token1Id, chainId, tokens);
 
-  return { descriptor: `Stake LP position #${stake.tokenId}`, currencies: [baseCurrency, quoteCurrency] };
+  return {
+    descriptor: `Stake LP position #${stake.tokenId}`,
+    currencies: [baseCurrency, quoteCurrency],
+  };
 }
 
 function parseClaimStakingReward(
@@ -219,10 +221,13 @@ function parseClaimStakingReward(
   chainId: SupportedChainId,
   tokens: TokenAddressMap
 ): Partial<Activity> {
-  const rewardToken = getCurrency('HST', chainId, tokens);
+  const rewardToken = getCurrency("HST", chainId, tokens);
   const amount = Number(claim.rewardAmount);
-  const formattedAmount = amount < 0.01 ? '<0.01' : amount.toFixed(2);
-  return { descriptor: `Claim ${formattedAmount} ${rewardToken?.symbol}`, currencies: [rewardToken] };
+  const formattedAmount = amount < 0.01 ? "<0.01" : amount.toFixed(2);
+  return {
+    descriptor: `Claim ${formattedAmount} ${rewardToken?.symbol}`,
+    currencies: [rewardToken],
+  };
 }
 
 function parseUnstakeLiquidityV3(
@@ -232,8 +237,15 @@ function parseUnstakeLiquidityV3(
 ): Partial<Activity> {
   const baseCurrency = getCurrency(unstake.token0Id, chainId, tokens);
   const quoteCurrency = getCurrency(unstake.token1Id, chainId, tokens);
+  const rewardToken = getCurrency("HST", chainId, tokens);
+  const amount = Number(unstake.rewardAmount);
+  const formattedAmount =
+    !unstake.rewardAmount || amount < 0.01 ? "<0.01" : amount.toFixed(2);
 
-  return { descriptor: `Unstake LP position #${unstake.tokenId}`, currencies: [baseCurrency, quoteCurrency] };
+  return {
+    descriptor: `Unstake and claim ${formattedAmount} ${rewardToken?.symbol}`,
+    currencies: [baseCurrency, quoteCurrency],
+  };
 }
 
 export function parseLocalActivity(

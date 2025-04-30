@@ -63,6 +63,7 @@ export function AddRemoveTabs({
   staked,
   hideSettings,
   unstake,
+  claimRewards,
 }: {
   adding: boolean
   creating: boolean
@@ -73,6 +74,7 @@ export function AddRemoveTabs({
   staked?: boolean
   hideSettings?: boolean
   unstake?: boolean
+  claimRewards?: boolean
 }) {
   const theme = useTheme()
   // reset states on back
@@ -112,6 +114,8 @@ export function AddRemoveTabs({
           ) : staked ? (
             <Trans>Stake Liquidity</Trans>
           ) : unstake ? (
+            <Trans>Unstake Liquidity</Trans>
+          ) : claimRewards ? (
             <Trans>Claim rewards</Trans>
           ) : (
             <Trans>Remove Liquidity</Trans>

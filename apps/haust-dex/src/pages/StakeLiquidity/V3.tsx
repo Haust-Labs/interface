@@ -21,6 +21,7 @@ import { usePositionTokenURI } from 'hooks/usePositionTokenURI'
 import { useV3Incentive } from 'hooks/useV3Incentive'
 import { useV3PositionFromTokenId } from 'hooks/useV3Positions'
 import { NFT, NFTContainer, PositionPageUnsupportedContent } from 'pages/Pool/PositionPage'
+import { RewardInfo } from 'pages/UnStakeLiquidity/RewardInfo'
 import { useCallback, useMemo, useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Text } from 'rebass'
@@ -32,7 +33,6 @@ import { unwrappedToken } from 'utils/unwrappedToken'
 import TransactionConfirmationModal, { ConfirmationModalContent } from '../../components/TransactionConfirmationModal'
 import AppBody from '../AppBody'
 import { Wrapper } from './styled'
-import { RewardInfo } from 'pages/UnStakeLiquidity/RewardInfo'
 
 const DEFAULT_REMOVE_V3_LIQUIDITY_SLIPPAGE_TOLERANCE = new Percent(5, 100)
 
@@ -101,6 +101,7 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
   const [showConfirm, setShowConfirm] = useState(false)
   const [attemptingTxn, setAttemptingTxn] = useState(false)
   const [txnHash, setTxnHash] = useState<string | undefined>()
+  const [currentRewardAmount, setCurrentRewardAmount] = useState<string>()
   const addTransaction = useTransactionAdder()
   const positionManager = useV3NFTPositionManagerContract()
   const {incentiveEvents, loading: incentiveLoading } = useV3Incentive()
@@ -208,6 +209,7 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
         tokenId: tokenId.toString(),
         token0Id: token0Address ?? '',
         token1Id: token1Address ?? '',
+        rewardAmount: currentRewardAmount ?? '0',
       })
       
       setTxnHash(tx.hash)
@@ -217,7 +219,7 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
       setAttemptingTxn(false)
       console.error('Failed to stake position:', error)
     }
-  }, [positionManager, account, chainId, provider, tokenId, poolIncentive, staker, stakedInfo, addTransaction, token0Address, token1Address])
+  }, [positionManager, account, chainId, provider, tokenId, poolIncentive, staker, stakedInfo, addTransaction, token0Address, token1Address, currentRewardAmount])
 
   const handleDismissConfirmation = useCallback(() => {
     setShowConfirm(false)
@@ -236,31 +238,51 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
 
   function modalHeader() {
     return (
-      <AutoColumn gap="sm" style={{ padding: '16px' }}>
-        <RowBetween align="flex-end">
-          <Text fontSize={16} fontWeight={500}>
-            {token0?.symbol}:
-          </Text>
-          <RowFixed>
-            <Text fontSize={16} fontWeight={500} marginLeft="6px">
-              {position?.amount0.toSignificant(6)}
-            </Text>
-            <CurrencyLogo size="20px" style={{ marginLeft: '8px' }} currency={token0} />
-          </RowFixed>
-        </RowBetween>
-        <RowBetween align="flex-end">
-          <Text fontSize={16} fontWeight={500}>
-              {token1?.symbol}:
-          </Text>
-          <RowFixed>
-            <Text fontSize={16} fontWeight={500} marginLeft="6px">
-              {position?.amount1.toSignificant(6)}
-            </Text>
-            <CurrencyLogo size="20px" style={{ marginLeft: '8px' }} currency={token1} />
-          </RowFixed>
-        </RowBetween>
+        <AutoColumn gap="sm" style={{ padding: '16px' }}>
+        { isPositionStaked ? (
+            <>
+              <RewardInfo tokenId={tokenId.toString()} stakedInfo={stakedInfo} onRewardAmountChange={setCurrentRewardAmount} />
+              <ThemedText.DeprecatedMain fontSize={14}>
+                  {`* Unstaking will return your LP token # ${tokenId} and automatically claim all pending rewards.`}
+              </ThemedText.DeprecatedMain>
+              {currentRewardAmount && Number(currentRewardAmount) < 0.01 && (
+              <ThemedText.DeprecatedMain fontSize={14}>
+                 *  Your reward is below the display threshold. It will accumulate over time.
+             </ThemedText.DeprecatedMain>
+            )}
+            </>
+        ) : (
+            <>
+            <LightCard>
+            <RowBetween align="flex-end" style={{ marginBottom: '10px' }}>
+                <Text fontSize={16} fontWeight={500}>
+                  {token0?.symbol}:
+                </Text>
+                <RowFixed>
+                  <Text fontSize={16} fontWeight={500} marginLeft="6px">
+                    {position?.amount0.toSignificant(6)}
+                  </Text>
+                  <CurrencyLogo size="20px" style={{ marginLeft: '8px' }} currency={token0} />
+                </RowFixed>
+              </RowBetween>
+              <RowBetween align="flex-end">
+                <Text fontSize={16} fontWeight={500}>
+                  {token1?.symbol}:
+                </Text>
+                <RowFixed>
+                  <Text fontSize={16} fontWeight={500} marginLeft="6px">
+                    {position?.amount1.toSignificant(6)}
+                  </Text>
+                  <CurrencyLogo size="20px" style={{ marginLeft: '8px' }} currency={token1} />
+                </RowFixed>
+              </RowBetween>
+              </LightCard>
+              <ThemedText.DeprecatedMain fontSize={14} style={{ marginTop: '10px' }}>
+              * Staking will lock your LP token and start earning rewards.
+            </ThemedText.DeprecatedMain></>
+        )}
         <ButtonPrimary mt="16px" onClick={isPositionStaked ? unstake : stake}>
-            {isPositionStaked ? 'Unstake' : 'Stake'}
+            Confirm
         </ButtonPrimary>
       </AutoColumn>
     )
@@ -284,12 +306,13 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
       />
       <AppBody $maxWidth="unset">
         <AddRemoveTabs
-          staked={true}
+          staked={isPositionStaked ? false : true}
           creating={false}
           adding={false}
           positionID={tokenId.toString()}
           hideSettings={true}
           defaultSlippage={DEFAULT_REMOVE_V3_LIQUIDITY_SLIPPAGE_TOLERANCE}
+          unstake={isPositionStaked ? true : false}
         />
         <Wrapper>
           {position ? (
@@ -390,7 +413,7 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
                     <ThemedText.SubHeader>
                       Available rewards for unstaking:
                     </ThemedText.SubHeader>
-                    <RewardInfo tokenId={tokenId.toString()} stakedInfo={stakedInfo} />
+                    <RewardInfo tokenId={tokenId.toString()} stakedInfo={stakedInfo} onRewardAmountChange={setCurrentRewardAmount} />
                   </AutoColumn>
                 </LightCard>
               )}
