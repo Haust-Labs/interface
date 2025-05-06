@@ -135,12 +135,23 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
         0 // Claim all available rewards
       ])
 
-      const restakeData = staker.interface.encodeFunctionData("stakeToken", [
-        incentiveKey,
-        tokenId.toString()
-      ])
-
-      const calls = [unstakeData, claimRewardData, restakeData]
+      const currentTimestamp = Math.floor(Date.now() / 1000)
+      const calls = [unstakeData, claimRewardData]
+      
+      if (stakedInfo.endTime > currentTimestamp) {
+        const restakeData = staker.interface.encodeFunctionData("stakeToken", [
+          incentiveKey,
+          tokenId.toString()
+        ])
+        calls.push(restakeData)
+      } else {
+        const withdrawData = staker.interface.encodeFunctionData("withdrawToken", [
+          tokenId.toString(),
+          account,
+          '0x'
+        ])
+        calls.push(withdrawData)
+      }
 
       // Execute multicall transaction
       const tx = await staker.multicall(calls)
