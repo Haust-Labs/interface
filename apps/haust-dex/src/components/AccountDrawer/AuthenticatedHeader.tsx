@@ -7,30 +7,46 @@ import { LoadingBubble } from 'components/Tokens/loading'
 import { formatDelta } from 'components/Tokens/TokenDetails/PriceChart'
 import { formatNumber, NumberType } from 'conedison/format'
 import {useGetConnection} from 'connection'
+import { isSupportedChain } from 'constants/chains'
 import {shortenAddress} from 'nft/utils/address'
-import {useCallback, useEffect, useState} from 'react'
+import {useCallback, useEffect,useState} from 'react'
+import React from 'react'
 import {ArrowDownRight, ArrowUpRight, Copy, IconProps, Power, Settings} from 'react-feather'
 import { useOpenModal } from 'state/application/hooks'
 import { ApplicationModal } from 'state/application/reducer'
 import {useAppDispatch} from 'state/hooks'
+import { useTokensWithBalances } from 'state/tokens/hooks'
 import {updateSelectedWallet} from 'state/user/reducer'
 import styled, {useTheme} from 'styled-components/macro'
 import {CopyHelper, ThemedText} from 'theme'
 import { formatLargeBalance } from 'utils/formatNumbers'
 
-import { useWalletBalance } from '../../hooks/useWalletBalance'
 import StatusIcon from '../Identicon/StatusIcon'
 import { ActionTile } from './ActionTile'
 import IconButton, {IconHoverText} from './IconButton'
 import { MiniPortfolio } from './MiniPortfolio'
 import { portfolioFadeInAnimation } from './MiniPortfolio/PortfolioRow'
-import { isSupportedChain } from 'constants/chains'
 
 const AuthenticatedHeaderWrapper = styled.div`
-  padding: 20px 16px;
+  padding: 20px 16px 0 16px;
   display: flex;
   flex-direction: column;
   flex: 1;
+  border: 1px solid ${({ theme }) => theme.neutralBorder};
+  border-radius: 16px;
+  max-height: 100%;
+`
+
+const ScrollableContent = styled.div`
+  overflow-y: auto;
+  flex: 1;
+  margin: 0 -16px;
+  padding: 0 16px;
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 `
 
 const IconContainer = styled.div`
@@ -100,13 +116,23 @@ export function PortfolioArrow({ change, ...rest }: { change: number } & IconPro
   )
 }
 
-export default function AuthenticatedHeader({ account, openSettings }: { account: string; openSettings: () => void }) {
+export default React.memo(
+  AuthenticatedHeader,
+  (prevProps, nextProps) => {
+    return (
+      prevProps.account === nextProps.account &&
+      prevProps.openSettings === nextProps.openSettings
+    )
+  }
+)
+
+function AuthenticatedHeader({ account, openSettings }: { account: string; openSettings: () => void }) {
   const { connector, ENSName, chainId } = useWeb3React()
   const dispatch = useAppDispatch()
   const openReceiveModal = useOpenModal(ApplicationModal.RECEIVE_CRYPTO)
 
   const [initialLoading, setInitialLoading] = useState(true)
-  const { totalBalance, loading, refetch, absoluteChange, percentChange } = useWalletBalance()
+  const { totalBalance, absoluteChange, percentChange, isLoading } = useTokensWithBalances()
 
   const getConnection = useGetConnection()
   const connection = getConnection(connector)
@@ -118,19 +144,12 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
     dispatch(updateSelectedWallet({ wallet: undefined }))
   }, [connector, dispatch])
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      refetch?.()
-    }, 5000)
-
-    return () => clearInterval(interval)
-  }, [refetch])
 
   useEffect(() => {
-    if (!loading && initialLoading) {
+    if (!isLoading && initialLoading) {
       setInitialLoading(false)
     }
-  }, [loading, initialLoading])
+  }, [isLoading, initialLoading])
 
   return (
     <AuthenticatedHeaderWrapper>
@@ -156,49 +175,51 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
           <IconButton data-testid="wallet-disconnect" onClick={disconnect} Icon={Power} />
         </IconContainer>
       </HeaderWrapper>
-      <PortfolioDrawerContainer>
-        {!initialLoading ? (
-          <FadeInColumn gap="xs">
-            <HeadlineText 
-              data-testid="portfolio-total-balance"
-              isLarge={!isSupportedChain(chainId) ? formatLargeBalance(totalBalance).isLarge : true}
-            >
-              {!isSupportedChain(chainId) 
-                ? formatNumber(0, NumberType.PortfolioBalance)
-                : formatNumber(totalBalance, NumberType.PortfolioBalance)}
-            </HeadlineText>
-            <AutoRow marginBottom="20px">
-                <>
-                  <DeltaArrow delta={isSupportedChain(chainId) ? absoluteChange : 0} />
-                  <ThemedText.BodySecondary>
-                    {isSupportedChain(chainId) 
-                      ? `${formatNumber(
-                          Math.abs(absoluteChange as number),
-                          NumberType.PortfolioBalance,
-                        )} (${formatDelta(percentChange)})`
-                      : `${formatNumber(0, NumberType.PortfolioBalance)} (${formatDelta(0)})`}
-                  </ThemedText.BodySecondary>
-                </>
-            </AutoRow>
-          </FadeInColumn>
-        ) : (
-          <Column gap="xs">
-            <LoadingBubble height="44px" width="170px" />
-            <LoadingBubble height="16px" width="100px" margin="4px 0 20px 0" />
-          </Column>
-        )}
-        <>
-          <Row gap="8px" marginBottom="0px">
-            <ActionTile
-              dataTestId="wallet-recieve-crypto"
-              Icon={<ArrowDownCircleFilled />}
-              name="Recieve"
-              onClick={openReceiveModal}
-            />
-          </Row>
-          <MiniPortfolio account={account} totalBalance={totalBalance} />
-        </>
-      </PortfolioDrawerContainer>
+      <ScrollableContent>
+        <PortfolioDrawerContainer>
+          {!initialLoading ? (
+            <FadeInColumn gap="xs">
+              <HeadlineText 
+                data-testid="portfolio-total-balance"
+                isLarge={!isSupportedChain(chainId) ? formatLargeBalance(totalBalance).isLarge : true}
+              >
+                {!isSupportedChain(chainId) 
+                  ? formatNumber(0, NumberType.PortfolioBalance)
+                  : formatNumber(totalBalance, NumberType.PortfolioBalance)}
+              </HeadlineText>
+              <AutoRow marginBottom="20px">
+                  <>
+                    <DeltaArrow delta={isSupportedChain(chainId) ? percentChange : 0} />
+                    <ThemedText.BodySecondary>
+                      {isSupportedChain(chainId) 
+                        ? `${formatNumber(
+                            Math.abs(absoluteChange as number),
+                            NumberType.PortfolioBalance,
+                          )} (${formatDelta(percentChange)})`
+                        : `${formatNumber(0, NumberType.PortfolioBalance)} (${formatDelta(0)})`}
+                    </ThemedText.BodySecondary>
+                  </>
+              </AutoRow>
+            </FadeInColumn>
+          ) : (
+            <Column gap="xs">
+              <LoadingBubble height="44px" width="170px" />
+              <LoadingBubble height="16px" width="100px" margin="4px 0 20px 0" />
+            </Column>
+          )}
+          <>
+            <Row gap="8px" marginBottom="0px">
+              <ActionTile
+                dataTestId="wallet-recieve-crypto"
+                Icon={<ArrowDownCircleFilled />}
+                name="Recieve"
+                onClick={openReceiveModal}
+              />
+            </Row>
+            <MiniPortfolio account={account} totalBalance={totalBalance} />
+          </>
+        </PortfolioDrawerContainer>
+      </ScrollableContent>
     </AuthenticatedHeaderWrapper>
   )
 }

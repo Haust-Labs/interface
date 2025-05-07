@@ -14,10 +14,19 @@ import { computeRealizedLPFeeAmount, computeRealizedPriceImpact } from '../../ut
 import { AutoColumn } from '../Column'
 import { RowBetween, RowFixed } from '../Row'
 import { MouseoverTooltip } from '../Tooltip'
-import FormattedPriceImpact from './FormattedPriceImpact'
+import FormattedPriceImpact, { formatPriceImpact } from './FormattedPriceImpact'
+import TradePrice from './TradePrice'
+import { formatTransactionAmount } from 'utils/formatNumbers'
+import InfoIcon from 'components/Icons/InfoIcon'
+import { Pool } from '@uniswap/v3-sdk'
 
 const StyledCard = styled(Card)`
   padding: 0;
+`
+
+const StyledInfoIcon = styled(InfoIcon)`
+  display: flex;
+  align-items: center;
 `
 
 interface AdvancedSwapDetailsProps {
@@ -25,6 +34,9 @@ interface AdvancedSwapDetailsProps {
   allowedSlippage: Percent
   syncing?: boolean
   hideInfoTooltips?: boolean
+  showFeeBreakdown?: boolean
+  showRate?: boolean
+  showBasicInfo?: boolean
 }
 
 function TextWithLoadingPlaceholder({
@@ -50,14 +62,14 @@ export function AdvancedSwapDetails({
   allowedSlippage,
   syncing = false,
   hideInfoTooltips = false,
+  showFeeBreakdown = false,
+  showRate = false,
+  showBasicInfo = true,
 }: AdvancedSwapDetailsProps) {
   const theme = useTheme()
-  const { chainId } = useWeb3React()
-  const nativeCurrency = useNativeCurrency()
 
-  const { expectedOutputAmount, priceImpact } = useMemo(() => {
+  const { priceImpact } = useMemo(() => {
     return {
-      expectedOutputAmount: trade?.outputAmount,
       priceImpact: trade ? computeRealizedPriceImpact(trade) : undefined,
     }
   }, [trade])
@@ -67,97 +79,131 @@ export function AdvancedSwapDetails({
   return !trade ? null : (
     <StyledCard>
       <AutoColumn gap="sm">
-        <RowBetween>
-          <RowFixed>
-            <MouseoverTooltip
-              text={
-                <Trans>
-                  The amount you expect to receive at the current market price. You may receive less or more if the
-                  market price changes while your transaction is pending.
-                </Trans>
-              }
-              disableHover={hideInfoTooltips}
-            >
-              <ThemedText.DeprecatedSubHeader color={theme.textPrimary}>
-                <Trans>Expected Output</Trans>
-              </ThemedText.DeprecatedSubHeader>
-            </MouseoverTooltip>
-          </RowFixed>
-          <TextWithLoadingPlaceholder syncing={syncing} width={65}>
-            <ThemedText.BodySecondary textAlign="right" fontSize={14}>
-              {expectedOutputAmount
-                ? `${expectedOutputAmount.toSignificant(6)}  ${expectedOutputAmount.currency.symbol}`
-                : '-'}
-            </ThemedText.BodySecondary>
-          </TextWithLoadingPlaceholder>
-        </RowBetween>
-        <RowBetween>
-          <RowFixed>
-            <MouseoverTooltip
-              text={<Trans>The impact your trade has on the market price of this pool.</Trans>}
-              disableHover={hideInfoTooltips}
-            >
-              <ThemedText.DeprecatedSubHeader color={theme.textPrimary}>
-                <Trans>Price Impact</Trans>
-              </ThemedText.DeprecatedSubHeader>
-            </MouseoverTooltip>
-          </RowFixed>
-          <TextWithLoadingPlaceholder syncing={syncing} width={50}>
-            <ThemedText.DeprecatedBlack textAlign="right" fontSize={14}>
-              <FormattedPriceImpact priceImpact={priceImpact} />
-            </ThemedText.DeprecatedBlack>
-          </TextWithLoadingPlaceholder>
-        </RowBetween>
-        <Separator />
-        <RowBetween>
-          <RowFixed style={{ marginRight: '20px' }}>
-            <MouseoverTooltip
-              text={
-                <Trans>
-                  The minimum amount you are guaranteed to receive. If the price slips any further, your transaction
-                  will revert.
-                </Trans>
-              }
-              disableHover={hideInfoTooltips}
-            >
-              <ThemedText.DeprecatedSubHeader color={theme.textTertiary}>
-                {trade.tradeType === TradeType.EXACT_INPUT ? (
-                  <Trans>Minimum received</Trans>
-                ) : (
-                  <Trans>Maximum sent</Trans>
-                )}{' '}
-                <Trans>after slippage</Trans> ({allowedSlippage.toFixed(2)}%)
-              </ThemedText.DeprecatedSubHeader>
-            </MouseoverTooltip>
-          </RowFixed>
-          <TextWithLoadingPlaceholder syncing={syncing} width={70}>
-            <ThemedText.DeprecatedBlack textAlign="right" fontSize={14} color={theme.textTertiary}>
-              {trade.tradeType === TradeType.EXACT_INPUT
-                ? `${trade.minimumAmountOut(allowedSlippage).toSignificant(6)} ${trade.outputAmount.currency.symbol}`
-                : `${trade.maximumAmountIn(allowedSlippage).toSignificant(6)} ${trade.inputAmount.currency.symbol}`}
-            </ThemedText.DeprecatedBlack>
-          </TextWithLoadingPlaceholder>
-        </RowBetween>
-        {!liquidityProviderFee ? null : (
-          <RowBetween>
-            <MouseoverTooltip
-              text={
-                <Trans>
-                  Fees are applied to ensure the best experience with Haust and have already been factored into this quote.
-                </Trans>
-              }
-              disableHover={hideInfoTooltips}
-            >
-              <ThemedText.DeprecatedSubHeader color={theme.textTertiary}>
-                <Trans>Liquidity provider fee</Trans>
-              </ThemedText.DeprecatedSubHeader>
-            </MouseoverTooltip>
-            <TextWithLoadingPlaceholder syncing={syncing} width={50}>
-              <ThemedText.DeprecatedBlack textAlign="right" fontSize={14} color={theme.textTertiary}>
+        {showFeeBreakdown && (
+          <>
+            <RowBetween>
+              <ThemedText.BodySmall style={{ display: 'flex', alignItems: 'center', gap: '4px', color: theme.textSecondary }}>
+                  Fee ({(trade.swaps[0].route.pools[0] as Pool).fee  / 10000}%)
+                <MouseoverTooltip
+                  text={
+                    <Trans>
+                      Fees are applied to ensure the best experience with Haust and have already been factored into this quote.
+                    </Trans>
+                  }
+                  disableHover={hideInfoTooltips}
+                >
+                  <StyledInfoIcon />
+                </MouseoverTooltip>
+              </ThemedText.BodySmall>
+              <ThemedText.BodySmall>
               {`${liquidityProviderFee?.toSignificant(6)} ${liquidityProviderFee?.currency?.symbol}`}
-              </ThemedText.DeprecatedBlack>
-            </TextWithLoadingPlaceholder>
+              </ThemedText.BodySmall>
+            </RowBetween>
+            <RowBetween>
+              <ThemedText.BodySmall style={{ display: 'flex', alignItems: 'center', gap: '4px', color: theme.textSecondary }}>
+                <Trans>Network cost</Trans>
+                <MouseoverTooltip
+                  text={
+                    <Trans>
+                      This is the cost to process your transaction on the blockchain. Haust does not receive any share of these fees.
+                    </Trans>
+                  }
+                  disableHover={hideInfoTooltips}
+                >
+                  <StyledInfoIcon />
+                </MouseoverTooltip>
+              </ThemedText.BodySmall>
+              <ThemedText.BodySmall>
+                {formatTransactionAmount(0.001)} HAUST
+              </ThemedText.BodySmall>
+            </RowBetween>
+          </>
+        )}
+        
+        {showRate && (
+          <>
+            <RowBetween style={{ marginTop: '8px' }}>
+              <RowFixed>
+              <ThemedText.BodySmall style={{ display: 'flex', alignItems: 'center', gap: '4px', color: theme.textSecondary }}>
+                <Trans>Rate</Trans>
+              </ThemedText.BodySmall>
+            </RowFixed>
+            <TradePrice price={trade.executionPrice} color={theme.textPrimary} fontSize="14px" />
           </RowBetween>
+          </>
+        )}
+        
+        {showBasicInfo && (
+          <>
+            <RowBetween>
+              <RowFixed>
+              <ThemedText.BodySmall style={{ display: 'flex', alignItems: 'center', gap: '4px', color: theme.textSecondary }}>
+                    <Trans>Order routing</Trans>
+                    <MouseoverTooltip
+                      text={
+                        <Trans>
+                          Most efficient route is estimated to cost in network costs.  This route considers split routes, multiple hops, and network costs of each step.
+                        </Trans>
+                      }
+                      disableHover={hideInfoTooltips}
+                    >
+                    <StyledInfoIcon />
+                  </MouseoverTooltip>
+                  </ThemedText.BodySmall>
+              </RowFixed>
+              <ThemedText.BodySmall>
+                  Haustoria API
+              </ThemedText.BodySmall>
+            </RowBetween>
+            <RowBetween>
+              <RowFixed>
+                  <ThemedText.BodySmall style={{ display: 'flex', alignItems: 'center', gap: '4px', color: theme.textSecondary }}>
+                    <Trans>Price Impact</Trans>
+                    <MouseoverTooltip
+                      text={
+                        <Trans>
+                          The impact your trade has on the market price of this pool.
+                        </Trans>
+                      }
+                      disableHover={hideInfoTooltips}
+                    >
+                    <StyledInfoIcon />
+                  </MouseoverTooltip>
+                  </ThemedText.BodySmall>
+              </RowFixed>
+              <TextWithLoadingPlaceholder syncing={syncing} width={50}>
+                <ThemedText.BodySmall>
+                {priceImpact ? formatPriceImpact(priceImpact) : '-'}
+                </ThemedText.BodySmall>
+              </TextWithLoadingPlaceholder>
+            </RowBetween>
+            <RowBetween>
+              <RowFixed style={{ marginRight: '20px' }}>
+                  <ThemedText.BodySmall style={{ display: 'flex', alignItems: 'center', gap: '4px', color: theme.textSecondary }}>
+                      <Trans>Max slippage</Trans>
+                      <MouseoverTooltip
+                      text={
+                        <Trans>
+                         If the price slips any further, your transaction will revert. Below is the maximum amount you would need to spend. {' '}
+                         {trade.tradeType === TradeType.EXACT_INPUT
+                          ? `${trade.minimumAmountOut(allowedSlippage).toSignificant(6)} ${trade.outputAmount.currency.symbol}`
+                          : `${trade.maximumAmountIn(allowedSlippage).toSignificant(6)} ${trade.inputAmount.currency.symbol}`}
+                        </Trans>
+                      }
+                      disableHover={hideInfoTooltips}
+                    >
+                    <StyledInfoIcon />
+                  </MouseoverTooltip>
+                  </ThemedText.BodySmall>
+              </RowFixed>
+              <TextWithLoadingPlaceholder syncing={syncing} width={70}>
+                <ThemedText.BodySmall>
+                  {allowedSlippage.toFixed(2)}%{'  '}
+                  <span style={{ color: theme.accentWarning }}>Auto</span>
+                </ThemedText.BodySmall>
+              </TextWithLoadingPlaceholder>
+            </RowBetween>
+          </>
         )}
       </AutoColumn>
     </StyledCard>

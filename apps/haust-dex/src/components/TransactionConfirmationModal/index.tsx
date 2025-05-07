@@ -2,9 +2,11 @@ import { Trans } from '@lingui/macro'
 import { Currency } from '@uniswap/sdk-core'
 import { useWeb3React } from '@web3-react/core'
 import Badge from 'components/Badge'
+import { LightCard } from 'components/Card'
 import { getChainInfo } from 'constants/chainInfo'
 import { SupportedChainId, SupportedL2ChainId } from 'constants/chains'
 import useCurrencyLogoURIs from 'lib/hooks/useCurrencyLogoURIs'
+import { NFT } from 'pages/Pool/PositionPage'
 import { ReactNode, useCallback, useState } from 'react'
 import { AlertCircle, AlertTriangle, ArrowUpCircle, CheckCircle } from 'react-feather'
 import { Text } from 'rebass'
@@ -24,11 +26,12 @@ import { RowBetween, RowFixed } from '../Row'
 import AnimatedConfirmation from './AnimatedConfirmation'
 
 const Wrapper = styled.div`
-  background-color: ${({ theme }) => theme.backgroundSurface};
+  background-color: ${({ theme }) => theme.backgroundModule};
   border-radius: 20px;
   outline: 1px solid ${({ theme }) => theme.backgroundOutline};
+  border: 1px solid ${({ theme }) => theme.neutralBorder};
   width: 100%;
-  padding: 1rem;
+  padding: 12px;
 `
 const Section = styled(AutoColumn)<{ inline?: boolean }>`
   padding: ${({ inline }) => (inline ? '0' : '0')};
@@ -94,16 +97,27 @@ function TransactionSubmittedContent({
   hash,
   currencyToAdd,
   inline,
+  lpToAdd,
 }: {
   onDismiss: () => void
   hash: string | undefined
   chainId: number
   currencyToAdd?: Currency | undefined
-  inline?: boolean // not in modal
+  inline?: boolean
+  lpToAdd?: {
+    address: string
+    tokenId: string
+    image: string
+    token0Amount: string
+    token1Amount: string
+    token0Symbol: string
+    token1Symbol: string
+    feeTier: number
+    imageRef: string
+  } | undefined
 }) {
   const theme = useTheme()
-
-  const { connector } = useWeb3React()
+  const { connector, provider } = useWeb3React()
 
   const token = currencyToAdd?.wrapped
   const logoURL = useCurrencyLogoURIs(token)[0]
@@ -123,6 +137,28 @@ function TransactionSubmittedContent({
       .catch(() => setSuccess(false))
   }, [connector, logoURL, token])
 
+  const addLpToken = useCallback(async () => {
+    if (!lpToAdd || !provider?.provider?.request) return
+    
+    try {
+        await provider.provider.request({
+          method: 'wallet_watchAsset',
+          params: {
+            type: 'ERC721',
+            options: {
+              address: lpToAdd.address,
+              tokenId: lpToAdd.tokenId,
+              image: lpToAdd.image,
+            }
+          } as any,
+        });
+      setSuccess(true);
+    } catch (error) {
+      console.error('Error adding NFT to wallet:', error);
+      setSuccess(false);
+    }
+  }, [provider, lpToAdd])
+
   return (
     <Wrapper>
       <Section inline={inline}>
@@ -132,9 +168,13 @@ function TransactionSubmittedContent({
             <CloseIcon onClick={onDismiss} />
           </RowBetween>
         )}
+        
+        {!lpToAdd && (
         <ConfirmedIcon inline={inline}>
           <ArrowUpCircle strokeWidth={1} size={inline ? '40px' : '75px'} color={theme.accentActive} />
         </ConfirmedIcon>
+        )}
+
         <AutoColumn gap="md" justify="center" style={{ paddingBottom: '12px' }}>
           <ThemedText.MediumHeader textAlign="center">
             <Trans>Transaction submitted</Trans>
@@ -150,6 +190,84 @@ function TransactionSubmittedContent({
               <ThemedText.MediumHeader textAlign="center" marginTop="12px">
                 <RowFixed>
                   <Trans>Added {currencyToAdd.symbol}</Trans>
+                  <CheckCircle size="16px" stroke={theme.accentSuccess} style={{ marginLeft: '6px' }} />
+                </RowFixed>
+              </ThemedText.MediumHeader>
+            )
+          )}
+          {lpToAdd && (
+          <AutoColumn gap="24px" style={{ margin: '20px 0' }}>
+            <LightCard style={{ 
+              background: 'rgba(0, 0, 0, 0.2)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '16px',
+              margin: '0 12px'
+            }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'center',
+              padding: '20px',
+              borderRadius: '16px',
+              margin: '0 12px'
+            }}>
+              <NFT image={lpToAdd.imageRef} height={200} minHeight={200} disableHover={true} />
+            </div>
+              <AutoColumn gap="16px" style={{ padding: '20px' }}>
+                <RowBetween>
+                  <ThemedText.SubHeader color="textSecondary">
+                      Pool
+                  </ThemedText.SubHeader>
+                  <ThemedText.SubHeader>
+                    <span style={{ fontWeight: '600' }}>
+                      {lpToAdd.token0Symbol}/{lpToAdd.token1Symbol}
+                    </span>
+                    <span style={{ 
+                      marginLeft: '8px',
+                      opacity: 0.7,
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      padding: '4px 8px',
+                      borderRadius: '8px',
+                      fontSize: '14px'
+                    }}>
+                      {lpToAdd.feeTier / 10000}%
+                    </span>
+                  </ThemedText.SubHeader>
+                </RowBetween>
+
+                <div style={{ height: '1px', background: 'rgba(255, 255, 255, 0.05)' }} />
+
+                <RowBetween>
+                  <ThemedText.BodyPrimary color="textSecondary">
+                    {lpToAdd.token0Symbol}
+                  </ThemedText.BodyPrimary>
+                  <ThemedText.BodyPrimary style={{ fontWeight: '600' }}>
+                    {lpToAdd.token0Amount}
+                  </ThemedText.BodyPrimary>
+                </RowBetween>
+
+                <RowBetween>
+                  <ThemedText.BodyPrimary color="textSecondary">
+                    {lpToAdd.token1Symbol}
+                  </ThemedText.BodyPrimary>
+                  <ThemedText.BodyPrimary style={{ fontWeight: '600' }}>
+                    {lpToAdd.token1Amount}
+                  </ThemedText.BodyPrimary>
+                </RowBetween>
+              </AutoColumn>
+            </LightCard>
+          </AutoColumn>
+          )}
+          {lpToAdd && connector.watchAsset && (
+            !success ? (
+              <ButtonLight mt="12px" padding="6px 12px" width="fit-content" onClick={addLpToken}>
+                <RowFixed>
+                    Add LP-token to wallet
+                </RowFixed>
+              </ButtonLight>
+            ) : (
+              <ThemedText.MediumHeader textAlign="center" marginTop="12px">
+                <RowFixed>
+                    Added LP-token to wallet
                   <CheckCircle size="16px" stroke={theme.accentSuccess} style={{ marginLeft: '6px' }} />
                 </RowFixed>
               </ThemedText.MediumHeader>
@@ -179,11 +297,13 @@ export function ConfirmationModalContent({
   topContent: () => ReactNode
   bottomContent?: () => ReactNode | undefined
 }) {
+  const theme = useTheme()
+
   return (
     <Wrapper>
       <Section>
-        <RowBetween>
-          <Text fontWeight={500} fontSize={16}>
+        <RowBetween padding="8px 12px 0px 12px">
+          <Text fontWeight={500} fontSize={18} color={theme.iconPrimary}>
             {title}
           </Text>
           <CloseIcon onClick={onDismiss} data-cy="confirmation-close-icon" />
@@ -324,10 +444,21 @@ interface ConfirmationModalProps {
   isOpen: boolean
   onDismiss: () => void
   hash: string | undefined
-  content: () => ReactNode
+  content?: () => ReactNode
   attemptingTxn: boolean
   pendingText: ReactNode
   currencyToAdd?: Currency | undefined
+  lpToAdd?: {
+    address: string
+    tokenId: string
+    image: string
+    token0Amount: string
+    token1Amount: string
+    token0Symbol: string
+    token1Symbol: string
+    feeTier: number
+    imageRef: string
+  } | undefined
 }
 
 export default function TransactionConfirmationModal({
@@ -338,12 +469,12 @@ export default function TransactionConfirmationModal({
   pendingText,
   content,
   currencyToAdd,
+  lpToAdd,
 }: ConfirmationModalProps) {
   const { chainId } = useWeb3React()
 
   if (!chainId) return null
 
-  // confirmation screen
   return (
     <Modal isOpen={isOpen} $scrollOverlay={true} onDismiss={onDismiss} maxHeight={90}>
       {isL2ChainId(chainId) && (hash || attemptingTxn) ? (
@@ -356,9 +487,10 @@ export default function TransactionConfirmationModal({
           hash={hash}
           onDismiss={onDismiss}
           currencyToAdd={currencyToAdd}
+          lpToAdd={lpToAdd}
         />
       ) : (
-        content()
+        content && content()
       )}
     </Modal>
   )

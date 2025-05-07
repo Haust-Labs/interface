@@ -13,7 +13,6 @@ import { STATSIG_DUMMY_KEY } from 'tracing'
 import { getEnvName } from 'utils/env'
 
 import ErrorBoundary from '../components/ErrorBoundary'
-import { PageTabs } from '../components/NavBar'
 import NavBar from '../components/NavBar'
 import Popups from '../components/Popups'
 import {isSupportedChain, SupportedChainId} from "../constants/chains";
@@ -30,10 +29,13 @@ import PositionPage from './Pool/PositionPage'
 import PoolFinder from './PoolFinder'
 import RemoveLiquidity from './RemoveLiquidity'
 import RemoveLiquidityV3 from './RemoveLiquidity/V3'
+import StakeLiquidityV3 from './StakeLiquidity/V3'
 import Swap from './Swap'
-import Tokens from './Tokens'
+import Tokens, { ExploreTab } from './Tokens'
+import ClaimRewardsV3 from './UnStakeLiquidity/V3'
 
 const TokenDetails = lazy(() => import('./TokenDetails'))
+const PoolDetails = lazy(() => import('./PoolDetails'))
 
 const BodyWrapper = styled.div`
   display: flex;
@@ -43,25 +45,6 @@ const BodyWrapper = styled.div`
   padding: ${({ theme }) => theme.navHeight}px 0px 5rem 0px;
   align-items: center;
   flex: 1;
-`
-
-const MobileBottomBar = styled.div`
-  z-index: ${Z_INDEX.sticky};
-  position: fixed;
-  display: flex;
-  bottom: 0;
-  right: 0;
-  left: 0;
-  width: 100vw;
-  justify-content: space-between;
-  padding: 8px 8px;
-  height: ${({ theme }) => theme.mobileBottomBarHeight}px;
-  background: ${({ theme }) => theme.backgroundModule};
-  border-top: 1px solid ${({ theme }) => theme.backgroundOutline};
-
-  @media screen and (min-width: ${({ theme }) => theme.breakpoint.md}px) {
-    display: none;
-  }
 `
 
 const HeaderWrapper = styled.div<{ transparent?: boolean }>`
@@ -99,7 +82,7 @@ export default function App() {
 
   useEffect(() => {
     if (chainId && !isSupportedChain(chainId)) {
-      addPopup({ failedSwitchNetwork: SupportedChainId.HAUST_TESTNET }, '97', 10000)
+      addPopup({ failedSwitchNetwork: SupportedChainId.HAUST_TESTNET }, '97', 5000)
     }
   }, [addPopup, chainId]);
 
@@ -137,8 +120,12 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<Swap />} />
 
-                <Route path="explore/tokens" element={<Tokens />} />
-                <Route path="tokens/:chainName/:tokenAddress" element={<TokenDetails />} />
+                <Route path="explore/tokens" element={<Tokens initialTab={ExploreTab.Tokens} />} />
+                <Route path="explore/pools" element={<Tokens initialTab={ExploreTab.Pools} />} />
+                <Route path="explore/transactions" element={<Tokens initialTab={ExploreTab.Transactions} />} />
+                <Route path="explore/token/:chainName/:tokenAddress" element={<TokenDetails />} />
+                <Route path="explore/pools/:chainName/:poolAddress" element={<PoolDetails />} />
+                <Route path="explore/token/:chainName" element={<TokenDetails />} />
                 <Route path="swap" element={<Swap />} />
                 <Route path="send" element={<Swap />} />
 
@@ -168,6 +155,11 @@ export default function App() {
                   <Route path=":currencyIdA/:currencyIdB/:feeAmount/:tokenId" />
                 </Route>
 
+                <Route path="stake/:tokenId" element={<StakeLiquidityV3 />} />
+                <Route path="claim/:tokenId" element={<ClaimRewardsV3 />} />
+                <Route path="unstake/:tokenId" element={<StakeLiquidityV3 />} />
+
+
                 <Route path="remove/v2/:currencyIdA/:currencyIdB" element={<RemoveLiquidity />} />
                 <Route path="remove/:tokenId" element={<RemoveLiquidityV3 />} />
 
@@ -182,9 +174,6 @@ export default function App() {
             )}
           </Suspense>
         </BodyWrapper>
-        <MobileBottomBar>
-          <PageTabs />
-        </MobileBottomBar>
       </StatsigProvider>
     </ErrorBoundary>
   )

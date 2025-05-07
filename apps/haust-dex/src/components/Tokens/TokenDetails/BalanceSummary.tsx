@@ -2,24 +2,23 @@ import { Trans } from '@lingui/macro'
 import { Currency } from '@uniswap/sdk-core'
 import { useWeb3React } from '@web3-react/core'
 import CurrencyLogo from 'components/Logo/CurrencyLogo'
-import { formatCurrencyAmount, NumberType } from 'conedison/format'
+import { formatCurrencyAmount, formatNumber, formatUSDPrice, NumberType } from 'conedison/format'
 import { getChainInfo } from 'constants/chainInfo'
 import { SupportedChainId } from 'constants/chains'
 import { isSupportedChain } from 'constants/chains'
 import { useStablecoinValue } from 'hooks/useStablecoinPrice'
+import { useTokenBalance } from 'hooks/useTokenBalance'
+import { useUSDPrice } from 'hooks/useUSDPrice'
 import useCurrencyBalance from 'lib/hooks/useCurrencyBalance'
+import tryParseCurrencyAmount from 'lib/utils/tryParseCurrencyAmount'
 import styled, { useTheme } from 'styled-components/macro'
 import { ThemedText } from 'theme'
 
 const BalancesCard = styled.div`
-  box-shadow: ${({ theme }) => theme.shallowShadow};
-  background-color: ${({ theme }) => theme.backgroundSurface};
-  border: ${({ theme }) => `1px solid ${theme.backgroundOutline}`};
   border-radius: 16px;
   color: ${({ theme }) => theme.textPrimary};
   display: none;
   height: fit-content;
-  padding: 20px;
   width: 100%;
 
   // 768 hardcoded to match NFT-redesign navbar breakpoints
@@ -64,12 +63,11 @@ const StyledNetworkLabel = styled.div`
 `
 
 export default function BalanceSummary({ token }: { token: Currency }) {
-  const { account, chainId } = useWeb3React()
+  const { account } = useWeb3React()
   const theme = useTheme()
-  const { label } = getChainInfo(isSupportedChain(chainId) ? chainId : SupportedChainId.HAUST)
-  const balance = useCurrencyBalance(account, token)
-  const formattedBalance = formatCurrencyAmount(balance, NumberType.TokenNonTx)
-  const formattedUsdValue = formatCurrencyAmount(useStablecoinValue(balance), NumberType.FiatTokenStats)
+  const balance = useTokenBalance(token)
+  const formattedBalanceUSD = formatUSDPrice(balance.balance?.balanceUSD, NumberType.FiatTokenPrice)
+  const formattedBalance = formatNumber(balance.balance?.balance, NumberType.TokenNonTx)
 
   if (!account || !balance) {
     return null
@@ -77,23 +75,22 @@ export default function BalanceSummary({ token }: { token: Currency }) {
   return (
     <BalancesCard>
       <BalanceSection>
-        <ThemedText.SubHeaderSmall color={theme.textPrimary}>
-          <Trans>Your balance on {label}</Trans>
+        <ThemedText.SubHeaderSmall color={theme.textPrimary} fontSize={20}>
+          <Trans>Your balance</Trans>
         </ThemedText.SubHeaderSmall>
         <BalanceRow>
           <CurrencyLogo currency={token} size="2rem" hideL2Icon={false} />
           <BalanceContainer>
             <BalanceAmountsContainer>
+              <BalanceItem> 
+                <ThemedText.BodyPrimary>{formattedBalanceUSD}</ThemedText.BodyPrimary>
+              </BalanceItem>
               <BalanceItem>
-                <ThemedText.SubHeader>
-                  {formattedBalance} {token.symbol}
+              <ThemedText.SubHeader>
+                  {formattedBalance}
                 </ThemedText.SubHeader>
               </BalanceItem>
-              <BalanceItem>
-                <ThemedText.BodyPrimary>{formattedUsdValue}</ThemedText.BodyPrimary>
-              </BalanceItem>
             </BalanceAmountsContainer>
-            <StyledNetworkLabel>{label}</StyledNetworkLabel>
           </BalanceContainer>
         </BalanceRow>
       </BalanceSection>

@@ -26,6 +26,7 @@ import CommonBases from './CommonBases'
 import { CurrencyRow, formatAnalyticsEventProperties } from './CurrencyList'
 import CurrencyList from './CurrencyList'
 import { PaddedColumn, SearchInput, Separator } from './styleds'
+import { checkWarning } from 'constants/tokenSafety'
 
 const ContentWrapper = styled(Column)`
   background-color: ${({ theme }) => theme.backgroundModule};
@@ -74,6 +75,7 @@ export function CurrencySearch({
   const isAddressSearch = isAddress(debouncedQuery)
   const searchToken = useToken(debouncedQuery)
   const searchTokenIsAdded = useIsUserAddedToken(searchToken)
+  const hasWarning = searchToken ? checkWarning(searchToken.address, searchToken.chainId) : false
 
   // const { data: tokens, loading: isTokensLoading } = useSearchTokensApi(debouncedQuery);
   // const { tokens: topTokens, loadingTokens } = useTopTokensApi();
@@ -150,6 +152,7 @@ export function CurrencySearch({
 
     const allTokens = sortArrayByUnique([...natives, ...tokens], JSON.stringify)
     
+    // Sort tokens according to preferred order
     return allTokens.sort((a: Token, b: Token) => {
       const symbolA = a.symbol?.toUpperCase() || ''
       const symbolB = b.symbol?.toUpperCase() || ''
@@ -157,14 +160,15 @@ export function CurrencySearch({
       const indexA = PREFERRED_TOKENS_ORDER.indexOf(symbolA)
       const indexB = PREFERRED_TOKENS_ORDER.indexOf(symbolB)
       
+      // If both tokens are in preferred list
       if (indexA !== -1 && indexB !== -1) {
         return indexA - indexB
       }
-      
+      // If only first token is in preferred list
       if (indexA !== -1) return -1
-      
+      // If only second token is in preferred list
       if (indexB !== -1) return 1
-      
+      // If neither token is in preferred list, maintain original order
       return 0
     })
   }, [debouncedQuery, filteredSortedTokens, onlyShowCurrenciesWithBalance, balancesAreLoading, balances, wrapped, disableNonToken, native])
@@ -262,7 +266,7 @@ export function CurrencySearch({
         )}
       </PaddedColumn>
       <Separator />
-      {searchToken && !searchTokenIsAdded ? (
+      {searchToken && !searchTokenIsAdded && !hasWarning ? (
         <Column style={{ padding: '20px 0', height: '100%' }}>
           <CurrencyRow
             currency={searchToken}
@@ -301,9 +305,9 @@ export function CurrencySearch({
         </div>
       ) : (
         <Column style={{ padding: '20px', height: '100%' }}>
-          <ThemedText.DeprecatedMain color={theme.textTertiary} textAlign="center" mb="20px">
-            <Trans>No results found.</Trans>
-          </ThemedText.DeprecatedMain>
+          <ThemedText.BodySecondary style={{ color: theme.textSecondary }} textAlign="center" mb="20px">
+           This token isn't currently traded on Haust DEX
+          </ThemedText.BodySecondary>
         </Column>
       )}
     </ContentWrapper>

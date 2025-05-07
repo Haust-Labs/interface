@@ -41,13 +41,13 @@ const InternalLinkMenuItem = styled(InternalMenuItem)<{ disabled?: boolean }>`
       pointer-events: none;
     `}
 `
-const MenuTimeFlyout = styled.span`
-  min-width: 240px;
+const MenuTimeFlyout = styled.span<{ open: boolean }>`
+  min-width: 270px;
   max-height: 350px;
   overflow: auto;
-  background-color: ${({ theme }) => theme.backgroundSurface};
+  background-color: ${({ theme }) => theme.backgroundBackdrop};
   box-shadow: ${({ theme }) => theme.deepShadow};
-  border: 0.5px solid ${({ theme }) => theme.backgroundOutline};
+  border: 1px solid ${({ theme }) => theme.neutralBorder};
   border-radius: 12px;
   padding: 8px;
   display: flex;
@@ -56,7 +56,15 @@ const MenuTimeFlyout = styled.span`
   position: absolute;
   top: 48px;
   z-index: 100;
-  left: 0px;
+  right: 0px;
+  opacity: ${({ open }) => (open ? '1' : '0')};
+  transform: translateY(${({ open }) => (open ? '0' : '-20px')});
+  transition: all 200ms ease-in-out;
+  visibility: ${({ open }) => (open ? 'visible' : 'hidden')};
+  
+  @media only screen and (max-width: ${({ theme }) => theme.breakpoint.md}px) {
+      left: 0px;
+  }
 `
 const StyledMenu = styled.div`
   display: flex;
@@ -77,7 +85,7 @@ const StyledMenuContent = styled.div`
 `
 const Chevron = styled.span<{ open: boolean }>`
   padding-top: 1px;
-  color: ${({ open, theme }) => (open ? theme.accentActive : theme.textSecondary)};
+  color: ${({ theme }) => theme.textSecondary};
 `
 const NetworkLabel = styled.div`
   ${EllipsisStyle}
@@ -93,35 +101,23 @@ const CheckContainer = styled.div`
   display: flex;
   flex-direction: flex-end;
 `
-const NetworkFilterOption = styled(FilterOption)`
-  min-width: 156px;
-`
-// const Tag = styled(Badge)`
-//   background-color: ${({ theme }) => theme.backgroundModule};
-//   color: ${({ theme }) => theme.textSecondary};
-//   font-size: 10px;
-//   opacity: 1;
-//   padding: 4px 6px;
-// `
 
-// TODO cleanup
 export default function NetworkFilter() {
   const theme = useTheme()
   const node = useRef<HTMLDivElement | null>(null)
   const open = useModalIsOpen(ApplicationModal.NETWORK_FILTER)
   const toggleMenu = useToggleModal(ApplicationModal.NETWORK_FILTER)
   useOnClickOutside(node, open ? toggleMenu : undefined)
-  const navigate = useNavigate()
+  // const navigate = useNavigate()
 
   const { chainName } = useParams<{ chainName?: string }>()
-  const currentChainName = validateUrlChainParam(chainName)
+  const currentChainName = chainName ? validateUrlChainParam(chainName) : 'HAUST_TESTNET'
 
   const chainInfo = getChainInfo(CHAIN_NAME_TO_CHAIN_ID[currentChainName])
-  // const BNBChainInfo = getChainInfo(CHAIN_NAME_TO_CHAIN_ID.BNB)
 
   return (
     <StyledMenu ref={node}>
-      <NetworkFilterOption
+      <FilterOption
         onClick={toggleMenu}
         aria-label="networkFilter"
         active={open}
@@ -129,7 +125,7 @@ export default function NetworkFilter() {
       >
         <StyledMenuContent>
           <NetworkLabel>
-            <Logo src={chainInfo?.logoUrl} /> {chainInfo?.label}
+            <Logo src={chainInfo?.logoUrl} />
           </NetworkLabel>
           <Chevron open={open}>
             {open ? (
@@ -139,42 +135,33 @@ export default function NetworkFilter() {
             )}
           </Chevron>
         </StyledMenuContent>
-      </NetworkFilterOption>
-      {open && (
-        <MenuTimeFlyout>
-          {BACKEND_CHAIN_NAMES.map((network) => {
-            const chainInfo = getChainInfo(CHAIN_NAME_TO_CHAIN_ID[network])
-            if (!chainInfo) return null
-            return (
-              <InternalLinkMenuItem
-                key={network}
-                data-testid={`tokens-network-filter-option-${network.toLowerCase()}`}
-                onClick={() => {
-                  navigate(`/tokens/${network.toLowerCase()}`)
-                  toggleMenu()
-                }}
-              >
-                <NetworkLabel>
-                  <Logo src={chainInfo.logoUrl} />
-                  {chainInfo.label}
-                </NetworkLabel>
-                {network === currentChainName && (
-                  <CheckContainer>
-                    <Check size={16} color={theme.accentAction} />
-                  </CheckContainer>
-                )}
-              </InternalLinkMenuItem>
-            )
-          })}
-          {/*<InternalLinkMenuItem data-testid="tokens-network-filter-option-bnb-chain" disabled>*/}
-          {/*  <NetworkLabel>*/}
-          {/*    <Logo src={BNBChainInfo.logoUrl} />*/}
-          {/*    {BNBChainInfo.label}*/}
-          {/*  </NetworkLabel>*/}
-          {/*  <Tag>Coming soon</Tag>*/}
-          {/*</InternalLinkMenuItem>*/}
-        </MenuTimeFlyout>
-      )}
+      </FilterOption>
+      <MenuTimeFlyout open={open}>
+        {BACKEND_CHAIN_NAMES.map((network) => {
+          const chainInfo = getChainInfo(CHAIN_NAME_TO_CHAIN_ID[network])
+          if (!chainInfo) return null
+          return (
+            <InternalLinkMenuItem
+              key={network}
+              data-testid={`tokens-network-filter-option-${network.toLowerCase()}`}
+              onClick={() => {
+                // navigate(`/tokens/${network.toLowerCase()}`)
+                toggleMenu()
+              }}
+            >
+              <NetworkLabel>
+                <Logo src={chainInfo.logoUrl} />
+                {chainInfo.label}
+              </NetworkLabel>
+              {network === currentChainName && (
+                <CheckContainer>
+                  <Check size={16} color={theme.accentAction} />
+                </CheckContainer>
+              )}
+            </InternalLinkMenuItem>
+          )
+        })}
+      </MenuTimeFlyout>
     </StyledMenu>
   )
 }

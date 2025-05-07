@@ -270,7 +270,7 @@ export function useSingleContractMultipleData(
   ? calls
   : [
       {
-        address: "0x793c22920F95758603f8FBe14f61dC674CEe433f",
+        address: "0x87054392461F52a513d83EF2e06af50f4e2F6614",
         callData:
           "0x70a082310000000000000000000000004384e516ebcd8870498be46bfbee557cba66f65c",
         gasRequired: 185000,
@@ -381,7 +381,7 @@ export function useSingleContractWithCallData(
     calls,
     options as ListenerOptions
   );
-  
+
   const fragment = useCallback(
     (i: number) =>
       contract?.interface?.getFunction(callDatas[i].substring(0, 10)),

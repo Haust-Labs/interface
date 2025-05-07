@@ -1,7 +1,7 @@
 import { TimePeriod } from 'graphql/data/util'
 import { useOnClickOutside } from 'hooks/useOnClickOutside'
 import { useAtom } from 'jotai'
-import { useRef } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { Check, ChevronDown, ChevronUp } from 'react-feather'
 import { useModalIsOpen, useToggleModal } from 'state/application/hooks'
 import { ApplicationModal } from 'state/application/reducer'
@@ -12,7 +12,13 @@ import { filterTimeAtom } from '../state'
 import FilterOption from './FilterOption'
 
 export const DISPLAYS: Record<TimePeriod, string> = {
-  [TimePeriod.HOUR]: '1H',
+  [TimePeriod.DAY]: '1D volume',
+  [TimePeriod.WEEK]: '1W volume',
+  [TimePeriod.MONTH]: '1M volume',
+  [TimePeriod.YEAR]: '1Y volume',
+}
+
+export const MOBILE_DISPLAYS: Record<TimePeriod, string> = {
   [TimePeriod.DAY]: '1D',
   [TimePeriod.WEEK]: '1W',
   [TimePeriod.MONTH]: '1M',
@@ -20,7 +26,6 @@ export const DISPLAYS: Record<TimePeriod, string> = {
 }
 
 export const ORDERED_TIMES: TimePeriod[] = [
-  TimePeriod.HOUR,
   TimePeriod.DAY,
   TimePeriod.WEEK,
   TimePeriod.MONTH,
@@ -52,13 +57,13 @@ const InternalLinkMenuItem = styled(InternalMenuItem)`
     text-decoration: none;
   }
 `
-const MenuTimeFlyout = styled.span`
-  min-width: 240px;
+const MenuTimeFlyout = styled.span<{ open: boolean }>`
+  min-width: 140px;
   max-height: 300px;
-  overflow: auto;
-  background-color: ${({ theme }) => theme.backgroundModule};
+  overflow: hidden;
+  background-color: ${({ theme }) => theme.backgroundBackdrop};
   box-shadow: ${({ theme }) => theme.deepShadow};
-  border: 1px solid ${({ theme }) => theme.borderPrimary};
+  border: 1px solid ${({ theme }) => theme.neutralBorder};
   border-radius: 12px;
   padding: 8px;
   display: flex;
@@ -68,6 +73,10 @@ const MenuTimeFlyout = styled.span`
   top: 48px;
   z-index: 100;
   left: 0px;
+  opacity: ${({ open }) => (open ? '1' : '0')};
+  transform: translateY(${({ open }) => (open ? '0' : '-20px')});
+  transition: all 200ms ease-in-out;
+  visibility: ${({ open }) => (open ? 'visible' : 'hidden')};
 
   @media only screen and (max-width: ${SMALL_MEDIA_BREAKPOINT}) {
     right: 0px;
@@ -97,7 +106,8 @@ const StyledMenuContent = styled.div`
 `
 const Chevron = styled.span<{ open: boolean }>`
   padding-top: 1px;
-  color: ${({ open, theme }) => (open ? theme.accentActive : theme.textSecondary)};
+  transform: rotate(${({ open }) => (open ? '180deg' : '0deg')});
+  transition: transform 200ms ease-in-out;
 `
 
 // TODO: change this to reflect data pipeline
@@ -108,38 +118,42 @@ export default function TimeSelector() {
   const toggleMenu = useToggleModal(ApplicationModal.TIME_SELECTOR)
   useOnClickOutside(node, open ? toggleMenu : undefined)
   const [activeTime, setTime] = useAtom(filterTimeAtom)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= parseInt(MOBILE_MEDIA_BREAKPOINT))
+
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= parseInt(MOBILE_MEDIA_BREAKPOINT))
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   return (
     <StyledMenu ref={node}>
       <FilterOption onClick={toggleMenu} aria-label="timeSelector" active={open} data-testid="time-selector">
         <StyledMenuContent>
-          {DISPLAYS[activeTime]}
+          {isMobile ? MOBILE_DISPLAYS[activeTime] : DISPLAYS[activeTime]}
           <Chevron open={open}>
-            {open ? (
-              <ChevronUp width={20} height={15} viewBox="0 0 24 20" />
-            ) : (
-              <ChevronDown width={20} height={15} viewBox="0 0 24 20" />
-            )}
+            <ChevronDown width={20} height={15} viewBox="0 0 24 20" />
           </Chevron>
         </StyledMenuContent>
       </FilterOption>
-      {open && (
-        <MenuTimeFlyout>
-          {ORDERED_TIMES.map((time) => (
-            <InternalLinkMenuItem
-              key={DISPLAYS[time]}
-              data-testid={DISPLAYS[time]}
-              onClick={() => {
-                setTime(time)
-                toggleMenu()
-              }}
-            >
-              <div>{DISPLAYS[time]}</div>
-              {time === activeTime && <Check color={theme.accentAction} size={16} />}
-            </InternalLinkMenuItem>
-          ))}
-        </MenuTimeFlyout>
-      )}
+      <MenuTimeFlyout open={open}>
+        {ORDERED_TIMES.map((time) => (
+          <InternalLinkMenuItem
+            key={DISPLAYS[time]}
+            data-testid={DISPLAYS[time]}
+            onClick={() => {
+              setTime(time)
+              toggleMenu()
+            }}
+          >
+            <div>{isMobile ? MOBILE_DISPLAYS[time] : DISPLAYS[time]}</div>
+            {time === activeTime && <Check color={theme.accentAction} size={16} />}
+          </InternalLinkMenuItem>
+        ))}
+      </MenuTimeFlyout>
     </StyledMenu>
   )
 }

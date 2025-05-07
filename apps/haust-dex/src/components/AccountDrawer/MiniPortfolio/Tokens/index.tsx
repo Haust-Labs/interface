@@ -1,14 +1,18 @@
 import { NativeCurrency, Token } from '@uniswap/sdk-core'
+import { useWeb3React } from '@web3-react/core'
 import Row from 'components/Row'
 import { DeltaArrow } from 'components/Tokens/Delta'
 import { formatDelta } from 'components/Tokens/TokenDetails/PriceChart'
 import { formatNumber, NumberType } from 'conedison/format'
+import { isSupportedChain } from 'constants/chains'
 import { useDefaultActiveTokens } from 'hooks/Tokens'
-import { useTokenBalance } from 'hooks/useTokenBalance'
+import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
 import { useAtomValue } from 'jotai/utils'
 import useNativeCurrency from 'lib/hooks/useNativeCurrency'
 import { EmptyWalletModule } from 'nft/components/profile/view/EmptyWalletContent'
-import { useEffect, useMemo, useState, memo, useCallback } from 'react'
+import { memo, useCallback,useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useTokensWithBalances } from 'state/tokens/hooks'
 import styled from 'styled-components/macro'
 import { EllipsisStyle, ThemedText } from 'theme'
 
@@ -16,18 +20,11 @@ import { useToggleAccountDrawer } from '../..'
 import { hideSmallBalancesAtom } from '../../SmallBalanceToggle'
 import { PortfolioLogo } from '../PortfolioLogo'
 import PortfolioRow, { PortfolioSkeleton, PortfolioTabWrapper } from '../PortfolioRow'
-import { useWeb3React } from '@web3-react/core'
-import { isSupportedChain } from 'constants/chains'
 
 const HIDE_SMALL_USD_BALANCES_THRESHOLD = 0.00000000000000001
 const PREFERRED_TOKENS_ORDER = ['HAUST', 'WHAUST', 'USDT', 'USDC', 'WBTC', 'WETH']
 
-interface TokenBalanceData {
-  balance: number
-  balanceUSD: number
-  priceChange: number
-  timestamp: number
-}
+
 const SkeletonOverlay = styled.div`
   position: absolute;
   top: 0;
@@ -38,7 +35,6 @@ const SkeletonOverlay = styled.div`
   background: ${({ theme }) => theme.backgroundModule};
 `
 
-const TokenBalanceCache = new Map<string, TokenBalanceData>()
 let isFirstLoad = true
 
 const MemoizedTokenRow = memo(TokenRow)
@@ -50,10 +46,11 @@ export default function Tokens({ totalBalance }: { totalBalance?: number }) {
   const nativeCurrency = useNativeCurrency()
   const [isLoading, setIsLoading] = useState(isFirstLoad)
   const { chainId } = useWeb3React()
+  const { switchNetwork } = useSwitchNetwork()
 
   const tokensList = useMemo(() => {
     const allTokens = [nativeCurrency, ...Object.values(tokens)]
-
+    
     return allTokens
       .filter(Boolean)
       .sort((a, b) => {
@@ -88,7 +85,7 @@ export default function Tokens({ totalBalance }: { totalBalance?: number }) {
   }, [])
 
   if (chainId && !isSupportedChain(chainId)) {
-    return <EmptyWalletModule type="chain" onNavigateClick={toggleWalletDrawer} />
+    return <EmptyWalletModule type="chain" onNavigateClick={toggleWalletDrawer} onSwitchNetwork={() => switchNetwork()}/>
   }
 
   if (!totalBalance && totalBalance === 0) {
@@ -104,8 +101,8 @@ export default function Tokens({ totalBalance }: { totalBalance?: number }) {
       )}
       {tokensList.map((token) => (
         token && <MemoizedTokenRow 
-          key={token instanceof Token ? token.address : token.symbol} 
-          token={token} 
+          key={token instanceof Token ? token.address : `native-${token.symbol}`}
+          token={token}
           hideSmallBalances={hideSmallBalances}
           onLoaded={handleTokenLoaded}
         />
@@ -118,90 +115,63 @@ const TokenBalanceText = styled(ThemedText.BodySecondary)`
   ${EllipsisStyle}
 `
 
-function TokenRow({ 
-  token, 
-  hideSmallBalances,
-  onLoaded,
-}: { 
-  token: Token | NativeCurrency
-  hideSmallBalances: boolean 
-  onLoaded: (tokenId: string) => void
-}) {
-  const { balance, refetch } = useTokenBalance(token)
-  const tokenId = (token instanceof Token ? token.address : token.symbol) as string
-  const [isTokenLoaded, setIsTokenLoaded] = useState(false)
+function TokenRow({ token, hideSmallBalances, onLoaded }: { token: Token | NativeCurrency; hideSmallBalances: boolean; onLoaded: (tokenId: string) => void }) {
+  const { tokens } = useTokensWithBalances();
+  const navigate = useNavigate();
+  const toggleWalletDrawer = useToggleAccountDrawer();
+  
+  const tokenData = tokens.find(t => {
+    const searchId = token.isNative ? 'native' : token.wrapped.address.toLowerCase();
+    return t.id.toLowerCase() === searchId;
+  });
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout
-
-    const cachedData = TokenBalanceCache.get(tokenId)
-    if (cachedData) {
-      if (!isTokenLoaded) {
-        setIsTokenLoaded(true)
-        onLoaded(tokenId)
-      }
+    if (tokenData && onLoaded) {
+      onLoaded(token.isNative ? 'native' : token.wrapped.address.toLowerCase());
     }
+  }, [token.wrapped.address, tokenData, onLoaded, token.isNative]);
 
-    if (balance) {
-      TokenBalanceCache.set(tokenId, {
-        balance: balance.balance,
-        balanceUSD: balance.balanceUSD,
-        priceChange: balance.priceChange,
-        timestamp: Date.now()
-      })
-      if (!isTokenLoaded) {
-        setIsTokenLoaded(true)
-        onLoaded(tokenId)
-      }
+  const handleClick = useCallback(() => {
+    const address = token instanceof NativeCurrency 
+      ? 'NATIVE'
+      : token.address 
+
+    if (address) {
+      navigate(`/explore/token/haust_testnet/${address}`)
+      toggleWalletDrawer()
     }
+  }, [token, navigate, toggleWalletDrawer])
 
-    const updateInterval = setInterval(() => {
-      const cachedData = TokenBalanceCache.get(tokenId)
-      if (!cachedData || Date.now() - cachedData.timestamp > 30000) {
-        clearTimeout(timeoutId)
-        timeoutId = setTimeout(() => {
-          refetch?.()
-        }, 1000)
-      }
-    }, 15000)
-
-    return () => {
-      clearInterval(updateInterval)
-      clearTimeout(timeoutId)
-    }
-  }, [balance, tokenId, isTokenLoaded, onLoaded, refetch])
-
-  const displayBalance = balance || TokenBalanceCache.get(tokenId)
-  
-  if (!displayBalance) {
-    return <PortfolioSkeleton />
+  if (!tokenData) {
+    return null;
   }
 
-  if (hideSmallBalances && Number(displayBalance.balance) < HIDE_SMALL_USD_BALANCES_THRESHOLD) {
-    return null
+  if (hideSmallBalances && tokenData.balanceUSD < HIDE_SMALL_USD_BALANCES_THRESHOLD) {
+    return null;
   }
 
   return (
     <PortfolioRow
+      onClick={handleClick}
       left={<PortfolioLogo chainId={token.chainId} currencies={[token]} size="40px" />}
       title={<ThemedText.SubHeader fontSize='14px' fontWeight={500}>{token.name}</ThemedText.SubHeader>}
       descriptor={
         <TokenBalanceText fontSize='13px'>
-          {formatNumber(displayBalance.balance, NumberType.TokenNonTx)}{' '}
+          {formatNumber(tokenData.balance, NumberType.TokenNonTx)}{' '}
           {token.symbol}
         </TokenBalanceText>
       }
       right={
-        displayBalance && (
+        tokenData && (
           <><ThemedText.SubHeader fontSize='13px' fontWeight={500}>
-            {formatNumber(displayBalance.balanceUSD, NumberType.PortfolioBalance)}
+            {formatNumber(tokenData.balanceUSD, NumberType.PortfolioBalance)}
           </ThemedText.SubHeader>
           <Row justify="flex-end">
-              <DeltaArrow delta={displayBalance.priceChange} size={20} />
-              <ThemedText.BodySecondary fontSize='13px'>{formatDelta(displayBalance.priceChange)}</ThemedText.BodySecondary>
-            </Row></>
+            <DeltaArrow delta={tokenData.priceChange} size={20} />
+            <ThemedText.BodySecondary fontSize='13px'>{formatDelta(tokenData.priceChange)}</ThemedText.BodySecondary>
+          </Row></>
         )
       }
     />
-  )
+)
 }

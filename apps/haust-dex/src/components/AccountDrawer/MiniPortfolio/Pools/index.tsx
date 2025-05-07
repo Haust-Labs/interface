@@ -20,15 +20,25 @@ import { ExpandoRow } from '../ExpandoRow'
 import { PortfolioLogo } from '../PortfolioLogo'
 import PortfolioRow, { PortfolioSkeleton, PortfolioTabWrapper } from '../PortfolioRow'
 import { getPriceOrderingFromPositionForUI } from 'components/PositionListItem'
+import { TOKEN_ADDRESSES } from 'constants/tokens'
+import { useV3Incentive } from 'hooks/useV3Incentive'
 
 export default function Pools({ account }: { account: string }) {
   const { positions, loading: positionsLoading } = useV3Positions(account)
   const [showClosed, toggleShowClosed] = useReducer((showClosed) => !showClosed, false)
   const { chainId } = useWeb3React()
 
+  const isValidToken = (address: string) => {
+    return Object.values(TOKEN_ADDRESSES).some(
+      tokenAddress => tokenAddress?.address?.toLowerCase() === address.toLowerCase()
+    )
+  }
+
   const [openPositions, closedPositions] = positions?.reduce<[PositionDetails[], PositionDetails[]]>(
     (acc, p) => {
-      acc[p.liquidity?.isZero() ? 1 : 0].push(p)
+      if (isValidToken(p.token0) && isValidToken(p.token1)) {
+        acc[p.liquidity?.isZero() ? 1 : 0].push(p)
+      }
       return acc
     },
     [[], []]
@@ -44,7 +54,7 @@ export default function Pools({ account }: { account: string }) {
     return <PortfolioSkeleton />
   }
 
-  if (!positions) {
+  if (!openPositions.length && !closedPositions.length) {
     return <EmptyWalletModule type="pool" onNavigateClick={toggleWalletDrawer} />
   }
 
@@ -90,7 +100,11 @@ function PositionListItem({ positionInfo }: { positionInfo: PositionDetails }) {
     tickLower,
     tickUpper, } = positionInfo
   const { chainId } = useWeb3React()
-
+  const {incentiveEvents, loading: incentivesLoading} = useV3Incentive()
+  
+  const stakedInfo = incentiveEvents?.find(incentive => 
+    incentive.tokenIds?.includes(Number(tokenId))
+  )
   const token0 = useToken(token0Address)
   const token1 = useToken(token1Address)
 
@@ -124,6 +138,8 @@ function PositionListItem({ positionInfo }: { positionInfo: PositionDetails }) {
     return null
   }
 
+  const isPositionStaked = !!stakedInfo
+
   return (
     <PortfolioRow
       onClick={onClick}
@@ -136,7 +152,7 @@ function PositionListItem({ positionInfo }: { positionInfo: PositionDetails }) {
         </Row>
       }
       descriptor={<ThemedText.Caption>{`${feeAmount / 10000}%`}</ThemedText.Caption>}
-      right={<RangeBadge removed={liquidity?.eq(0)} inRange={!outOfRange} />}
+      right={<RangeBadge removed={liquidity?.eq(0)} inRange={!outOfRange} staked={isPositionStaked} />}
     />
   )
 }

@@ -37,9 +37,8 @@ const StyledInfoIcon = styled(Info)`
   color: ${({ theme }) => theme.textTertiary};
 `
 
-const StyledCard = styled(OutlineCard)`
-  padding: 12px;
-  border: 1px solid ${({ theme }) => theme.backgroundOutline};
+const StyledCard = styled.div`
+  padding: 16px 0;
 `
 
 const StyledHeaderRow = styled(RowBetween)<{ disabled: boolean; open: boolean }>`
@@ -134,14 +133,13 @@ export default function SwapDetailsDropdown({ trade, syncing, loading, allowedSl
           </RowFixed>
           <RowFixed>
             {!trade?.gasUseEstimateUSD ||
-            showDetails ||
+            !showDetails ||
             !chainId ||
             !SUPPORTED_GAS_ESTIMATE_CHAIN_IDS.includes(chainId) ? null : (
               <GasEstimateBadge
                 trade={trade}
                 loading={syncing || loading}
-                showRoute={!showDetails}
-                disableHover={showDetails}
+                disableHover={!showDetails}
               />
             )}
             <RotatingArrow
@@ -154,7 +152,14 @@ export default function SwapDetailsDropdown({ trade, syncing, loading, allowedSl
           <AutoColumn gap="sm" style={{ padding: '0', paddingBottom: '8px' }}>
             {trade ? (
               <StyledCard>
-                <AdvancedSwapDetails trade={trade} allowedSlippage={allowedSlippage} syncing={syncing} />
+                <AdvancedSwapDetails
+                  trade={trade}
+                  allowedSlippage={allowedSlippage}
+                  syncing={syncing}
+                  showBasicInfo={true}
+                  showRate={false}
+                  showFeeBreakdown={true}
+                />
               </StyledCard>
             ) : null}
             {trade ? <SwapRoute trade={trade} syncing={syncing} /> : null}

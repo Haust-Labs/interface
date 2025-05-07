@@ -11,7 +11,7 @@ import { TOKEN_SHORTHANDS } from 'constants/tokens'
 import { useCurrency, useDefaultActiveTokens } from 'hooks/Tokens'
 import { useSendCallback } from 'hooks/useSendCallback'
 import { useUSDPrice } from 'hooks/useUSDPrice'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Text } from 'rebass'
 import { Field } from 'state/send/actions'
@@ -28,13 +28,18 @@ import { useCreateTransferTransaction } from 'utils/transfer'
 import SendAddressInputPanel from './SendAddressInputPanel'
 import SendCurrencyInputPanel from './SendCurrencyInputPanel'
 import { SendReviewModal } from './SendReviewModal'
+import { TransactionRequest } from "@ethersproject/abstract-provider";
 
 enum SendFormModalState {
   None = 'None',
   REVIEW = 'REVIEW',
 }
 
-export default function SendCurrencyInputForm() {
+export default function SendCurrencyInputForm({ 
+  initialInputCurrency
+}: { 
+  initialInputCurrency?: Currency 
+}) {
   const navigate = useNavigate()
   const { account, chainId, provider } = useWeb3React()
   const loadedUrlParams = useDefaultsFromURLSearch()
@@ -136,11 +141,13 @@ export default function SendCurrencyInputForm() {
     }
   }, [account, address, chainId, parsedAmount, provider])
   const transferTransaction = useCreateTransferTransaction(transferInfo)
-
   // the callback to execute the send
   const sendCallback = useSendCallback({
-    transactionRequest: transferTransaction,
+    transactionRequest: transferTransaction as TransactionRequest,
     provider: provider as Web3Provider,
+    tokenAddress: currencies[Field.INPUT]?.isNative ? 'HST' : currencies[Field.INPUT]?.wrapped.address,
+    amount: parsedAmount?.quotient?.toString(),
+    recipient: address
   })
   
   const handleSend = useCallback(() => {
@@ -175,6 +182,12 @@ export default function SendCurrencyInputForm() {
   const handleMaxInput = useCallback(() => {
     maxInputAmount && onUserInput(Field.INPUT, maxInputAmount.toExact())
   }, [maxInputAmount, onUserInput])
+
+  useEffect(() => {
+    if (initialInputCurrency) {
+      onCurrencySelection(Field.INPUT, initialInputCurrency)
+    }
+  }, [initialInputCurrency, onCurrencySelection])
 
   return (
     <>

@@ -231,6 +231,7 @@ export function usePoolActiveLiquidity(
       ticks.length === 0 ||
       isLoading
     ) {
+
       return {
         isLoading: isLoading || pool[0] === PoolState.LOADING,
         error,

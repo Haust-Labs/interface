@@ -23,7 +23,7 @@ import { anonymizeLink } from '../../utils/anonymizeLink'
 // TODO: Break this file into a components folder
 
 export const CloseIcon = styled(X)<{ onClick: () => void }>`
-  color: ${({ theme }) => theme.textPrimary};
+  color: ${({ theme }) => theme.textTertiary};
   cursor: pointer;
 `
 
@@ -129,10 +129,11 @@ const IconStyle = css`
   margin-left: 10px;
 `
 
-const LinkIcon = styled(ExternalLinkIconFeather)`
+const LinkIcon = styled(ExternalLinkIconFeather)<{ $color?: string }>`
   ${IconStyle}
   ${ClickableStyle}
   ${LinkStyle}
+  stroke: ${({ theme, $color }) => $color ?? theme.accentAction};
 `
 
 const CopyIcon = styled(Copy)`
@@ -203,11 +204,12 @@ export function ExternalLinkIcon({
   target = '_blank',
   href,
   rel = 'noopener noreferrer',
+  color,
   ...rest
-}: Omit<HTMLProps<HTMLAnchorElement>, 'as' | 'ref' | 'onClick'> & { href: string }) {
+}: Omit<HTMLProps<HTMLAnchorElement>, 'as' | 'ref' | 'onClick'> & { href: string; color?: string }) {
   return (
     <LinkIconWrapper target={target} rel={rel} href={href} onClick={handleClickExternalLink} {...rest}>
-      <LinkIcon />
+      <LinkIcon $color={color} />
     </LinkIconWrapper>
   )
 }
@@ -246,7 +248,7 @@ const CopiedTooltip = styled.div<{ isCopyContractTooltip?: boolean }>`
   font-size: 12px;
 `
 
-function Tooltip({ isCopyContractTooltip, tooltipX }: { isCopyContractTooltip: boolean; tooltipX?: number }) {
+export function Tooltip({ isCopyContractTooltip, tooltipX }: { isCopyContractTooltip: boolean; tooltipX?: number }) {
   return (
     <ToolTipWrapper isCopyContractTooltip={isCopyContractTooltip} tooltipX={tooltipX}>
       <StyledTooltipTriangle />

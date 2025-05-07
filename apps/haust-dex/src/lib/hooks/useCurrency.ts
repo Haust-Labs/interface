@@ -2,7 +2,7 @@ import { arrayify } from '@ethersproject/bytes'
 import { parseBytes32String } from '@ethersproject/strings'
 import { Currency, Token } from '@uniswap/sdk-core'
 import { useWeb3React } from '@web3-react/core'
-import { isSupportedChain } from 'constants/chains'
+import { isSupportedChain, SupportedChainId } from 'constants/chains'
 import { useBytes32TokenContract, useTokenContract } from 'hooks/useContract'
 import { NEVER_RELOAD, useSingleCallResult } from 'lib/hooks/multicall'
 import useNativeCurrency from 'lib/hooks/useNativeCurrency'
@@ -96,14 +96,18 @@ export function useCurrencyFromMap(tokens: TokenMap, currencyId?: string | null)
   const nativeCurrency = useNativeCurrency()
   const { chainId } = useWeb3React()
   const isNative = Boolean(nativeCurrency && currencyId?.toUpperCase() === 'HST')
+  
+  const defaultChainId = SupportedChainId.HAUST_TESTNET
+  const effectiveChainId = isSupportedChain(chainId) ? chainId : defaultChainId
+
   const shorthandMatchAddress = useMemo(() => {
-    const chain = supportedChainId(chainId)
+    const chain = supportedChainId(effectiveChainId)
     return chain && currencyId ? TOKEN_SHORTHANDS[currencyId.toUpperCase()]?.[chain] : undefined
-  }, [chainId, currencyId])
+  }, [effectiveChainId, currencyId])
 
   const token = useTokenFromMapOrNetwork(tokens, isNative ? undefined : shorthandMatchAddress ?? currencyId)
 
-  if (currencyId === null || currencyId === undefined || !isSupportedChain(chainId)) return null
+  if (currencyId === null || currencyId === undefined || !isSupportedChain(effectiveChainId)) return null
 
   // this case so we use our builtin wrapped token instead of wrapped tokens on token lists
   const wrappedNative = nativeCurrency?.wrapped

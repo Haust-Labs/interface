@@ -6,6 +6,7 @@ import styled from 'styled-components/macro'
 
 import AuthenticatedHeader from './AuthenticatedHeader'
 import SettingsMenu from './SettingsMenu'
+import LanguageMenu from './LanguageMenu'
 
 const DefaultMenuWrap = styled(Column)`
   width: 100%;
@@ -15,6 +16,7 @@ const DefaultMenuWrap = styled(Column)`
 enum MenuState {
   DEFAULT,
   SETTINGS,
+  LANGUAGE_SETTINGS,
 }
 
 function DefaultMenu() {
@@ -24,16 +26,28 @@ function DefaultMenu() {
   const [menu, setMenu] = useState<MenuState>(MenuState.DEFAULT)
   const openSettings = useCallback(() => setMenu(MenuState.SETTINGS), [])
   const closeSettings = useCallback(() => setMenu(MenuState.DEFAULT), [])
-
+  const openLanguageSettings = useCallback(() => setMenu(MenuState.LANGUAGE_SETTINGS), [])
   return (
     <DefaultMenuWrap>
-      {menu === MenuState.DEFAULT &&
-        (isAuthenticated ? (
-          <AuthenticatedHeader account={account} openSettings={openSettings} />
-        ) : (
-          <WalletModal />
-        ))}
-      {menu === MenuState.SETTINGS && <SettingsMenu onClose={closeSettings} />}
+      {(() => {
+        switch (menu) {
+          case MenuState.DEFAULT:
+            return isAuthenticated ? (
+              <AuthenticatedHeader account={account} openSettings={openSettings} />
+            ) : (
+              <WalletModal />
+            )
+          case MenuState.SETTINGS:
+            return (
+              <SettingsMenu
+                onClose={closeSettings}
+                openLanguageSettings={openLanguageSettings}
+              />
+            )
+          case MenuState.LANGUAGE_SETTINGS:
+            return <LanguageMenu onClose={openSettings} />
+        }
+      })()}
     </DefaultMenuWrap>
   )
 }

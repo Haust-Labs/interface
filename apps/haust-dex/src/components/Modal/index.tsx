@@ -13,17 +13,12 @@ const StyledDialogOverlay = styled(AnimatedDialogOverlay)<{ $scrollOverlay?: boo
   &[data-reach-dialog-overlay] {
     z-index: ${Z_INDEX.modalBackdrop};
     background-color: transparent;
-    overflow: hidden;
+    overflow: auto;
 
     display: flex;
     align-items: center;
-    @media screen and (max-width: ${({ theme }) => theme.breakpoint.sm}px) {
-      align-items: flex-end;
-    }
-    overflow-y: ${({ $scrollOverlay }) => $scrollOverlay && 'scroll'};
     justify-content: center;
 
-    background-color: ${({ theme }) => theme.backgroundScrim};
     border: 1px solid ${({ theme }) => theme.borderPrimary};
   }
 `

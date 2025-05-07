@@ -61,8 +61,7 @@ const CurrencySelect = styled(ButtonGray)<{
   user-select: none;
   font-size: 16px;
   font-weight: 600;
-  padding: 8px;
-  gap: 8px;
+  padding: 16px;
   justify-content: center;
 
   &:hover,
@@ -72,7 +71,6 @@ const CurrencySelect = styled(ButtonGray)<{
   }
 
   visibility: ${({ visible }) => (visible ? 'visible' : 'hidden')};
-  margin-top: 8px; 
 `
 
 const InputRow = styled.div`
@@ -104,8 +102,6 @@ const Aligner = styled.span`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  padding: 0px 16px;
 `
 
 const StyledDropDown = styled(DropDown)<{ selected: boolean }>`
@@ -201,6 +197,14 @@ const InnerContainer = styled.div`
   }
 `;
 
+const InputWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: flex-end;
+  padding: 14px 14px 60px 14px;
+`
+
 interface SwapCurrencyInputPanelProps {
   value: string
   onUserInput: (value: string) => void
@@ -257,33 +261,35 @@ export default function SendCurrencyInputPanel({
   return (
     <GroupContainer>
       <InnerContainer>
-      <div style={{padding: '16px'}}><ThemedText.BodySecondarySmall>You’re sending</ThemedText.BodySecondarySmall></div>
-        <InputPanel id={id} hideInput={hideInput} {...rest}>
-          <Container hideInput={hideInput}>
-            <InputRow style={hideInput ? { padding: '0', borderRadius: '8px' } : {}}>
-              {!hideInput && (
-                <StyledNumericalInput
-                  className="token-amount-input"
-                  value={value}
-                  onUserInput={onUserInput}
-                  disabled={!chainAllowed}
-                  $loading={loading}
-                  />
-              )}
-            </InputRow>
-          </Container>
-          {onCurrencySelect && (
-            <CurrencySearchModal
-              isOpen={modalOpen}
-              onDismiss={handleDismissSearch}
-              onCurrencySelect={onCurrencySelect}
-              selectedCurrency={currency}
-              otherSelectedCurrency={otherCurrency}
-              showCommonBases={showCommonBases}
-              showCurrencyAmount={showCurrencyAmount}
-              disableNonToken={disableNonToken} />
-          )}
-        </InputPanel>
+        <InputWrapper>
+          <ThemedText.BodySecondarySmall style={{ fontSize: '14px', fontWeight: '485' }}>You're sending</ThemedText.BodySecondarySmall>
+          <InputPanel id={id} hideInput={hideInput} {...rest}>
+            <Container hideInput={hideInput}>
+              <InputRow style={hideInput ? { padding: '0', borderRadius: '8px' } : {}}>
+                {!hideInput && (
+                  <StyledNumericalInput
+                    className="token-amount-input"
+                    value={value}
+                    onUserInput={onUserInput}
+                    disabled={!chainAllowed}
+                    $loading={loading}
+                    />
+                )}
+              </InputRow>
+            </Container>
+            {onCurrencySelect && (
+              <CurrencySearchModal
+                isOpen={modalOpen}
+                onDismiss={handleDismissSearch}
+                onCurrencySelect={onCurrencySelect}
+                selectedCurrency={currency}
+                otherSelectedCurrency={otherCurrency}
+                showCommonBases={showCommonBases}
+                showCurrencyAmount={showCurrencyAmount}
+                disableNonToken={disableNonToken} />
+            )}
+          </InputPanel>
+        </InputWrapper>
         <CurrencySelect
           disabled={!chainAllowed}
           visible={currency !== undefined}
@@ -298,19 +304,19 @@ export default function SendCurrencyInputPanel({
           }}
         >
           <Aligner>
-            <RowFixed>
+            <RowFixed style={{ gap: '12px' }}>
               {currency ? (
-                <CurrencyLogo style={{ marginRight: '2px' }} currency={currency} size="24px" />
+                <CurrencyLogo currency={currency} size="36px" />
               ) : null}
               <StyledTokenName className="token-symbol-container" active={Boolean(currency && currency.symbol)}>
                 {(currency && currency.symbol && currency.symbol.length > 20
                   ? currency.symbol.slice(0, 4) + '...' + currency.symbol.slice(currency.symbol.length - 5, currency.symbol.length)
                   : currency?.symbol) || <Trans>Select token</Trans>}
-                  <RowFixed style={{ height: '17px' }}>
+                  <RowFixed>
                     <ThemedText.DeprecatedBody
-                      color={theme.accentTextLightSecondary}
+                      color={theme.textSecondary}
                       fontWeight={400}
-                      fontSize={14}
+                      fontSize={12}
                       style={{ display: 'inline' }}
                     >
                       {!hideBalance && currency && selectedCurrencyBalance ? (

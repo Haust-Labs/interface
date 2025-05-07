@@ -62,34 +62,12 @@ export default function ConfirmWrapModal({
       </div>
     )
   }, [inputAmount, isWrap, onConfirm, wrapErrorMessage])
-
   const confirmationContent = useCallback(
     () =>
       wrapErrorMessage ? (
         <TransactionErrorContent onDismiss={onDismiss} message={wrapErrorMessage} />
-      ) : (
-        <ConfirmationModalContent
-          title={<Trans>Confirm {isWrap ? 'Wrap' : 'Unwrap'}</Trans>}
-          onDismiss={onDismiss}
-          topContent={() => (
-            <div style={{ padding: '24px' }}>
-              <div style={{ marginBottom: '8px' }}>
-                <Trans>Amount</Trans>
-              </div>
-              <div style={{ fontSize: '24px', fontWeight: 500 }}>
-                {inputAmount?.toSignificant(6)} {inputAmount?.currency?.symbol}
-              </div>
-              {fiatValue?.data && (
-                <div style={{ fontSize: '14px', color: 'textSecondary' }}>
-                  ≈ ${fiatValue.data.toFixed(2)}
-                </div>
-              )}
-            </div>
-          )}
-          bottomContent={modalBottom}
-        />
-      ),
-    [wrapErrorMessage, onDismiss, isWrap, inputAmount, fiatValue, modalBottom]
+      ) : null,
+    [wrapErrorMessage, onDismiss]
   )
 
   return (

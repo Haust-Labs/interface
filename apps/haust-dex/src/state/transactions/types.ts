@@ -1,14 +1,14 @@
-import { TradeType } from '@uniswap/sdk-core'
+import { Currency, NativeCurrency, TradeType } from "@uniswap/sdk-core";
 
 export interface SerializableTransactionReceipt {
-  to: string
-  from: string
-  contractAddress: string
-  transactionIndex: number
-  blockHash: string
-  transactionHash: string
-  blockNumber: number
-  status?: number
+  to: string;
+  from: string;
+  contractAddress: string;
+  transactionIndex: number;
+  blockHash: string;
+  transactionHash: string;
+  blockNumber: number;
+  status?: number;
 }
 
 /**
@@ -41,129 +41,161 @@ export enum TransactionType {
   REPAY,
   DEPLOY,
   CANCEL,
+  STAKE_LIQUIDITY_V3,
+  CLAIM_STAKING_REWARD,
+  UNSTAKE_LIQUIDITY_V3,
 }
 
 interface BaseTransactionInfo {
-  type: TransactionType
+  type: TransactionType;
 }
 
 export interface QueueTransactionInfo extends BaseTransactionInfo {
-  type: TransactionType.QUEUE
-  governorAddress: string
-  proposalId: number
+  type: TransactionType.QUEUE;
+  governorAddress: string;
+  proposalId: number;
 }
 
 export interface ExecuteTransactionInfo extends BaseTransactionInfo {
-  type: TransactionType.EXECUTE
-  governorAddress: string
-  proposalId: number
+  type: TransactionType.EXECUTE;
+  governorAddress: string;
+  proposalId: number;
 }
 
 export interface DelegateTransactionInfo extends BaseTransactionInfo {
-  type: TransactionType.DELEGATE
-  delegatee: string
+  type: TransactionType.DELEGATE;
+  delegatee: string;
 }
 
 export interface ApproveTransactionInfo extends BaseTransactionInfo {
-  type: TransactionType.APPROVAL
-  tokenAddress: string
-  spender: string
+  type: TransactionType.APPROVAL;
+  tokenAddress: string;
+  spender: string;
 }
 
 interface BaseSwapTransactionInfo extends BaseTransactionInfo {
-  type: TransactionType.SWAP
-  tradeType: TradeType
-  inputCurrencyId: string
-  outputCurrencyId: string
+  type: TransactionType.SWAP;
+  tradeType: TradeType;
+  inputCurrencyId: string;
+  outputCurrencyId: string;
 }
 
 export interface ExactInputSwapTransactionInfo extends BaseSwapTransactionInfo {
-  tradeType: TradeType.EXACT_INPUT
-  inputCurrencyAmountRaw: string
-  expectedOutputCurrencyAmountRaw: string
-  minimumOutputCurrencyAmountRaw: string
+  tradeType: TradeType.EXACT_INPUT;
+  inputCurrencyAmountRaw: string;
+  expectedOutputCurrencyAmountRaw: string;
+  minimumOutputCurrencyAmountRaw: string;
 }
-export interface ExactOutputSwapTransactionInfo extends BaseSwapTransactionInfo {
-  tradeType: TradeType.EXACT_OUTPUT
-  outputCurrencyAmountRaw: string
-  expectedInputCurrencyAmountRaw: string
-  maximumInputCurrencyAmountRaw: string
+export interface ExactOutputSwapTransactionInfo
+  extends BaseSwapTransactionInfo {
+  tradeType: TradeType.EXACT_OUTPUT;
+  outputCurrencyAmountRaw: string;
+  expectedInputCurrencyAmountRaw: string;
+  maximumInputCurrencyAmountRaw: string;
 }
 
 interface DepositLiquidityStakingTransactionInfo {
-  type: TransactionType.DEPOSIT_LIQUIDITY_STAKING
-  token0Address: string
-  token1Address: string
+  type: TransactionType.DEPOSIT_LIQUIDITY_STAKING;
+  token0Address: string;
+  token1Address: string;
 }
 
 interface WithdrawLiquidityStakingTransactionInfo {
-  type: TransactionType.WITHDRAW_LIQUIDITY_STAKING
-  token0Address: string
-  token1Address: string
+  type: TransactionType.WITHDRAW_LIQUIDITY_STAKING;
+  token0Address: string;
+  token1Address: string;
 }
 
 export interface WrapTransactionInfo {
-  type: TransactionType.WRAP
-  unwrapped: boolean
-  currencyAmountRaw: string
-  chainId?: number
+  type: TransactionType.WRAP;
+  unwrapped: boolean;
+  currencyAmountRaw: string;
+  chainId?: number;
 }
 
 export interface ClaimTransactionInfo {
-  type: TransactionType.CLAIM
-  recipient: string
-  uniAmountRaw?: string
+  type: TransactionType.CLAIM;
+  recipient: string;
+  uniAmountRaw?: string;
 }
 
 export interface CreateV3PoolTransactionInfo {
-  type: TransactionType.CREATE_V3_POOL
-  baseCurrencyId: string
-  quoteCurrencyId: string
+  type: TransactionType.CREATE_V3_POOL;
+  baseCurrencyId: string;
+  quoteCurrencyId: string;
 }
 
 export interface AddLiquidityV3PoolTransactionInfo {
-  type: TransactionType.ADD_LIQUIDITY_V3_POOL
-  createPool: boolean
-  baseCurrencyId: string
-  quoteCurrencyId: string
-  feeAmount: number
-  expectedAmountBaseRaw: string
-  expectedAmountQuoteRaw: string
+  type: TransactionType.ADD_LIQUIDITY_V3_POOL;
+  createPool: boolean;
+  baseCurrencyId: string;
+  quoteCurrencyId: string;
+  feeAmount: number;
+  expectedAmountBaseRaw: string;
+  expectedAmountQuoteRaw: string;
 }
 
 export interface AddLiquidityV2PoolTransactionInfo {
-  type: TransactionType.ADD_LIQUIDITY_V2_POOL
-  baseCurrencyId: string
-  quoteCurrencyId: string
-  expectedAmountBaseRaw: string
-  expectedAmountQuoteRaw: string
+  type: TransactionType.ADD_LIQUIDITY_V2_POOL;
+  baseCurrencyId: string;
+  quoteCurrencyId: string;
+  expectedAmountBaseRaw: string;
+  expectedAmountQuoteRaw: string;
 }
 
 export interface MigrateV2LiquidityToV3TransactionInfo {
-  type: TransactionType.MIGRATE_LIQUIDITY_V3
-  baseCurrencyId: string
-  quoteCurrencyId: string
-  isFork: boolean
+  type: TransactionType.MIGRATE_LIQUIDITY_V3;
+  baseCurrencyId: string;
+  quoteCurrencyId: string;
+  isFork: boolean;
 }
 
 export interface CollectFeesTransactionInfo {
-  type: TransactionType.COLLECT_FEES
-  currencyId0: string
-  currencyId1: string
-  expectedCurrencyOwed0: string
-  expectedCurrencyOwed1: string
+  type: TransactionType.COLLECT_FEES;
+  currencyId0: string;
+  currencyId1: string;
+  expectedCurrencyOwed0: string;
+  expectedCurrencyOwed1: string;
 }
 
 export interface RemoveLiquidityV3TransactionInfo {
-  type: TransactionType.REMOVE_LIQUIDITY_V3
-  baseCurrencyId: string
-  quoteCurrencyId: string
-  expectedAmountBaseRaw: string
-  expectedAmountQuoteRaw: string
+  type: TransactionType.REMOVE_LIQUIDITY_V3;
+  baseCurrencyId: string;
+  quoteCurrencyId: string;
+  expectedAmountBaseRaw: string;
+  expectedAmountQuoteRaw: string;
 }
 
 interface SubmitProposalTransactionInfo {
-  type: TransactionType.SUBMIT_PROPOSAL
+  type: TransactionType.SUBMIT_PROPOSAL;
+}
+
+export interface SendTransactionInfo {
+  type: TransactionType.SEND;
+  currencyId: string;
+  amount: string;
+  recipient: string;
+}
+
+export interface StakeLiquidityV3TransactionInfo {
+  type: TransactionType.STAKE_LIQUIDITY_V3;
+  tokenId: string;
+  token0Id: string;
+  token1Id: string;
+}
+
+export interface ClaimRewardsV3TransactionInfo {
+  type: TransactionType.CLAIM_STAKING_REWARD;
+  rewardToken: NativeCurrency | Currency;
+  rewardAmount: string;
+}
+
+export interface UnstakeLiquidityV3TransactionInfo {
+  type: TransactionType.UNSTAKE_LIQUIDITY_V3;
+  tokenId: string;
+  token0Id: string;
+  token1Id: string;
+  rewardAmount: string;
 }
 
 export type TransactionInfo =
@@ -184,13 +216,17 @@ export type TransactionInfo =
   | CollectFeesTransactionInfo
   | RemoveLiquidityV3TransactionInfo
   | SubmitProposalTransactionInfo
+  | SendTransactionInfo
+  | StakeLiquidityV3TransactionInfo
+  | ClaimRewardsV3TransactionInfo
+  | UnstakeLiquidityV3TransactionInfo;
 
 export interface TransactionDetails {
-  hash: string
-  receipt?: SerializableTransactionReceipt
-  lastCheckedBlockNumber?: number
-  addedTime: number
-  confirmedTime?: number
-  from: string
-  info: TransactionInfo
+  hash: string;
+  receipt?: SerializableTransactionReceipt;
+  lastCheckedBlockNumber?: number;
+  addedTime: number;
+  confirmedTime?: number;
+  from: string;
+  info: TransactionInfo;
 }

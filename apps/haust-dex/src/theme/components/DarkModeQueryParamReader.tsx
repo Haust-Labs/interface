@@ -18,7 +18,6 @@ export default function DarkModeQueryParamReader(): null {
     })
 
     const theme = parsed.theme
-
     if (typeof theme !== 'string') return
 
     if (theme.toLowerCase() === 'light') {

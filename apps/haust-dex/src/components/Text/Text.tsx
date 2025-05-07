@@ -15,6 +15,12 @@ const fonts = {
     fontWeight: '700',
     maxFontSizeMultiplier: 1.5,
   },
+  heading2Bolder: {
+    fontSize: '36px',
+    lineHeight: '44px',
+    fontWeight: '500',
+    maxFontSizeMultiplier: 1.5,
+  },
   heading3: {
     fontSize: '24px',
     lineHeight: '32px',
@@ -57,6 +63,12 @@ const fonts = {
     fontWeight: '400',
     maxFontSizeMultiplier: 1.2,
   },
+  body5: {
+    fontSize: '16px',
+    lineHeight: '24px',
+    fontWeight: '485',
+    maxFontSizeMultiplier: 1.2,
+  },
   buttonLabel1: {
     fontSize: '18px',
     lineHeight: '24px',
@@ -87,13 +99,18 @@ const fonts = {
     fontWeight: '400',
     maxFontSizeMultiplier: 1.2,
   },
+  buttonLabel5: {
+    fontSize: '12px',
+    lineHeight: '14px',
+    fontWeight: '500',
+  },
 };
 
 const TextFrame = styled.span<{ variant?: keyof typeof fonts; allowFontScaling?: boolean }>`
   font-family: ${({ variant }) => (variant === 'monospace' ? 'monospace' : 'inherit')};
   font-size: ${({ variant }) => fonts[variant || 'body2'].fontSize};
   line-height: ${({ variant }) => fonts[variant || 'body2'].lineHeight};
-  font-weight: 400;
+  font-weight: ${({ variant }) => fonts[variant || 'body2'].fontWeight};
   word-wrap: break-word;
 `;
 

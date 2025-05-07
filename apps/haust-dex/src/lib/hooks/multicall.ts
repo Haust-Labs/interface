@@ -63,6 +63,19 @@ export function useSingleContractWithCallData(
 function useCallContext() {
   const { chainId } = useWeb3React();
   const latestBlock = useBlockNumber();
+  const [pollBlock, setPollBlock] = useState<number | undefined>(latestBlock);
 
-  return { chainId, latestBlock };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Force refresh block number
+      if (latestBlock) {
+        setPollBlock(latestBlock + 1); // Increment block to force refresh
+        setTimeout(() => setPollBlock(latestBlock), 100); // Reset back to actual block
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [latestBlock]);
+
+  return { chainId, latestBlock: pollBlock ?? latestBlock };
 }

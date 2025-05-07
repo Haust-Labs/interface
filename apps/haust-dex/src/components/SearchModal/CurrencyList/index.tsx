@@ -33,9 +33,9 @@ const CheckIcon = styled(Check)`
 
 const StyledBalanceText = styled(Text)`
   white-space: nowrap;
-  overflow: visible;
-  max-width: none;
-  text-overflow: unset;
+  overflow: visible; // Changed from 'hidden'
+  max-width: none; // Changed from '5rem'
+  text-overflow: unset; // Changed from 'ellipsis'
 `
 
 const CurrencyName = styled(Text)`

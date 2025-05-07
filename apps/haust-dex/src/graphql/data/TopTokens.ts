@@ -95,7 +95,7 @@ function useSortedTokens(tokens: TopTokens100Query['topTokens']) {
       case TokenSortMethod.PRICE:
         tokenArray = tokenArray.sort((a, b) => (b?.market?.price?.value ?? 0) - (a?.market?.price?.value ?? 0))
         break
-      case TokenSortMethod.PERCENT_CHANGE:
+      case TokenSortMethod.ONE_DAY:
         tokenArray = tokenArray.sort(
           (a, b) => (b?.market?.pricePercentChange?.value ?? 0) - (a?.market?.pricePercentChange?.value ?? 0)
         )

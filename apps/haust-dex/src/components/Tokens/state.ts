@@ -5,8 +5,9 @@ import { useCallback } from 'react'
 
 export enum TokenSortMethod {
   PRICE = 'Price',
-  PERCENT_CHANGE = 'Change',
-  TOTAL_VALUE_LOCKED = 'TVL',
+  ONE_HOUR = '1 hour',
+  ONE_DAY = '1 day',
+  TOTAL_VALUE_LOCKED = 'FDV',
   VOLUME = 'Volume',
 }
 

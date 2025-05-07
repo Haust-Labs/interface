@@ -83,7 +83,7 @@ function getSettings(darkMode: boolean) {
     deprecated_mediaWidth: deprecated_mediaWidthTemplates,
 
     navHeight: 72,
-    mobileBottomBarHeight: 66,
+    mobileBottomBarHeight: 52,
 
     // deprecated - please use hardcoded exported values instead of
     // adding to the theme object

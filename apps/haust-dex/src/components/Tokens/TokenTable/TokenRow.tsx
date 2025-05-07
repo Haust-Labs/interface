@@ -32,6 +32,15 @@ import {
   useSetSortMethod,
 } from '../state'
 import { ArrowCell, DeltaText, formatDelta, getDeltaArrow } from '../TokenDetails/PriceChart'
+import CurrencyLogo from 'components/Logo/CurrencyLogo';
+import useTokenDayPrices from 'graphql/thegraph/TokenDayPriceQuery';
+import useTokenHourPrices from 'graphql/thegraph/TokenHourPriceQuery';
+import { DeltaArrow } from '../Delta';
+import useNativeCurrency from 'lib/hooks/useNativeCurrency';
+import { useCurrency } from 'hooks/Tokens';
+import { isGqlSupportedChain } from 'graphql/data/util';
+import { CHAIN_IDS_TO_NAMES, SupportedChainId } from 'constants/chains';
+import { ExplorerDataType, getExplorerLink } from 'utils/getExplorerLink';
 
 const Cell = styled.div`
   display: flex;
@@ -46,14 +55,15 @@ const StyledTokenRow = styled.div<{
   background-color: ${({ theme }) => theme.background};
   display: grid;
   font-size: 16px;
-  grid-template-columns: 1fr 7fr 4fr 4fr 4fr 4fr 5fr;
+  grid-template-columns: 1fr 4fr 3fr 3fr 3fr 3fr 2fr 3fr;
   line-height: 24px;
   max-width: ${MAX_WIDTH_MEDIA_BREAKPOINT};
   min-width: 390px;
   ${({ first, last }) => css`
     height: ${first || last ? '72px' : '64px'};
-    padding-top: ${first ? '8px' : '0px'};
     padding-bottom: ${last ? '8px' : '0px'};
+    border-bottom-left-radius: ${last ? '20px' : '0px'};
+    border-bottom-right-radius: ${last ? '20px' : '0px'};
   `}
   padding-left: 12px;
   padding-right: 12px;
@@ -68,9 +78,68 @@ const StyledTokenRow = styled.div<{
   &:hover {
     ${({ loading, theme }) =>
       !loading &&
-      css`
-        background-color: ${theme.buttonSecondaryHover};
-      `}
+    css`
+      background-color: ${theme.buttonDisabled};
+      opacity: 0.7;
+    `}
+}
+
+  @media only screen and (max-width: ${MAX_WIDTH_MEDIA_BREAKPOINT}) {
+    grid-template-columns: 1fr 6.5fr 4.5fr 4.5fr 4.5fr 4.5fr 1.7fr;
+  }
+
+  @media only screen and (max-width: ${LARGE_MEDIA_BREAKPOINT}) {
+    grid-template-columns: 1fr 7.5fr 4.5fr 4.5fr 4.5fr 1.7fr;
+  }
+
+  @media only screen and (max-width: ${MEDIUM_MEDIA_BREAKPOINT}) {
+    grid-template-columns: 1fr 10fr 5fr 5fr 1.2fr;
+  }
+
+  @media only screen and (max-width: ${SMALL_MEDIA_BREAKPOINT}) {
+    grid-template-columns: 1fr;
+    min-width: unset;
+    border-bottom: 0.5px solid ${({ theme }) => theme.backgroundModule};
+  }
+`
+
+const ClickableContent = styled.div`
+  display: flex;
+  text-decoration: none;
+  color: ${({ theme }) => theme.textPrimary};
+  align-items: center;
+  cursor: pointer;
+`
+const ClickableName = styled(ClickableContent)`
+  gap: 8px;
+  max-width: 100%;
+`
+const StyledHeaderRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 4fr 3fr 3fr 3fr 3fr 2fr 3fr;
+  background: ${({ theme }) => theme.backgroundModule};
+  border-bottom: 1px solid ${({ theme }) => theme.borderSecondary};
+  color: ${({ theme }) => theme.textSecondary};
+  font-size: 14px;
+  font-weight: 500;
+  height: 48px;
+  line-height: 16px;
+  padding: 0 12px;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  max-width: ${MAX_WIDTH_MEDIA_BREAKPOINT};
+  min-width: 390px;
+  transition: ${({
+    theme: {
+      transition: { duration, timing },
+    },
+  }) => css`background-color ${duration.medium} ${timing.ease}`};
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  
+  &:hover {
+    background-color: ${({ theme }) => theme.backgroundModule};
   }
 
   @media only screen and (max-width: ${MAX_WIDTH_MEDIA_BREAKPOINT}) {
@@ -86,48 +155,12 @@ const StyledTokenRow = styled.div<{
   }
 
   @media only screen and (max-width: ${SMALL_MEDIA_BREAKPOINT}) {
-    grid-template-columns: 2fr 3fr;
+    grid-template-columns: 1fr;
     min-width: unset;
-    border-bottom: 0.5px solid ${({ theme }) => theme.backgroundModule};
-
-    :last-of-type {
-      border-bottom: none;
-    }
   }
 `
 
-const ClickableContent = styled.div`
-  display: flex;
-  text-decoration: none;
-  color: ${({ theme }) => theme.textPrimary};
-  align-items: center;
-  cursor: pointer;
-`
-const ClickableName = styled(ClickableContent)`
-  gap: 8px;
-  max-width: 100%;
-`
-const StyledHeaderRow = styled(StyledTokenRow)`
-  background: ${({ theme }) => theme.backgroundModule};
-  border-bottom: 1px solid ${({ theme }) => theme.borderSecondary};
-  color: ${({ theme }) => theme.textSecondary};
-  font-size: 14px;
-  height: 48px;
-  line-height: 16px;
-  padding: 0 12px;
-  width: 100%;
-  justify-content: center;
-
-  &:hover {
-    background-color: transparent;
-  }
-
-  @media only screen and (max-width: ${SMALL_MEDIA_BREAKPOINT}) {
-    justify-content: space-between;
-  }
-`
-
-const ListNumberCell = styled(Cell)<{ header: boolean }>`
+const ListNumberCell = styled(Cell)`
   color: ${({ theme }) => theme.textSecondary};
   min-width: 32px;
   font-size: 14px;
@@ -160,6 +193,10 @@ const NameCell = styled(Cell)`
 `
 const PriceCell = styled(DataCell)`
   padding-right: 8px;
+  
+  @media only screen and (max-width: ${SMALL_MEDIA_BREAKPOINT}) {
+    display: none;
+  }
 `
 const PercentChangeCell = styled(DataCell)`
   padding-right: 8px;
@@ -201,8 +238,9 @@ const HeaderCellWrapper = styled.span<{ onClick?: () => void }>`
   }
 `
 const SparkLineCell = styled(Cell)`
-  padding: 0 24px;
-  min-width: 120px;
+  display: flex;
+  justify-content: flex-end;
+  min-width: 100px;
 
   @media only screen and (max-width: ${MAX_WIDTH_MEDIA_BREAKPOINT}) {
     display: none;
@@ -281,7 +319,8 @@ const InfoIconContainer = styled.div`
 
 export const HEADER_DESCRIPTIONS: Record<TokenSortMethod, ReactNode | undefined> = {
   [TokenSortMethod.PRICE]: undefined,
-  [TokenSortMethod.PERCENT_CHANGE]: undefined,
+  [TokenSortMethod.ONE_HOUR]: undefined,
+  [TokenSortMethod.ONE_DAY]: undefined,
   [TokenSortMethod.TOTAL_VALUE_LOCKED]: (
     <Trans>
       Total value locked (TVL) is the aggregate amount of the asset available across all Haust DEX v3 liquidity pools.
@@ -334,7 +373,8 @@ function TokenRow({
   listNumber,
   tokenInfo,
   price,
-  percentChange,
+  percentChangeOneHour,
+  percentChangeOneDay,
   tvl,
   volume,
   sparkLine,
@@ -346,7 +386,8 @@ function TokenRow({
   loading?: boolean
   tvl: ReactNode
   price: ReactNode
-  percentChange: ReactNode
+  percentChangeOneHour: ReactNode
+  percentChangeOneDay: ReactNode
   sparkLine?: ReactNode
   tokenInfo: ReactNode
   volume: ReactNode
@@ -361,7 +402,10 @@ function TokenRow({
         {price}
       </PriceCell>
       <PercentChangeCell data-testid="percent-change-cell" sortable={header}>
-        {percentChange}
+        {percentChangeOneHour}
+      </PercentChangeCell>
+      <PercentChangeCell data-testid="percent-change-cell" sortable={header}>
+        {percentChangeOneDay}
       </PercentChangeCell>
       <TvlCell data-testid="tvl-cell" sortable={header}>
         {tvl}
@@ -384,7 +428,8 @@ export function HeaderRow() {
       listNumber="#"
       tokenInfo={<Trans>Token name</Trans>}
       price={<HeaderCell category={TokenSortMethod.PRICE} />}
-      percentChange={<HeaderCell category={TokenSortMethod.PERCENT_CHANGE} />}
+      percentChangeOneHour={<HeaderCell category={TokenSortMethod.ONE_HOUR} />}
+      percentChangeOneDay={<HeaderCell category={TokenSortMethod.ONE_DAY} />}
       tvl={<HeaderCell category={TokenSortMethod.TOTAL_VALUE_LOCKED} />}
       volume={<HeaderCell category={TokenSortMethod.VOLUME} />}
       sparkLine={null}
@@ -405,7 +450,8 @@ export function LoadingRow(props: { first?: boolean; last?: boolean }) {
         </>
       }
       price={<MediumLoadingBubble />}
-      percentChange={<LoadingBubble />}
+      percentChangeOneHour={<LoadingBubble />}
+      percentChangeOneDay={<LoadingBubble />}
       tvl={<LoadingBubble />}
       volume={<LoadingBubble />}
       sparkLine={<SparkLineLoadingBubble />}
@@ -415,11 +461,27 @@ export function LoadingRow(props: { first?: boolean; last?: boolean }) {
 }
 
 interface LoadedRowProps {
+  chainId?: number
   tokenListIndex: number
   tokenListLength: number
   token: NonNullable<TopTokenApi>
   sparklineMap: SparklineMap
   sortRank: number
+}
+
+const getTokenLink = (chainId: SupportedChainId, address: string) => {
+  if (address.toLowerCase().includes('_haust')) {
+    // Don't include address in URL for _haust tokens
+    const chainName = CHAIN_IDS_TO_NAMES[chainId as keyof typeof CHAIN_IDS_TO_NAMES]
+    return `${window.location.origin}/explore/token/${chainName}/NATIVE`
+  }
+  
+  if (isGqlSupportedChain(chainId)) {
+    const chainName = CHAIN_IDS_TO_NAMES[chainId as keyof typeof CHAIN_IDS_TO_NAMES]
+    return `${window.location.origin}/explore/token/${chainName}/${address}`
+  } else {
+    return getExplorerLink(chainId, address, ExplorerDataType.TOKEN)
+  }
 }
 
 /* Loaded State: row component with token information */
@@ -428,37 +490,31 @@ export const LoadedRow = forwardRef((props: LoadedRowProps, ref: ForwardedRef<HT
   const filterString = useAtomValue(filterStringAtom)
 
   const filterNetwork = validateUrlChainParam(useParams<{ chainName?: string }>().chainName?.toUpperCase())
-  const chainId = CHAIN_NAME_TO_CHAIN_ID[filterNetwork]
-  const timePeriod = useAtomValue(filterTimeAtom)
-  const delta = +token.marketData?.pricePercentChange;
-  const arrow = getDeltaArrow(delta)
-  const smallArrow = getDeltaArrow(delta, 14)
-  const formattedDelta = formatDelta(delta)
+  
+  const dayDelta = Number(token.marketData.pricePercentChange)
+  const hourDelta = Number(token.marketData.hourlyPriceChange)
 
-  const exploreTokenSelectedEventProperties = {
-    chain_id: chainId,
-    token_address: token.address,
-    token_symbol: token.symbol,
-    token_list_index: tokenListIndex,
-    token_list_rank: sortRank,
-    token_list_length: tokenListLength,
-    time_frame: timePeriod,
-    search_token_address_input: filterString,
-  }
+  const smallDayArrow = getDeltaArrow(dayDelta, 14)
+  const formattedDayDelta = formatDelta(dayDelta)
+  const formattedHourDelta = formatDelta(hourDelta)
 
-  // TODO: currency logo sizing mobile (32px) vs. desktop (24px)
+  const nativeCurrency = useNativeCurrency()
+  const tokenCurrency = useCurrency(token.address)
+  const currency = token.symbol === 'HAUST' ? nativeCurrency : tokenCurrency
+
+
   return (
     <div ref={ref} data-testid={`token-table-row-${token.symbol}`}>
       <StyledLink
-        to={getTokenDetailsURL(token)}
-        onClick={noop} // TODO can use analytics
+        to={getTokenLink(props.chainId as SupportedChainId, token.address)}
+        onClick={noop}
       >
         <TokenRow
           header={false}
           listNumber={sortRank}
           tokenInfo={
             <ClickableName>
-              <AssetLogo {...token} />
+              <CurrencyLogo currency={currency} />
               <TokenInfoCell>
                 <TokenName data-cy="token-name">{token.name}</TokenName>
                 <TokenSymbol>{token.symbol}</TokenSymbol>
@@ -468,27 +524,35 @@ export const LoadedRow = forwardRef((props: LoadedRowProps, ref: ForwardedRef<HT
           price={
             <ClickableContent>
               <PriceInfoCell>
-                {formatUSDPrice(token.priceUsd)}
+                {formatUSDPrice(Number(token.priceUsd))}
                 <PercentChangeInfoCell>
-                  <ArrowCell>{smallArrow}</ArrowCell>
-                  <DeltaText delta={delta}>{formattedDelta}</DeltaText>
+                  <ArrowCell>{smallDayArrow}</ArrowCell>
+                  <DeltaText delta={dayDelta}>{formattedDayDelta}</DeltaText>
                 </PercentChangeInfoCell>
               </PriceInfoCell>
             </ClickableContent>
           }
-          percentChange={
+          percentChangeOneHour={
             <ClickableContent>
-              <ArrowCell>{arrow}</ArrowCell>
-              <DeltaText delta={delta}>{formattedDelta}</DeltaText>
+              <DeltaArrow delta={hourDelta} size={16} />
+              <DeltaText delta={hourDelta}>{formattedHourDelta}</DeltaText>
+            </ClickableContent>
+          }
+          percentChangeOneDay={
+            <ClickableContent>
+              <DeltaArrow delta={dayDelta} size={16} />
+              <DeltaText delta={dayDelta}>{formattedDayDelta}</DeltaText>
             </ClickableContent>
           }
           tvl={
             <ClickableContent>
-              {formatNumber(+token.totalValueLockedUsd!, NumberType.FiatTokenStats)}
+              {formatUSDPrice((Number(token.totalSupply) * Number(token.priceUsd)), NumberType.FiatTokenStats)}
             </ClickableContent>
           }
           volume={
-            <ClickableContent>{formatNumber(+token.marketData.volume!, NumberType.FiatTokenStats)}</ClickableContent>
+            <ClickableContent>
+              {formatUSDPrice(Number(token.marketData.volume), NumberType.FiatTokenStats)}
+            </ClickableContent>
           }
           sparkLine={
             <SparkLine>
@@ -499,7 +563,7 @@ export const LoadedRow = forwardRef((props: LoadedRowProps, ref: ForwardedRef<HT
                       width={width}
                       height={height}
                       tokenData={token}
-                      pricePercentChange={+token.marketData?.pricePercentChange}
+                      pricePercentChange={Number(token.marketData.pricePercentChange)}
                       sparklineMap={props.sparklineMap}
                     />
                   )

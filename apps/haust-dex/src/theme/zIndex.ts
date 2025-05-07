@@ -3,6 +3,7 @@
 export enum Z_INDEX {
   deprecated_zero = 0,
   deprecated_content = 1,
+  hover = 2,
   under_dropdown = 990,
   dropdown = 1000,
   sticky = 1020,

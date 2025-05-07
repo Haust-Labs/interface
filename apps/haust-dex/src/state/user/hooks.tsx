@@ -22,6 +22,7 @@ import {
   updateUserSlippageTolerance,
 } from './reducer'
 import { SerializedPair, SerializedToken } from './types'
+import { SupportedChainId } from 'constants/chains'
 
 export function serializeToken(token: Token): SerializedToken {
   return {
@@ -188,7 +189,7 @@ export function useUserAddedTokensOnChain(chainId: number | undefined | null): T
 }
 
 export function useUserAddedTokens(): Token[] {
-  return useUserAddedTokensOnChain(useWeb3React().chainId)
+  return useUserAddedTokensOnChain(useWeb3React().chainId ?? SupportedChainId.HAUST_TESTNET)
 }
 
 function serializePair(pair: Pair): SerializedPair {

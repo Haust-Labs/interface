@@ -159,7 +159,7 @@ export const ApprovedCheckmarkIcon = (props: SVGProps) => (
   <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
     <path
       d="M13.7464 21.1101C13.3792 21.6796 12.8372 22 12.2076 22C11.5607 22 11.0536 21.733 10.5814 21.1101L6.45464 15.9844C6.15738 15.6107 6 15.2191 6 14.792C6 13.9021 6.66448 13.208 7.52131 13.208C8.0459 13.208 8.46557 13.4038 8.88525 13.9555L12.1377 18.1735L19.0448 6.88988C19.412 6.28476 19.8842 6 20.4087 6C21.2306 6 22 6.58732 22 7.4594C22 7.86874 21.7902 8.29588 21.5628 8.66963L13.7464 21.1101Z"
-      fill="currentColor"
+      fill="black"
     />
   </svg>
 )
@@ -243,13 +243,18 @@ export const TagIcon = (props: SVGProps) => (
 )
 
 export const CheckMarkIcon = (props: SVGProps) => (
-  <svg {...props} fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    data-testid="checkmark-icon"
+    {...props}
+  >
     <path
-      d="M16.6693 5.33789L7.5026 14.3175L3.33594 10.2358"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      d="M9.00002 17C8.99902 17 8.99802 17 8.99602 17C8.72902 16.999 8.47502 16.892 8.28802 16.702L4.28802 12.64C3.90002 12.246 3.90503 11.613 4.29903 11.226C4.69303 10.839 5.32502 10.843 5.71302 11.237L9.00602 14.581L18.294 5.29398C18.685 4.90298 19.317 4.90298 19.708 5.29398C20.099 5.68398 20.099 6.31798 19.708 6.70798L9.70801 16.708C9.52001 16.895 9.26502 17 9.00002 17Z"
+      fill="#40B66B"
     />
   </svg>
 )

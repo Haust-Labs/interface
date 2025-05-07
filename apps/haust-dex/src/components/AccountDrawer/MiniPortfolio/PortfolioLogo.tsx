@@ -1,19 +1,21 @@
 import { Currency } from '@uniswap/sdk-core'
 import blankTokenUrl from 'assets/svg/blank_token.svg'
 import { ReactComponent as UnknownStatus } from 'assets/svg/contract-interaction.svg'
+import Identicon from 'components/Identicon'
 import { LogoImage, MissingImageLogo } from 'components/Logo/AssetLogo'
-import { Unicon } from 'components/Unicon'
 import { SupportedChainId } from 'constants/chains'
 import useTokenLogoSource from 'hooks/useAssetLogoSource'
-import useENSAvatar from 'hooks/useENSAvatar'
 import React from 'react'
-import { Loader } from 'react-feather'
 import styled from 'styled-components/macro'
 const UnknownContract = styled(UnknownStatus)`
   color: ${({ theme }) => theme.textSecondary};
 `
 
-const DoubleLogoContainer = styled.div`
+interface DoubleLogoProps {
+  size?: string;
+}
+
+const DoubleLogoContainer = styled.div<DoubleLogoProps>`
   display: flex;
   flex-direction: row;
   gap: 2px;
@@ -21,8 +23,8 @@ const DoubleLogoContainer = styled.div`
   top: 0;
   left: 0;
   ${LogoImage}:nth-child(n) {
-    width: 19px;
-    height: 40px;
+    width: ${({ size }) => `${parseInt(size ?? '40px') / 2}px`};
+    height: ${({ size }) => size ?? '40px'};
     object-fit: cover;
   }
   ${LogoImage}:nth-child(1) {
@@ -50,12 +52,6 @@ const StyledLogoParentContainer = styled.div`
   left: 0;
 `
 
-const ENSAvatarImg = styled.img`
-  border-radius: 8px;
-  height: 40px;
-  width: 40px;
-`
-
 /**
  * Renders an image by prioritizing a list of sources, and then eventually a fallback triangle alert
  */
@@ -67,19 +63,13 @@ export function PortfolioLogo({
   size = '40px',
   style,
 }: MultiLogoProps) {
-  const { avatar, loading } = useENSAvatar(accountAddress, false)
-
   const [src, nextSrc] = useTokenLogoSource(currencies?.[0]?.wrapped.address, chainId, currencies?.[0]?.isNative)
   const [src2, nextSrc2] = useTokenLogoSource(currencies?.[1]?.wrapped.address, chainId, currencies?.[1]?.isNative)
 
   let component
   if (accountAddress) {
-    component = loading ? (
-      <Loader size={size} />
-    ) : avatar ? (
-      <ENSAvatarImg src={avatar} alt="avatar" />
-    ) : (
-      <Unicon size={40} address={accountAddress} />
+      component = (
+      <Identicon account={accountAddress} size={40} />
     )
   } else if (currencies && currencies.length) {
     const logo1 = <LogoImage size={size} src={src ?? blankTokenUrl} onError={nextSrc} />
@@ -88,7 +78,7 @@ export function PortfolioLogo({
 
     component =
       currencies.length > 1 ? (
-        <DoubleLogoContainer style={style}>
+        <DoubleLogoContainer size={size} style={style}>
           {logo1}
           {logo2}
         </DoubleLogoContainer>
@@ -102,7 +92,7 @@ export function PortfolioLogo({
   } else if (images && images.length) {
     component =
       images.length > 1 ? (
-        <DoubleLogoContainer style={style}>
+        <DoubleLogoContainer size={size} style={style}>
           <LogoImage size={size} src={images[0]} />
           <LogoImage size={size} src={images[images.length - 1]} />
         </DoubleLogoContainer>

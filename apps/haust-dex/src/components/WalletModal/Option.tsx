@@ -5,6 +5,7 @@ import { useIsDarkMode } from 'theme/components/ThemeToggle'
 import { flexColumnNoWrap, flexRowNoWrap } from 'theme/styles'
 
 import NewBadge from './NewBadge'
+import { DetectedBadge } from './shared'
 
 const OptionCardLeft = styled.div`
   ${flexColumnNoWrap};
@@ -15,13 +16,14 @@ const OptionCardLeft = styled.div`
 const OptionCardClickable = styled.button<{ isActive?: boolean; clickable?: boolean }>`
   background-color: ${({ theme }) => theme.backgroundModule};
   width: 100% !important;
-  border-color: ${({ theme, isActive }) => (isActive ? theme.accentActive : 'transparent')};
+  border-radius: 12px;
+  border: 1px solid ${({ theme }) => theme.neutralBorder};
+  padding: 12px 16px;
 
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
 
   margin-top: 0;
   transition: ${({ theme }) => theme.transition.duration.fast};
@@ -53,6 +55,7 @@ const IconWrapper = styled.div`
   span {
     height: 40px;
     width: 40px;
+    border-radius: 50%;
   }
   ${({ theme }) => theme.deprecated_mediaWidth.deprecated_upToMedium`
     align-items: flex-end;
@@ -63,8 +66,9 @@ type OptionProps = {
   connection: Connection
   activate: () => void
   pendingConnectionType?: ConnectionType
+  isDetected?: boolean;
 }
-export default function Option({ connection, pendingConnectionType, activate }: OptionProps) {
+export default function Option({ connection, pendingConnectionType, activate, isDetected }: OptionProps) {
   const isPending = pendingConnectionType === connection.type
   const isDarkMode = useIsDarkMode()
   return (
@@ -82,6 +86,7 @@ export default function Option({ connection, pendingConnectionType, activate }: 
         {connection.isNew && <NewBadge />}
       </OptionCardLeft>
       {isPending && <Loader />}
+      {isDetected && <DetectedBadge />}
     </OptionCardClickable>
   )
 }

@@ -4,6 +4,7 @@ import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Percent } from '@uniswap/sdk-core'
 import { FeeAmount, NonfungiblePositionManager } from '@uniswap/v3-sdk'
 import { useWeb3React } from '@web3-react/core'
+import axios from 'axios'
 import { useToggleAccountDrawer } from 'components/AccountDrawer'
 import OwnershipWarning from 'components/addLiquidity/OwnershipWarning'
 // import { sendEvent } from 'components/analytics'
@@ -49,6 +50,7 @@ import { useArgentWalletContract } from '../../hooks/useArgentWalletContract'
 import { useV3NFTPositionManagerContract } from '../../hooks/useContract'
 import { useDerivedPositionInfo } from '../../hooks/useDerivedPositionInfo'
 import { useIsSwapUnsupported } from '../../hooks/useIsSwapUnsupported'
+import { usePositionTokenURI } from '../../hooks/usePositionTokenURI'
 import { useStablecoinValue } from '../../hooks/useStablecoinPrice'
 import useTransactionDeadline from '../../hooks/useTransactionDeadline'
 import { useV3PositionFromTokenId } from '../../hooks/useV3Positions'
@@ -59,7 +61,6 @@ import { useIsExpertMode, useUserSlippageToleranceWithDefault } from '../../stat
 import { ThemedText } from '../../theme'
 import {colors} from "../../theme/colors";
 import approveAmountCalldata from '../../utils/approveAmountCalldata'
-import { calculateGasMargin } from '../../utils/calculateGasMargin'
 import { currencyId } from '../../utils/currencyId'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { Dots } from '../Pool/styleds'
@@ -155,7 +156,6 @@ function AddLiquidity() {
     baseCurrency ?? undefined,
     existingPosition
   )
-
   const { onFieldAInput, onFieldBInput, onLeftRangeInput, onRightRangeInput, onStartPriceInput } =
     useV3MintActionHandlers(noLiquidity)
 
@@ -218,6 +218,33 @@ function AddLiquidity() {
     outOfRange ? ZERO_PERCENT : DEFAULT_ADD_IN_RANGE_SLIPPAGE_TOLERANCE
   )
 
+  const [gatewayUrl, setGatewayUrl] = useState<string>('')
+  
+  const [newTokenId, setNewTokenId] = useState<string | undefined>()
+
+  const uploadToIPFS = useCallback(async (svgContent: string) => {
+    try {
+      const svgBlob = new Blob([svgContent], { type: 'image/svg+xml' })
+      
+      const formData = new FormData()
+      formData.append('file', svgBlob, `nft-${tokenId}.svg`)
+
+      const pinataResponse = await axios.post('https://api.pinata.cloud/pinning/pinFileToIPFS', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          pinata_api_key: '8ca90be06f8c91d8af00',
+          pinata_secret_api_key: 'd99fe209a6c4ec0220e3a0e30933ef0f6ce42e62fab7ae4bded0632d07666481',
+        }
+      })
+
+      const ipfsHash = pinataResponse.data.IpfsHash
+      return `https://ipfs.io/ipfs/${ipfsHash}`
+    } catch (error) {
+      console.error('Error uploading to IPFS:', error)
+      return ''
+    }
+  }, [tokenId])
+
   async function onAdd() {
     if (!chainId || !provider || !account) return
 
@@ -227,6 +254,8 @@ function AddLiquidity() {
 
     if (position && account && deadline) {
       const useNative = baseCurrency.isNative ? baseCurrency : quoteCurrency.isNative ? quoteCurrency : undefined
+
+      // adjust for slippage
       const { calldata, value } =
         hasExistingPosition && tokenId
           ? NonfungiblePositionManager.addCallParameters(position, {
@@ -274,26 +303,67 @@ function AddLiquidity() {
       }
 
       setAttemptingTxn(true)
-      provider
-        .getSigner()
-        .sendTransaction(txn)
-            .then((response: TransactionResponse) => {
-              setAttemptingTxn(false)
-              addTransaction(response, {
-                type: TransactionType.ADD_LIQUIDITY_V3_POOL,
-                baseCurrencyId: currencyId(baseCurrency),
-                quoteCurrencyId: currencyId(quoteCurrency),
-                createPool: Boolean(noLiquidity),
-                expectedAmountBaseRaw: parsedAmounts[Field.CURRENCY_A]?.quotient?.toString() ?? '0',
-                expectedAmountQuoteRaw: parsedAmounts[Field.CURRENCY_B]?.quotient?.toString() ?? '0',
-                feeAmount: position.pool.fee,
-              })
-              setTxHash(response.hash)
-            })
-    } else {
-      return
+
+      try {
+        const response: TransactionResponse = await provider.getSigner().sendTransaction(txn)
+        
+        addTransaction(response, {
+          type: TransactionType.ADD_LIQUIDITY_V3_POOL,
+          baseCurrencyId: currencyId(baseCurrency),
+          quoteCurrencyId: currencyId(quoteCurrency),
+          createPool: Boolean(noLiquidity),
+          expectedAmountBaseRaw: parsedAmounts[Field.CURRENCY_A]?.quotient?.toString() ?? '0',
+          expectedAmountQuoteRaw: parsedAmounts[Field.CURRENCY_B]?.quotient?.toString() ?? '0',
+          feeAmount: position.pool.fee,
+        })
+        setTxHash(response.hash)
+
+        const receipt = await response.wait()
+        
+        const mintEvent = receipt.logs
+          .filter(log => log.address === positionManager?.address)
+          .map((log) => {
+            try {
+              return positionManager?.interface.parseLog(log)
+            } catch (e) {
+              return null
+            }
+          })
+          .find((event) => ['IncreaseLiquidity', 'MintPosition'].includes(event?.name ?? ''))
+
+        if (!mintEvent) {
+          throw new Error('No mint event found in transaction receipt')
+        }
+
+        const newTokenId = hasExistingPosition ? tokenId : mintEvent?.args?.tokenId?.toString()
+        setNewTokenId(newTokenId)
+
+        if (newTokenId) {
+          const tokenURI = await positionManager?.tokenURI(newTokenId)
+          if (tokenURI) {
+            const base64Data = tokenURI.split(',')[1]
+            const svgContent = atob(base64Data)
+            const url = await uploadToIPFS(svgContent)
+            setGatewayUrl(url)
+          }
+        }
+
+        setAttemptingTxn(false)
+
+      } catch (error) {
+        console.error('Failed to add liquidity:', error)
+        setAttemptingTxn(false)
+      }
     }
   }
+
+  const parsedTokenId = useMemo(() => {
+    if (newTokenId) return BigNumber.from(newTokenId)
+    if (tokenId) return BigNumber.from(tokenId)
+    return undefined
+  }, [newTokenId, tokenId])
+
+  const metadata = usePositionTokenURI(parsedTokenId)
 
   const handleCurrencySelect = useCallback(
     (currencyNew: Currency, currencyIdOther?: string): (string | undefined)[] => {
@@ -356,15 +426,19 @@ function AddLiquidity() {
   )
 
   const handleDismissConfirmation = useCallback(() => {
-    setShowConfirm(false)
-    // if there was a tx hash, we want to clear the input
-    if (txHash) {
-      onFieldAInput('')
-      // dont jump to pool page if creating
-      navigate('/pools')
+    if (!attemptingTxn) {
+      setShowConfirm(false)
+      if (txHash) {
+        onFieldAInput('')
+        if (!hasExistingPosition) {
+          navigate('/pools')
+        } else {
+          navigate(`/pools/${tokenId}`)
+        }
+      }
+      setTxHash('')
     }
-    setTxHash('')
-  }, [navigate, onFieldAInput, txHash])
+  }, [navigate, onFieldAInput, txHash, hasExistingPosition, attemptingTxn])
 
   const addIsUnsupported = useIsSwapUnsupported(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
 
@@ -469,7 +543,7 @@ function AddLiquidity() {
               {showApprovalA && (
                 <ButtonPrimary
                   onClick={approveACallback}
-                  disabled={approvalA === ApprovalState.PENDING}
+                  disabled={approvalA === ApprovalState.PENDING || approvalB === ApprovalState.PENDING}
                   width={showApprovalB ? '48%' : '100%'}
                 >
                   {approvalA === ApprovalState.PENDING ? (
@@ -484,7 +558,7 @@ function AddLiquidity() {
               {showApprovalB && (
                 <ButtonPrimary
                   onClick={approveBCallback}
-                  disabled={approvalB === ApprovalState.PENDING}
+                  disabled={approvalB === ApprovalState.PENDING || approvalA === ApprovalState.PENDING}
                   width={showApprovalA ? '48%' : '100%'}
                 >
                   {approvalB === ApprovalState.PENDING ? (
@@ -536,6 +610,11 @@ function AddLiquidity() {
     addressesAreEquivalent(owner, account) || addressesAreEquivalent(existingPositionDetails?.operator, account)
   const showOwnershipWarning = Boolean(hasExistingPosition && account && !ownsNFT)
 
+  const isMetaMask = provider?.provider?.isMetaMask
+  const isRabby = (provider?.provider as any)?.isRabby
+
+  const shouldShowLPToken = isMetaMask && !isRabby
+
   return (
     <>
       <ScrollablePage>
@@ -544,6 +623,17 @@ function AddLiquidity() {
           onDismiss={handleDismissConfirmation}
           attemptingTxn={attemptingTxn}
           hash={txHash}
+          lpToAdd={shouldShowLPToken && positionManager && (newTokenId || tokenId) ? {
+            address: positionManager?.address ?? '',
+            tokenId: (newTokenId || tokenId)?.toString() ?? '',
+            image: gatewayUrl ?? '',
+            imageRef: 'result' in metadata ? metadata?.result?.image : '',
+            token0Amount: parsedAmounts[Field.CURRENCY_A]?.toSignificant(6) ?? '',
+            token1Amount: parsedAmounts[Field.CURRENCY_B]?.toSignificant(6) ?? '',
+            token0Symbol: currencies[Field.CURRENCY_A]?.symbol ?? '',
+            token1Symbol: currencies[Field.CURRENCY_B]?.symbol ?? '',
+            feeTier: feeAmount ?? 0,
+          } : undefined}
           content={() => (
             <ConfirmationModalContent
               title={<Trans>Add Liquidity</Trans>}

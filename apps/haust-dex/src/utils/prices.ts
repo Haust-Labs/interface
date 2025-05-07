@@ -40,7 +40,6 @@ function computeRealizedLPFeePercent(trade: Trade<Currency, Currency, TradeType>
     for (const swap of trade.swaps) {
       const { numerator, denominator } = swap.inputAmount.divide(trade.inputAmount)
       const overallPercent = new Percent(numerator, denominator)
-
       const routeRealizedLPFeePercent = overallPercent.multiply(
         ONE_HUNDRED_PERCENT.subtract(
           swap.route.pools.reduce<Percent>((currentFee: Percent, pool): Percent => {

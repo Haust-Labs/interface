@@ -51,12 +51,11 @@ export function tryParseTick(
 
   // check price is within min/max bounds, if outside return min/max
   const sqrtRatioX96 = encodeSqrtRatioX96(price.numerator, price.denominator)
-
   if (JSBI.greaterThanOrEqual(sqrtRatioX96, TickMath.MAX_SQRT_RATIO)) {
     tick = TickMath.MAX_TICK
   } else if (JSBI.lessThanOrEqual(sqrtRatioX96, TickMath.MIN_SQRT_RATIO)) {
     tick = TickMath.MIN_TICK
-  } else {
+  } else {    
     // this function is agnostic to the base, will always return the correct tick
     tick = priceToClosestTick(price)
   }

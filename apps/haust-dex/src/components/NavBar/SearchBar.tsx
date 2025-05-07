@@ -1,9 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import { t, Trans } from '@lingui/macro'
-import {useSearchTokensApi} from "api/SearchTokens";
 import clsx from 'clsx'
-import { useNftGraphqlEnabled } from 'featureFlags/flags/nftlGraphql'
-import { useCollectionSearch } from 'graphql/data/nft/CollectionSearch'
+import useTopTokensQuery from 'graphql/thegraph/TopTokensQuery';
 import useDebounce from 'hooks/useDebounce'
 import { useOnClickOutside } from 'hooks/useOnClickOutside'
 import {noop} from "lodash";
@@ -13,9 +11,7 @@ import { ChevronLeftIcon, MagnifyingGlassIcon, NavMagnifyingGlassIcon } from 'nf
 import { magicalGradientOnHover } from 'nft/css/common.css'
 import { useIsMobile, useIsTablet } from 'nft/hooks'
 import { useIsNavSearchInputVisible } from 'nft/hooks/useIsNavSearchInputVisible'
-import { fetchSearchCollections } from 'nft/queries'
 import { ChangeEvent, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
-import { useQuery } from 'react-query'
 import { useLocation } from 'react-router-dom'
 import { colors } from 'theme/colors'
 
@@ -32,46 +28,32 @@ export const SearchBar = () => {
   const { pathname } = useLocation()
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
-  const isNftGraphqlEnabled = useNftGraphqlEnabled()
   const isNavSearchInputVisible = useIsNavSearchInputVisible()
-
+  const { data: topTokens, isLoading: topTokensAreLoading } = useTopTokensQuery(10000)
   useOnClickOutside(searchRef, () => {
     isOpen && toggleOpen()
   })
 
-  const { data: queryCollections, isLoading: queryCollectionsAreLoading } = useQuery(
-    ['searchCollections', debouncedSearchValue],
-    () => fetchSearchCollections(debouncedSearchValue),
-    {
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
-      enabled: !!debouncedSearchValue.length,
+  const filteredTokens = useMemo(() => {
+    if (!topTokens?.tokens) return []
+    
+    if (!debouncedSearchValue) {
+      return topTokens.tokens
+        .sort((a, b) => {
+          const volumeA = Number(a.marketData?.volume ?? 0)
+          const volumeB = Number(b.marketData?.volume ?? 0)
+          return volumeB - volumeA
+        })
+        .slice(0, 3)
     }
-  )
+    
+    const searchLower = debouncedSearchValue.toLowerCase()
+    return topTokens.tokens.filter(token => 
+      token.name.toLowerCase().includes(searchLower) || 
+      token.symbol.toLowerCase().includes(searchLower)
+    )
+  }, [topTokens?.tokens, debouncedSearchValue])
 
-  const { data: gqlCollections, loading: gqlCollectionsAreLoading } = useCollectionSearch(debouncedSearchValue)
-
-  const { gatedCollections, gatedCollectionsAreLoading } = useMemo(() => {
-    return isNftGraphqlEnabled
-      ? {
-          gatedCollections: gqlCollections,
-          gatedCollectionsAreLoading: gqlCollectionsAreLoading,
-        }
-      : {
-          gatedCollections: queryCollections,
-          gatedCollectionsAreLoading: queryCollectionsAreLoading,
-        }
-  }, [gqlCollections, gqlCollectionsAreLoading, isNftGraphqlEnabled, queryCollections, queryCollectionsAreLoading])
-
-  // const { chainId } = useWeb3React()
-  // const { data: tokens, loading: tokensAreLoading } = useSearchTokens(debouncedSearchValue, chainId ?? 1)
-  const { data: tokens, loading: tokensAreLoading } = useSearchTokensApi(debouncedSearchValue);
-  // const isNFTPage = useIsNftPage()
-
-  // const [reducedTokens] = organizeSearchResults(isNFTPage, tokens ?? [], gatedCollections ?? [])
-
-  // close dropdown on escape
   useEffect(() => {
     const escapeKeyDownHandler = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && isOpen) {
@@ -85,7 +67,7 @@ export const SearchBar = () => {
     return () => {
       document.removeEventListener('keydown', escapeKeyDownHandler)
     }
-  }, [isOpen, toggleOpen, gatedCollections])
+  }, [isOpen, toggleOpen])
 
   // clear searchbar when changing pages
   useEffect(() => {
@@ -107,7 +89,9 @@ export const SearchBar = () => {
 
   const handleKeyPress = useCallback(
     (event: any) => {
-      if (event.key === '/') {
+      const isInputField = event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA';
+      
+      if (event.key === '/' && !isInputField) {
         event.preventDefault()
         !isOpen && toggleOpen()
       }
@@ -152,6 +136,9 @@ export const SearchBar = () => {
           borderBottomWidth={isOpen || isMobileOrTablet ? '0px' : '1px'}
           onClick={() => !isOpen && toggleOpen()}
           gap="20"
+          style={{
+            background: isOpen ? colors.neutralBase : undefined
+          }}
         >
           <Box className={styles.searchContentLeftAlign}>
             <Box display={{ sm: 'none', md: 'flex' }}>
@@ -185,17 +172,17 @@ export const SearchBar = () => {
           {isOpen && (
             <SearchBarDropdown
               toggleOpen={toggleOpen}
-              tokens={tokens}
+              tokens={filteredTokens}
               queryText={debouncedSearchValue}
-              hasInput={debouncedSearchValue.length > 0}
-              isLoading={tokensAreLoading || gatedCollectionsAreLoading}
+              hasInput={searchValue.length > 0}
+              isLoading={topTokensAreLoading}
             />
           )}
         </Box>
       </Box>
       {isMobileOrTablet && (
         <NavIcon onClick={toggleOpen} label={placeholderText}>
-          <NavMagnifyingGlassIcon color={colors.neutralLight} />
+          <NavMagnifyingGlassIcon color={colors.neutralLighter} />
         </NavIcon>
       )}
     </>

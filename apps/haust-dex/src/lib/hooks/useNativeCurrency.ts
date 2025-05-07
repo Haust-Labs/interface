@@ -11,7 +11,7 @@ export default function useNativeCurrency(): NativeCurrency | Token {
       chainId
         ? nativeOnChain(chainId)
         : // display mainnet when not connected
-          nativeOnChain(SupportedChainId.HAUST),
+          nativeOnChain(SupportedChainId.HAUST_TESTNET),
     [chainId]
   )
 }

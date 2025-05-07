@@ -2506,12 +2506,12 @@ msgid "To (at least)"
 msgstr "To (at least)"
 
 #:
-#~ msgid "To use Haust DEX on {0}, switch the network in your wallet’s settings."
-#~ msgstr "To use Haust DEX on {0}, switch the network in your wallet’s settings."
+#~ msgid "To use Haust DEX on {0}, switch the network in your wallet’s settings or profile."
+#~ msgstr "To use Haust DEX on {0}, switch the network in your wallet’s settings or profile."
 
 #: src/components/Popups/FailedNetworkSwitchPopup.tsx
-msgid "To use Haust DEX on {0}, switch the network in your wallet’s settings."
-msgstr "To use Haust DEX on {0}, switch the network in your wallet’s settings."
+msgid "To use Haust DEX on {0}, switch the network in your wallet’s settings or profile."
+msgstr "To use Haust DEX on {0}, switch the network in your wallet’s settings or profile."
 
 #: src/pages/Pool/PositionPage.tsx
 msgid "To view a position, you must be connected to the network it belongs to."

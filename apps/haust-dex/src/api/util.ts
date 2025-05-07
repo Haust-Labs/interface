@@ -32,14 +32,20 @@ export function validateUrlChainParam(chainName: string | undefined) {
 export function getTokenDetailsURL({
    address,
    chain,
-   inputAddress,
  }: {
   address?: string | null
-  chain: Chain
-  inputAddress?: string | null
+  chain?: string
 }) {
-  const chainName = chain.toLowerCase()
   const tokenAddress = address ?? NATIVE_CHAIN_ID
-  const inputAddressSuffix = inputAddress ? `?inputCurrency=${inputAddress}` : ''
-  return `/tokens/${chainName}/${tokenAddress}${inputAddressSuffix}`
+  return `/explore/token/${chain ?? 'haust_testnet'}/${tokenAddress}`
+}
+
+export function getPoolDetailsURL({
+  address,
+  chain,
+}: {
+ address?: string | null
+ chain?: string
+}) {
+ return `/explore/pools/${chain ?? 'haust_testnet'}/${address}`
 }

@@ -6,8 +6,7 @@ import styled, { css, keyframes } from 'styled-components/macro'
 export const PortfolioRowWrapper = styled(Row)<{ onClick?: any }>`
   gap: 12px;
   height: 68px;
-  padding: 0 16px;
-
+  padding: 12px 16px;
   transition: ${({ theme }) => `${theme.transition.duration.medium} ${theme.transition.timing.ease} background-color`};
 
   ${({ onClick }) => onClick && 'cursor: pointer'};
@@ -89,4 +88,7 @@ export const portfolioFadeInAnimation = css`
 
 export const PortfolioTabWrapper = styled.div`
   ${portfolioFadeInAnimation}
+  @media screen and (max-width: 768px) {
+    padding-bottom: 120px;
+  }
 `

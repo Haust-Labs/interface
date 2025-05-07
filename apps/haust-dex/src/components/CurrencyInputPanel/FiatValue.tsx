@@ -20,9 +20,11 @@ const FiatLoadingBubble = styled(LoadingBubble)`
 export function FiatValue({
   fiatValue,
   priceImpact,
+  color,
 }: {
   fiatValue?: { data?: number; isLoading: boolean }
   priceImpact?: Percent
+  color?: string;
 }) {
   const theme = useTheme()
   const priceImpactColor = useMemo(() => {
@@ -35,11 +37,11 @@ export function FiatValue({
   }, [priceImpact, theme.accentSuccess, theme.accentFailure, theme.textTertiary, theme.deprecated_yellow1])
 
   return (
-    <ThemedText.DeprecatedBody fontSize={14} color={theme.textSecondary}>
+    <ThemedText.DeprecatedBody fontSize={14} color={color || theme.textSecondary}>
       {fiatValue?.isLoading ? (
         <FiatLoadingBubble />
       ) : (
-        <div>
+        <div style={{ color }}>
           {fiatValue?.data ? formatNumber(fiatValue.data, NumberType.FiatTokenPrice) : undefined}
           {priceImpact && (
             <span style={{ color: priceImpactColor }}>

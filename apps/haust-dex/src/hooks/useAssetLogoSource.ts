@@ -59,7 +59,6 @@ export default function useAssetLogoSource(
     setCurrent(getInitialUrl(address, chainId, isNative))
     setFallbackSrcs(undefined)
   }, [address, chainId, isNative])
-
   const nextSrc = useCallback(() => {
     if (current) {
       BAD_SRCS[current] = true

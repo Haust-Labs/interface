@@ -1,42 +1,63 @@
 import { Trans } from '@lingui/macro'
 import searchIcon from 'assets/svg/search.svg'
-import xIcon from 'assets/svg/x.svg'
 import useDebounce from 'hooks/useDebounce'
 import { useAtomValue, useUpdateAtom } from 'jotai/utils'
+import styled, { useTheme } from 'styled-components/macro'
+import { Search as SearchIcon } from 'react-feather'
 import { useEffect, useState } from 'react'
-import styled from 'styled-components/macro'
-
 import { MEDIUM_MEDIA_BREAKPOINT } from '../constants'
 import { filterStringAtom } from '../state'
-const ICON_SIZE = '20px'
 
-const SearchBarContainer = styled.div`
+
+const SearchBarContainer = styled.div<{ $isExpanded: boolean }>`
   display: flex;
   flex: 1;
-`
-const SearchInput = styled.input`
-  background: no-repeat scroll 7px 7px;
-  background-image: url(${searchIcon});
-  background-size: 20px 20px;
-  background-position: 12px center;
-  background-color: ${({ theme }) => theme.backgroundModule};
+  align-items: center;
+  justify-content: flex-start;
+  border: ${({ $isExpanded, theme }) => ($isExpanded ? `1.5px solid ${theme.accentActive}` : `1px solid ${theme.neutralBorder}`)};
   border-radius: 12px;
-  border: 1.5px solid ${({ theme }) => theme.backgroundOutline};
-  height: 100%;
-  width: min(200px, 100%);
-  font-size: 14px;
-  padding-left: 40px;
-  color: ${({ theme }) => theme.textSecondary};
-  transition-duration: ${({ theme }) => theme.transition.duration.fast};
+  padding:${({ $isExpanded }) => ($isExpanded ? '8px 11px' : '8px 11px')};
+  width: ${({ $isExpanded }) => ($isExpanded ? '200px' : '44px')};
+  transition: width 0.2s ease-in-out;
+  overflow: hidden;
+  height: 40px;
+  position: relative;
+
 
   :hover {
-    background-color: ${({ theme }) => theme.backgroundModule};
+    background-color: ${({ theme }) => (theme.backgroundSurface)};
   }
+`
+const SearchIconStyled = styled.div`
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background: url(${searchIcon}) no-repeat center;
+  background-size: contain;
+  filter: ${({ theme }) => theme.darkMode ? 'brightness(0) invert(1)' : 'none'};
+`
+const SearchInput = styled.input<{ $isExpanded: boolean }>`
+  background: none;
+  border-radius: 12px;
+  border: none;
+  height: 100%;
+  width: min(200px, 100%);
+  margin: 0 !important;
+  padding: 8px 40px;
+  font-size: 14px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.textSecondary};
+  opacity: ${({ $isExpanded }) => ($isExpanded ? '1' : '0')};
+  cursor: ${({ $isExpanded }) => ($isExpanded ? 'text' : 'pointer')};
+  position: absolute;
+  left: 0;
+  top: 0;
 
   :focus {
     outline: none;
-    background-color: ${({ theme }) => theme.backgroundModule};
-    border-color: ${({ theme }) => theme.accentActionSoft};
   }
 
   ::placeholder {
@@ -44,17 +65,7 @@ const SearchInput = styled.input`
   }
   ::-webkit-search-cancel-button {
     -webkit-appearance: none;
-    appearance: none;
-    height: ${ICON_SIZE};
-    width: ${ICON_SIZE};
-    background-image: url(${xIcon});
-    margin-right: 10px;
-    background-size: ${ICON_SIZE} ${ICON_SIZE};
-    cursor: pointer;
-  }
-
-  @media only screen and (max-width: ${MEDIUM_MEDIA_BREAKPOINT}) {
-    width: 100%;
+    display: none;
   }
 `
 
@@ -63,6 +74,7 @@ export default function SearchBar() {
   const [localFilterString, setLocalFilterString] = useState(currentString)
   const setFilterString = useUpdateAtom(filterStringAtom)
   const debouncedLocalFilterString = useDebounce(localFilterString, 300)
+  const [isExpanded, setIsExpanded] = useState(false)
 
   useEffect(() => {
     setLocalFilterString(currentString)
@@ -72,23 +84,57 @@ export default function SearchBar() {
     setFilterString(debouncedLocalFilterString)
   }, [debouncedLocalFilterString, setFilterString])
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const searchContainer = document.querySelector('.search-container')
+      if (isExpanded && searchContainer && !searchContainer.contains(event.target as Node)) {
+        setIsExpanded(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isExpanded])
+
+  useEffect(() => {
+    if (isExpanded) {
+      document.getElementById('searchBar')?.focus()
+    }
+  }, [isExpanded])
+
+  const theme = useTheme()
+
   return (
-    <SearchBarContainer>
-      <Trans
-        render={({ translation }) => (
-          <SearchInput
-            data-cy="explore-tokens-search-input"
-            type="search"
-            placeholder={`${translation}`}
-            id="searchBar"
-            autoComplete="off"
-            value={localFilterString}
-            onChange={({ target: { value } }) => setLocalFilterString(value)}
-          />
-        )}
-      >
-        Filter tokens
-      </Trans>
+    <SearchBarContainer className="search-container" $isExpanded={isExpanded}>
+      {!isExpanded ? (
+        <SearchIcon 
+          onClick={() => setIsExpanded(true)} 
+          size={20} 
+          style={{ cursor: 'pointer', color: theme.textPrimary }}
+        />
+      ) : (
+        <>
+          <SearchIconStyled />
+          <Trans
+            render={({ translation }) => (
+              <SearchInput
+                data-cy="explore-tokens-search-input"
+                type="search"
+                placeholder={`${translation}`}
+                id="searchBar"
+                autoComplete="off"
+                value={localFilterString}
+                onChange={({ target: { value } }) => setLocalFilterString(value)}
+                $isExpanded={isExpanded}
+              />
+            )}
+          >
+            Search tokens
+          </Trans>
+        </>
+      )}
     </SearchBarContainer>
   )
 }

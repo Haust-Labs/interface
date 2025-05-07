@@ -77,8 +77,8 @@ const Web3StatusConnected = styled(Web3StatusGeneric)<{
   pending?: boolean
   isClaimAvailable?: boolean
 }>`
-  background-color: ${({ pending, theme }) => (pending ? theme.accentAction : theme.deprecated_bg1)};
-  border: 1px solid ${({ pending, theme }) => (pending ? theme.accentAction : theme.deprecated_bg1)};
+  background-color: ${({ pending, theme }) => (pending ? theme.accentAction : 'transparent')};
+  border: 1px solid ${({ pending, theme }) => (pending ? theme.accentAction : 'transparent')};
   color: ${({ pending, theme }) => (pending ? theme.white : theme.textPrimary)};
   font-weight: 500;
   border: ${({ isClaimAvailable }) => isClaimAvailable && `1px solid ${colors.purple300}`};

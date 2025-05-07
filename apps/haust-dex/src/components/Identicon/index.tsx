@@ -1,8 +1,8 @@
-import jazzicon from '@metamask/jazzicon'
 import { useWeb3React } from '@web3-react/core'
 import useENSAvatar from 'hooks/useENSAvatar'
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import styled from 'styled-components/macro'
+import { generateWalletPattern } from './walletMasks'
 
 const StyledIdenticon = styled.div<{ iconSize: number }>`
   height: ${({ iconSize }) => `${iconSize}px`};
@@ -10,6 +10,7 @@ const StyledIdenticon = styled.div<{ iconSize: number }>`
   border-radius: 50%;
   background-color: ${({ theme }) => theme.deprecated_bg4};
   font-size: initial;
+  position: relative;
 `
 
 const StyledAvatar = styled.img`
@@ -18,39 +19,47 @@ const StyledAvatar = styled.img`
   border-radius: inherit;
 `
 
-export default function Identicon({ size, account: externalAccount  }: { size?: number, account?: string | null }) {
+const StyledWalletIcon = styled.div<{ pattern: ReturnType<typeof generateWalletPattern> }>`
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: ${({ pattern }) => pattern.background};
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: ${({ pattern }) => pattern.pattern};
+    opacity: 0.7;
+  }
+`
+
+export default function Identicon({ size, account: externalAccount }: { size?: number; account?: string | null }) {
   const { account: contextAccount } = useWeb3React()
   const account = externalAccount ?? contextAccount
   const { avatar } = useENSAvatar(account ?? undefined)
   const [fetchable, setFetchable] = useState(true)
   const iconSize = size ?? 24
 
-  const icon = useMemo(() => account && jazzicon(iconSize, parseInt(account.slice(2, 10), 16)), [account, iconSize])
-  const iconRef = useRef<HTMLDivElement>(null)
-  useLayoutEffect(() => {
-    const current = iconRef.current
-    if (icon) {
-      current?.appendChild(icon)
-      return () => {
-        try {
-          current?.removeChild(icon)
-        } catch (e) {
-          console.error('Avatar icon not found')
-        }
-      }
-    }
-    return
-  }, [icon, iconRef])
-
   const handleError = useCallback(() => setFetchable(false), [])
+
+  const pattern = useMemo(() => {
+    if (!account) return null
+    return generateWalletPattern(account)
+  }, [account])
 
   return (
     <StyledIdenticon iconSize={iconSize}>
       {avatar && fetchable ? (
-        <StyledAvatar alt="avatar" src={avatar} onError={handleError}></StyledAvatar>
-      ) : (
-        <span ref={iconRef} />
-      )}
+        <StyledAvatar alt="avatar" src={avatar} onError={handleError} />
+      ) : pattern ? (
+        <StyledWalletIcon pattern={pattern} />
+      ) : null}
     </StyledIdenticon>
   )
 }

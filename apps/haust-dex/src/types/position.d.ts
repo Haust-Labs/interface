@@ -14,4 +14,5 @@ export interface PositionDetails {
   feeGrowthInside1LastX128: BigNumber
   tokensOwed0: BigNumber
   tokensOwed1: BigNumber
+  staked?: boolean
 }

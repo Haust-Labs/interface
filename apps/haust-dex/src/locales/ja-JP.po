@@ -2073,7 +2073,7 @@ msgid "To (at least)"
 msgstr "買うトークン（少なくとも）"
 
 #: src/components/Popups/FailedNetworkSwitchPopup.tsx
-msgid "To use Haust DEX on {0}, switch the network in your wallet’s settings."
+msgid "To use Haust DEX on {0}, switch the network in your wallet’s settings or profile."
 msgstr ""
 
 #: src/components/Tokens/TokenTable/TokenRow.tsx

@@ -28,7 +28,6 @@ export function usePollQueryWhileMounted<T, K extends OperationVariables>(queryR
 }
 
 export enum TimePeriod {
-  HOUR,
   DAY,
   WEEK,
   MONTH,
@@ -37,8 +36,6 @@ export enum TimePeriod {
 
 export function toHistoryDuration(timePeriod: TimePeriod): HistoryDuration {
   switch (timePeriod) {
-    case TimePeriod.HOUR:
-      return HistoryDuration.Hour
     case TimePeriod.DAY:
       return HistoryDuration.Day
     case TimePeriod.WEEK:
@@ -131,6 +128,11 @@ export function getTokenDetailsURL({
   const tokenAddress = address ?? NATIVE_CHAIN_ID
   const inputAddressSuffix = inputAddress ? `?inputCurrency=${inputAddress}` : ''
   return `/tokens/${chainName}/${tokenAddress}${inputAddressSuffix}`
+}
+
+export enum OrderDirection {
+  Asc = 'asc',
+  Desc = 'desc',
 }
 
 export function unwrapToken<

@@ -18,7 +18,7 @@ export enum ExplorerDataType {
  * @param data the data to return a link for
  * @param type the type of the data
  */
-export function getExplorerLink(chainId: number, data: string, type: ExplorerDataType): string {
+export function getExplorerLink(chainId: number, data?: string, type?: ExplorerDataType): string {
   const prefix = BLOCK_EXPLORER_PREFIXES[chainId] ?? 'https://etherscan.io'
 
   switch (type) {

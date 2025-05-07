@@ -21,7 +21,7 @@ import { useDarkModeManager } from 'theme/components/ThemeToggle'
 import { AutoRouterLabel, AutoRouterLogo } from './RouterLabel'
 
 const Wrapper = styled(AutoColumn)<{ darkMode?: boolean; fixedOpen?: boolean }>`
-  padding: ${({ fixedOpen }) => (fixedOpen ? '12px' : '12px 8px 12px 12px')};
+  padding: ${({ fixedOpen }) => (fixedOpen ? '12px' : '0px 0px 12px 0px')};
   border-radius: 16px;
   border: 1px solid ${({ theme, fixedOpen }) => (fixedOpen ? 'transparent' : theme.backgroundOutline)};
   cursor: pointer;

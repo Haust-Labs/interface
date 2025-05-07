@@ -2,11 +2,14 @@ import { Interface } from "@ethersproject/abi";
 import { BigintIsh, Currency, Token } from "@uniswap/sdk-core";
 import { computePoolAddress, FeeAmount, Pool } from "@uniswap/v3-sdk";
 import { useWeb3React } from "@web3-react/core";
+import JSBI from "jsbi";
 import { useMultipleContractSingleData } from "lib/hooks/multicall";
 import { useMemo } from "react";
 import { IUniswapV3PoolStateABI } from "sdks/v3-core";
 
 import { IUniswapV3PoolStateInterface } from "../types/v3/IUniswapV3PoolState";
+import { ethers } from "ethers";
+import { TOKEN_ADDRESSES } from "constants/tokens";
 import BigNumber from "bignumber.js";
 import {
   POOL_DEPLOYER_ADDRESSES,
@@ -94,7 +97,6 @@ export enum PoolState {
   EXISTS,
   INVALID,
 }
-
 
 export function usePools(
   poolKeys: [
@@ -197,15 +199,35 @@ export function usePool(
   currencyA: Currency | undefined,
   currencyB: Currency | undefined,
   feeAmount: FeeAmount | undefined
-): [PoolState, Pool | null] {
-  const poolKeys: [
-    Currency | undefined,
-    Currency | undefined,
-    FeeAmount | undefined
-  ][] = useMemo(
+): [PoolState, Pool | null, string | undefined] {
+  const { chainId } = useWeb3React();
+  
+  const poolKeys: [Currency | undefined, Currency | undefined, FeeAmount | undefined][] = useMemo(
     () => [[currencyA, currencyB, feeAmount]],
     [currencyA, currencyB, feeAmount]
   );
 
-  return usePools(poolKeys)[0];
+  const [poolState, pool] = usePools(poolKeys)[0];
+
+  const poolAddress = useMemo(() => {
+    if (!chainId || !currencyA || !currencyB || !feeAmount) return undefined;
+    
+    const tokenA = currencyA.wrapped;
+    const tokenB = currencyB.wrapped;
+    if (tokenA.equals(tokenB)) return undefined;
+
+    const [token0, token1] = tokenA.sortsBefore(tokenB) 
+      ? [tokenA, tokenB] 
+      : [tokenB, tokenA];
+
+    return PoolCache.getPoolAddress(
+      V3_CORE_FACTORY_ADDRESSES[chainId],
+      V3_INIT_POOL_CODE_HASH[chainId],
+      token0,
+      token1,
+      feeAmount
+    );
+  }, [chainId, currencyA, currencyB, feeAmount]);
+
+  return [poolState, pool, poolAddress];
 }

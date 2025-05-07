@@ -184,5 +184,5 @@ const StepCounter = ({
     </FocusedOutlineCard>
   )
 }
-
 export default StepCounter
+

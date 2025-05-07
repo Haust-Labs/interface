@@ -11,7 +11,7 @@ import { AutoColumn } from '../Column'
 
 export const PageWrapper = styled.div`
   padding: 68px 8px 0;
-  max-width: 540px;
+  max-width: 464px;
   width: 100%;
 
   @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.md}px`}) {
@@ -29,7 +29,6 @@ export const SwapWrapper = styled.main<{ chainId: number | undefined }>`
   background: ${({ theme }) => theme.background};
   border-radius: 20px;
   border: 1px solid ${({ theme }) => theme.borderPrimary};
-  padding: 20px;
   z-index: ${Z_INDEX.deprecated_content};
   transition: transform 250ms ease;
 `

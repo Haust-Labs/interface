@@ -4008,6 +4008,30 @@ export type AllV3TicksQueryVariables = Exact<{
 
 export type AllV3TicksQuery = { __typename?: 'Query', ticks: Array<{ __typename?: 'Tick', liquidityNet: any, price0: any, price1: any, tick: any }> };
 
+export type BalanceMidnightForTokenQueryVariables = Exact<{
+  tokenId: Scalars['ID'];
+}>;
+
+
+export type BalanceMidnightForTokenQuery = { __typename?: 'Query', token?: { __typename?: 'Token', tokenDayData: Array<{ __typename?: 'TokenDayData', priceUSD: any, date: number }> } };
+
+export type BalancesMidnightQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type BalancesMidnightQuery = { __typename?: 'Query', tokens: Array<{ __typename?: 'Token', name: string, id: string, symbol: string, tokenDayData: Array<{ __typename?: 'TokenDayData', priceUSD: any }> }> };
+
+export type CurrentTokenPriceQueryVariables = Exact<{
+  token: Scalars['ID'];
+}>;
+
+
+export type CurrentTokenPriceQuery = { __typename?: 'Query', bundle?: { __typename?: 'Bundle', ethPriceUSD: any }, token?: { __typename?: 'Token', derivedETH: any, id: string, name: string } };
+
+export type CurrentTokensPriceQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CurrentTokensPriceQuery = { __typename?: 'Query', bundle?: { __typename?: 'Bundle', ethPriceUSD: any }, tokens: Array<{ __typename?: 'Token', derivedETH: any, name: string, id: string }> };
+
 export type FeeTierDistributionQueryVariables = Exact<{
   token0: Scalars['String'];
   token1: Scalars['String'];
@@ -4015,6 +4039,110 @@ export type FeeTierDistributionQueryVariables = Exact<{
 
 
 export type FeeTierDistributionQuery = { __typename?: 'Query', _meta?: { __typename?: '_Meta_', block: { __typename?: '_Block_', number: number } }, asToken0: Array<{ __typename?: 'Pool', feeTier: any, totalValueLockedToken0: any, totalValueLockedToken1: any }>, asToken1: Array<{ __typename?: 'Pool', feeTier: any, totalValueLockedToken0: any, totalValueLockedToken1: any }> };
+
+export type PollsDataQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type PollsDataQuery = { __typename?: 'Query', pools: Array<{ __typename?: 'Pool', id: string, feeTier: any, totalValueLockedUSD: any, poolDayData: Array<{ __typename?: 'PoolDayData', date: number, volumeUSD: any, feesUSD: any }>, token0: { __typename?: 'Token', id: string, name: string, symbol: string }, token1: { __typename?: 'Token', id: string, name: string, symbol: string } }> };
+
+export type PoolChartDataQueryVariables = Exact<{
+  id: Scalars['ID'];
+}>;
+
+
+export type PoolChartDataQuery = { __typename?: 'Query', pool?: { __typename?: 'Pool', tick?: any, liquidity: any, token0Price: any, token1Price: any, totalValueLockedToken0: any, totalValueLockedToken1: any, ticks: Array<{ __typename?: 'Tick', tickIdx: any, liquidityGross: any, liquidityNet: any, price0: any, price1: any, createdAtTimestamp: any }>, poolDayData: Array<{ __typename?: 'PoolDayData', tvlUSD: any, close: any, date: number, high: any, low: any, open: any, tick?: any, token0Price: any, token1Price: any, volumeUSD: any }> } };
+
+export type PoolDataQueryVariables = Exact<{
+  poolAddress: Scalars['ID'];
+}>;
+
+
+export type PoolDataQuery = { __typename?: 'Query', pool?: { __typename?: 'Pool', feeTier: any, token0Price: any, token1Price: any, totalValueLockedToken0: any, totalValueLockedToken1: any, token0: { __typename?: 'Token', id: string, name: string, symbol: string }, token1: { __typename?: 'Token', id: string, name: string, symbol: string }, poolDayData: Array<{ __typename?: 'PoolDayData', volumeUSD: any, tvlUSD: any, feesUSD: any }> } };
+
+export type PoolPriceChartDataQueryVariables = Exact<{
+  id: Scalars['ID'];
+}>;
+
+
+export type PoolPriceChartDataQuery = { __typename?: 'Query', pool?: { __typename?: 'Pool', poolDayData: Array<{ __typename?: 'PoolDayData', date: number, close: any, high: any, low: any, open: any, token0Price: any, token1Price: any }> } };
+
+export type TokenDataQueryQueryVariables = Exact<{
+  tokenId: Scalars['ID'];
+}>;
+
+
+export type TokenDataQueryQuery = { __typename?: 'Query', token?: { __typename?: 'Token', id: string, name: string, symbol: string, totalSupply: any, totalValueLockedUSD: any, decimals: any, tokenDayData: Array<{ __typename?: 'TokenDayData', priceUSD: any, close: any, open: any, date: number, volumeUSD: any }> } };
+
+export type TokenDayPricesQueryVariables = Exact<{
+  token: Scalars['ID'];
+}>;
+
+
+export type TokenDayPricesQuery = { __typename?: 'Query', tokenDayDatas: Array<{ __typename?: 'TokenDayData', id: string, priceUSD: any, date: number }> };
+
+export type TokenHourPricesQueryVariables = Exact<{
+  token: Scalars['ID'];
+}>;
+
+
+export type TokenHourPricesQuery = { __typename?: 'Query', tokenHourDatas: Array<{ __typename?: 'TokenHourData', id: string, priceUSD: any, periodStartUnix: number }> };
+
+export type TokenPriceChartQueryVariables = Exact<{
+  token: Scalars['String'];
+}>;
+
+
+export type TokenPriceChartQuery = { __typename?: 'Query', tokenDayDatas: Array<{ __typename?: 'TokenDayData', date: number, close: any, high: any, low: any, priceUSD: any, open: any }> };
+
+export type TokenTvlChartQueryVariables = Exact<{
+  token: Scalars['String'];
+}>;
+
+
+export type TokenTvlChartQuery = { __typename?: 'Query', tokenDayDatas: Array<{ __typename?: 'TokenDayData', date: number, totalValueLockedUSD: any }> };
+
+export type TokenVolumeChartQueryVariables = Exact<{
+  token: Scalars['String'];
+}>;
+
+
+export type TokenVolumeChartQuery = { __typename?: 'Query', tokenDayDatas: Array<{ __typename?: 'TokenDayData', date: number, volumeUSD: any }> };
+
+export type TopTokensQueryVariables = Exact<{
+  orderDirection?: InputMaybe<OrderDirection>;
+}>;
+
+
+export type TopTokensQuery = { __typename?: 'Query', tokens: Array<{ __typename?: 'Token', id: string, name: string, symbol: string, volumeUSD: any, totalSupply: any, decimals: any, tokenDayData: Array<{ __typename?: 'TokenDayData', date: number, priceUSD: any }> }> };
+
+export type TokenHourDataQueryVariables = Exact<{
+  tokenId: Scalars['String'];
+}>;
+
+
+export type TokenHourDataQuery = { __typename?: 'Query', tokenHourDatas: Array<{ __typename?: 'TokenHourData', periodStartUnix: number, priceUSD: any, token: { __typename?: 'Token', id: string } }> };
+
+export type TransactionHistoryQueryQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type TransactionHistoryQueryQuery = { __typename?: 'Query', transactions: Array<{ __typename?: 'Transaction', id: string, timestamp: any, burns: Array<{ __typename?: 'Burn', amount0: any, amount1: any, amountUSD?: any, origin: any, token1: { __typename?: 'Token', id: string }, token0: { __typename?: 'Token', id: string } }>, swaps: Array<{ __typename?: 'Swap', amount0: any, amount1: any, amountUSD: any, timestamp: any, id: string, recipient: any, token0: { __typename?: 'Token', name: string, id: string, symbol: string }, token1: { __typename?: 'Token', name: string, id: string, symbol: string } }>, mints: Array<{ __typename?: 'Mint', amount0: any, amount1: any, amountUSD?: any, origin: any, token0: { __typename?: 'Token', id: string, name: string }, token1: { __typename?: 'Token', id: string, name: string } }> }> };
+
+export type UniswapTvlQueryQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type UniswapTvlQueryQuery = { __typename?: 'Query', uniswapDayDatas: Array<{ __typename?: 'UniswapDayData', tvlUSD: any, date: number }> };
+
+export type UniswapVolumeQueryQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type UniswapVolumeQueryQuery = { __typename?: 'Query', uniswapDayDatas: Array<{ __typename?: 'UniswapDayData', date: number, volumeUSD: any }> };
+
+export type AllActivitiesQueryVariables = Exact<{
+  address: Scalars['Bytes'];
+}>;
+
+
+export type AllActivitiesQuery = { __typename?: 'Query', swaps: Array<{ __typename?: 'Swap', amount0: any, amount1: any, amountUSD: any, timestamp: any, token0: { __typename?: 'Token', id: string, name: string, symbol: string, decimals: any }, token1: { __typename?: 'Token', id: string, name: string, symbol: string, decimals: any }, transaction: { __typename?: 'Transaction', id: string } }>, mints: Array<{ __typename?: 'Mint', origin: any, timestamp: any, amount0: any, amount1: any, amountUSD?: any, token0: { __typename?: 'Token', id: string, name: string, symbol: string, decimals: any }, token1: { __typename?: 'Token', id: string, name: string, symbol: string, decimals: any }, transaction: { __typename?: 'Transaction', id: string } }>, burns: Array<{ __typename?: 'Burn', amount0: any, amount1: any, amountUSD?: any, timestamp: any, token0: { __typename?: 'Token', id: string, name: string, symbol: string, decimals: any }, token1: { __typename?: 'Token', id: string, name: string, symbol: string, decimals: any }, transaction: { __typename?: 'Transaction', id: string } }> };
 
 
 export const AllV3TicksDocument = gql`
@@ -4061,6 +4189,162 @@ export function useAllV3TicksLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions
 export type AllV3TicksQueryHookResult = ReturnType<typeof useAllV3TicksQuery>;
 export type AllV3TicksLazyQueryHookResult = ReturnType<typeof useAllV3TicksLazyQuery>;
 export type AllV3TicksQueryResult = Apollo.QueryResult<AllV3TicksQuery, AllV3TicksQueryVariables>;
+export const BalanceMidnightForTokenDocument = gql`
+    query BalanceMidnightForToken($tokenId: ID!) {
+  token(id: $tokenId) {
+    tokenDayData(first: 1, orderBy: date, orderDirection: desc) {
+      priceUSD
+      date
+    }
+  }
+}
+    `;
+
+/**
+ * __useBalanceMidnightForTokenQuery__
+ *
+ * To run a query within a React component, call `useBalanceMidnightForTokenQuery` and pass it any options that fit your needs.
+ * When your component renders, `useBalanceMidnightForTokenQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useBalanceMidnightForTokenQuery({
+ *   variables: {
+ *      tokenId: // value for 'tokenId'
+ *   },
+ * });
+ */
+export function useBalanceMidnightForTokenQuery(baseOptions: Apollo.QueryHookOptions<BalanceMidnightForTokenQuery, BalanceMidnightForTokenQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<BalanceMidnightForTokenQuery, BalanceMidnightForTokenQueryVariables>(BalanceMidnightForTokenDocument, options);
+      }
+export function useBalanceMidnightForTokenLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BalanceMidnightForTokenQuery, BalanceMidnightForTokenQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<BalanceMidnightForTokenQuery, BalanceMidnightForTokenQueryVariables>(BalanceMidnightForTokenDocument, options);
+        }
+export type BalanceMidnightForTokenQueryHookResult = ReturnType<typeof useBalanceMidnightForTokenQuery>;
+export type BalanceMidnightForTokenLazyQueryHookResult = ReturnType<typeof useBalanceMidnightForTokenLazyQuery>;
+export type BalanceMidnightForTokenQueryResult = Apollo.QueryResult<BalanceMidnightForTokenQuery, BalanceMidnightForTokenQueryVariables>;
+export const BalancesMidnightDocument = gql`
+    query BalancesMidnight {
+  tokens {
+    tokenDayData(first: 1, orderBy: date, orderDirection: desc) {
+      priceUSD
+    }
+    name
+    id
+    symbol
+  }
+}
+    `;
+
+/**
+ * __useBalancesMidnightQuery__
+ *
+ * To run a query within a React component, call `useBalancesMidnightQuery` and pass it any options that fit your needs.
+ * When your component renders, `useBalancesMidnightQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useBalancesMidnightQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useBalancesMidnightQuery(baseOptions?: Apollo.QueryHookOptions<BalancesMidnightQuery, BalancesMidnightQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<BalancesMidnightQuery, BalancesMidnightQueryVariables>(BalancesMidnightDocument, options);
+      }
+export function useBalancesMidnightLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BalancesMidnightQuery, BalancesMidnightQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<BalancesMidnightQuery, BalancesMidnightQueryVariables>(BalancesMidnightDocument, options);
+        }
+export type BalancesMidnightQueryHookResult = ReturnType<typeof useBalancesMidnightQuery>;
+export type BalancesMidnightLazyQueryHookResult = ReturnType<typeof useBalancesMidnightLazyQuery>;
+export type BalancesMidnightQueryResult = Apollo.QueryResult<BalancesMidnightQuery, BalancesMidnightQueryVariables>;
+export const CurrentTokenPriceDocument = gql`
+    query CurrentTokenPrice($token: ID!) {
+  bundle(id: "1") {
+    ethPriceUSD
+  }
+  token(id: $token) {
+    derivedETH
+    id
+    name
+  }
+}
+    `;
+
+/**
+ * __useCurrentTokenPriceQuery__
+ *
+ * To run a query within a React component, call `useCurrentTokenPriceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCurrentTokenPriceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCurrentTokenPriceQuery({
+ *   variables: {
+ *      token: // value for 'token'
+ *   },
+ * });
+ */
+export function useCurrentTokenPriceQuery(baseOptions: Apollo.QueryHookOptions<CurrentTokenPriceQuery, CurrentTokenPriceQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CurrentTokenPriceQuery, CurrentTokenPriceQueryVariables>(CurrentTokenPriceDocument, options);
+      }
+export function useCurrentTokenPriceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CurrentTokenPriceQuery, CurrentTokenPriceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CurrentTokenPriceQuery, CurrentTokenPriceQueryVariables>(CurrentTokenPriceDocument, options);
+        }
+export type CurrentTokenPriceQueryHookResult = ReturnType<typeof useCurrentTokenPriceQuery>;
+export type CurrentTokenPriceLazyQueryHookResult = ReturnType<typeof useCurrentTokenPriceLazyQuery>;
+export type CurrentTokenPriceQueryResult = Apollo.QueryResult<CurrentTokenPriceQuery, CurrentTokenPriceQueryVariables>;
+export const CurrentTokensPriceDocument = gql`
+    query CurrentTokensPrice {
+  bundle(id: "1") {
+    ethPriceUSD
+  }
+  tokens(first: 100) {
+    derivedETH
+    name
+    id
+  }
+}
+    `;
+
+/**
+ * __useCurrentTokensPriceQuery__
+ *
+ * To run a query within a React component, call `useCurrentTokensPriceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCurrentTokensPriceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCurrentTokensPriceQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useCurrentTokensPriceQuery(baseOptions?: Apollo.QueryHookOptions<CurrentTokensPriceQuery, CurrentTokensPriceQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CurrentTokensPriceQuery, CurrentTokensPriceQueryVariables>(CurrentTokensPriceDocument, options);
+      }
+export function useCurrentTokensPriceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CurrentTokensPriceQuery, CurrentTokensPriceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CurrentTokensPriceQuery, CurrentTokensPriceQueryVariables>(CurrentTokensPriceDocument, options);
+        }
+export type CurrentTokensPriceQueryHookResult = ReturnType<typeof useCurrentTokensPriceQuery>;
+export type CurrentTokensPriceLazyQueryHookResult = ReturnType<typeof useCurrentTokensPriceLazyQuery>;
+export type CurrentTokensPriceQueryResult = Apollo.QueryResult<CurrentTokensPriceQuery, CurrentTokensPriceQueryVariables>;
 export const FeeTierDistributionDocument = gql`
     query FeeTierDistribution($token0: String!, $token1: String!) {
   _meta {
@@ -4117,3 +4401,787 @@ export function useFeeTierDistributionLazyQuery(baseOptions?: Apollo.LazyQueryHo
 export type FeeTierDistributionQueryHookResult = ReturnType<typeof useFeeTierDistributionQuery>;
 export type FeeTierDistributionLazyQueryHookResult = ReturnType<typeof useFeeTierDistributionLazyQuery>;
 export type FeeTierDistributionQueryResult = Apollo.QueryResult<FeeTierDistributionQuery, FeeTierDistributionQueryVariables>;
+export const PollsDataDocument = gql`
+    query PollsData {
+  pools {
+    id
+    feeTier
+    totalValueLockedUSD
+    poolDayData(first: 30, orderBy: date, orderDirection: desc) {
+      date
+      volumeUSD
+      feesUSD
+    }
+    token0 {
+      id
+      name
+      symbol
+    }
+    token1 {
+      id
+      name
+      symbol
+    }
+  }
+}
+    `;
+
+/**
+ * __usePollsDataQuery__
+ *
+ * To run a query within a React component, call `usePollsDataQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePollsDataQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePollsDataQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function usePollsDataQuery(baseOptions?: Apollo.QueryHookOptions<PollsDataQuery, PollsDataQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PollsDataQuery, PollsDataQueryVariables>(PollsDataDocument, options);
+      }
+export function usePollsDataLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PollsDataQuery, PollsDataQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PollsDataQuery, PollsDataQueryVariables>(PollsDataDocument, options);
+        }
+export type PollsDataQueryHookResult = ReturnType<typeof usePollsDataQuery>;
+export type PollsDataLazyQueryHookResult = ReturnType<typeof usePollsDataLazyQuery>;
+export type PollsDataQueryResult = Apollo.QueryResult<PollsDataQuery, PollsDataQueryVariables>;
+export const PoolChartDataDocument = gql`
+    query PoolChartData($id: ID!) {
+  pool(id: $id) {
+    tick
+    liquidity
+    token0Price
+    token1Price
+    totalValueLockedToken0
+    totalValueLockedToken1
+    ticks(orderBy: createdAtTimestamp, orderDirection: asc) {
+      tickIdx
+      liquidityGross
+      liquidityNet
+      price0
+      price1
+      createdAtTimestamp
+    }
+    poolDayData(orderBy: date, orderDirection: desc) {
+      tvlUSD
+      close
+      date
+      high
+      low
+      open
+      tick
+      token0Price
+      token1Price
+      volumeUSD
+    }
+  }
+}
+    `;
+
+/**
+ * __usePoolChartDataQuery__
+ *
+ * To run a query within a React component, call `usePoolChartDataQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePoolChartDataQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePoolChartDataQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function usePoolChartDataQuery(baseOptions: Apollo.QueryHookOptions<PoolChartDataQuery, PoolChartDataQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PoolChartDataQuery, PoolChartDataQueryVariables>(PoolChartDataDocument, options);
+      }
+export function usePoolChartDataLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PoolChartDataQuery, PoolChartDataQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PoolChartDataQuery, PoolChartDataQueryVariables>(PoolChartDataDocument, options);
+        }
+export type PoolChartDataQueryHookResult = ReturnType<typeof usePoolChartDataQuery>;
+export type PoolChartDataLazyQueryHookResult = ReturnType<typeof usePoolChartDataLazyQuery>;
+export type PoolChartDataQueryResult = Apollo.QueryResult<PoolChartDataQuery, PoolChartDataQueryVariables>;
+export const PoolDataDocument = gql`
+    query PoolData($poolAddress: ID!) {
+  pool(id: $poolAddress) {
+    feeTier
+    token0 {
+      id
+      name
+      symbol
+    }
+    token1 {
+      id
+      name
+      symbol
+    }
+    token0Price
+    token1Price
+    totalValueLockedToken0
+    totalValueLockedToken1
+    poolDayData(first: 2, orderBy: date, orderDirection: desc) {
+      volumeUSD
+      tvlUSD
+      feesUSD
+    }
+  }
+}
+    `;
+
+/**
+ * __usePoolDataQuery__
+ *
+ * To run a query within a React component, call `usePoolDataQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePoolDataQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePoolDataQuery({
+ *   variables: {
+ *      poolAddress: // value for 'poolAddress'
+ *   },
+ * });
+ */
+export function usePoolDataQuery(baseOptions: Apollo.QueryHookOptions<PoolDataQuery, PoolDataQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PoolDataQuery, PoolDataQueryVariables>(PoolDataDocument, options);
+      }
+export function usePoolDataLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PoolDataQuery, PoolDataQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PoolDataQuery, PoolDataQueryVariables>(PoolDataDocument, options);
+        }
+export type PoolDataQueryHookResult = ReturnType<typeof usePoolDataQuery>;
+export type PoolDataLazyQueryHookResult = ReturnType<typeof usePoolDataLazyQuery>;
+export type PoolDataQueryResult = Apollo.QueryResult<PoolDataQuery, PoolDataQueryVariables>;
+export const PoolPriceChartDataDocument = gql`
+    query PoolPriceChartData($id: ID!) {
+  pool(id: $id) {
+    poolDayData(orderBy: date, orderDirection: asc) {
+      date
+      close
+      high
+      low
+      open
+      token0Price
+      token1Price
+    }
+  }
+}
+    `;
+
+/**
+ * __usePoolPriceChartDataQuery__
+ *
+ * To run a query within a React component, call `usePoolPriceChartDataQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePoolPriceChartDataQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePoolPriceChartDataQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function usePoolPriceChartDataQuery(baseOptions: Apollo.QueryHookOptions<PoolPriceChartDataQuery, PoolPriceChartDataQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PoolPriceChartDataQuery, PoolPriceChartDataQueryVariables>(PoolPriceChartDataDocument, options);
+      }
+export function usePoolPriceChartDataLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PoolPriceChartDataQuery, PoolPriceChartDataQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PoolPriceChartDataQuery, PoolPriceChartDataQueryVariables>(PoolPriceChartDataDocument, options);
+        }
+export type PoolPriceChartDataQueryHookResult = ReturnType<typeof usePoolPriceChartDataQuery>;
+export type PoolPriceChartDataLazyQueryHookResult = ReturnType<typeof usePoolPriceChartDataLazyQuery>;
+export type PoolPriceChartDataQueryResult = Apollo.QueryResult<PoolPriceChartDataQuery, PoolPriceChartDataQueryVariables>;
+export const TokenDataQueryDocument = gql`
+    query TokenDataQuery($tokenId: ID!) {
+  token(id: $tokenId) {
+    id
+    name
+    symbol
+    totalSupply
+    tokenDayData(orderBy: date, orderDirection: asc) {
+      priceUSD
+      close
+      open
+      date
+      volumeUSD
+    }
+    totalValueLockedUSD
+    decimals
+  }
+}
+    `;
+
+/**
+ * __useTokenDataQueryQuery__
+ *
+ * To run a query within a React component, call `useTokenDataQueryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTokenDataQueryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTokenDataQueryQuery({
+ *   variables: {
+ *      tokenId: // value for 'tokenId'
+ *   },
+ * });
+ */
+export function useTokenDataQueryQuery(baseOptions: Apollo.QueryHookOptions<TokenDataQueryQuery, TokenDataQueryQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TokenDataQueryQuery, TokenDataQueryQueryVariables>(TokenDataQueryDocument, options);
+      }
+export function useTokenDataQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TokenDataQueryQuery, TokenDataQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TokenDataQueryQuery, TokenDataQueryQueryVariables>(TokenDataQueryDocument, options);
+        }
+export type TokenDataQueryQueryHookResult = ReturnType<typeof useTokenDataQueryQuery>;
+export type TokenDataQueryLazyQueryHookResult = ReturnType<typeof useTokenDataQueryLazyQuery>;
+export type TokenDataQueryQueryResult = Apollo.QueryResult<TokenDataQueryQuery, TokenDataQueryQueryVariables>;
+export const TokenDayPricesDocument = gql`
+    query TokenDayPrices($token: ID!) {
+  tokenDayDatas(
+    first: 2
+    orderBy: date
+    orderDirection: desc
+    where: {token_: {id: $token}}
+  ) {
+    id
+    priceUSD
+    date
+  }
+}
+    `;
+
+/**
+ * __useTokenDayPricesQuery__
+ *
+ * To run a query within a React component, call `useTokenDayPricesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTokenDayPricesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTokenDayPricesQuery({
+ *   variables: {
+ *      token: // value for 'token'
+ *   },
+ * });
+ */
+export function useTokenDayPricesQuery(baseOptions: Apollo.QueryHookOptions<TokenDayPricesQuery, TokenDayPricesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TokenDayPricesQuery, TokenDayPricesQueryVariables>(TokenDayPricesDocument, options);
+      }
+export function useTokenDayPricesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TokenDayPricesQuery, TokenDayPricesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TokenDayPricesQuery, TokenDayPricesQueryVariables>(TokenDayPricesDocument, options);
+        }
+export type TokenDayPricesQueryHookResult = ReturnType<typeof useTokenDayPricesQuery>;
+export type TokenDayPricesLazyQueryHookResult = ReturnType<typeof useTokenDayPricesLazyQuery>;
+export type TokenDayPricesQueryResult = Apollo.QueryResult<TokenDayPricesQuery, TokenDayPricesQueryVariables>;
+export const TokenHourPricesDocument = gql`
+    query TokenHourPrices($token: ID!) {
+  tokenHourDatas(
+    first: 2
+    orderBy: periodStartUnix
+    orderDirection: desc
+    where: {token_: {id: $token}}
+  ) {
+    id
+    priceUSD
+    periodStartUnix
+  }
+}
+    `;
+
+/**
+ * __useTokenHourPricesQuery__
+ *
+ * To run a query within a React component, call `useTokenHourPricesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTokenHourPricesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTokenHourPricesQuery({
+ *   variables: {
+ *      token: // value for 'token'
+ *   },
+ * });
+ */
+export function useTokenHourPricesQuery(baseOptions: Apollo.QueryHookOptions<TokenHourPricesQuery, TokenHourPricesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TokenHourPricesQuery, TokenHourPricesQueryVariables>(TokenHourPricesDocument, options);
+      }
+export function useTokenHourPricesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TokenHourPricesQuery, TokenHourPricesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TokenHourPricesQuery, TokenHourPricesQueryVariables>(TokenHourPricesDocument, options);
+        }
+export type TokenHourPricesQueryHookResult = ReturnType<typeof useTokenHourPricesQuery>;
+export type TokenHourPricesLazyQueryHookResult = ReturnType<typeof useTokenHourPricesLazyQuery>;
+export type TokenHourPricesQueryResult = Apollo.QueryResult<TokenHourPricesQuery, TokenHourPricesQueryVariables>;
+export const TokenPriceChartDocument = gql`
+    query TokenPriceChart($token: String!) {
+  tokenDayDatas(where: {token: $token}, orderBy: date, orderDirection: asc) {
+    date
+    close
+    high
+    low
+    priceUSD
+    open
+  }
+}
+    `;
+
+/**
+ * __useTokenPriceChartQuery__
+ *
+ * To run a query within a React component, call `useTokenPriceChartQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTokenPriceChartQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTokenPriceChartQuery({
+ *   variables: {
+ *      token: // value for 'token'
+ *   },
+ * });
+ */
+export function useTokenPriceChartQuery(baseOptions: Apollo.QueryHookOptions<TokenPriceChartQuery, TokenPriceChartQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TokenPriceChartQuery, TokenPriceChartQueryVariables>(TokenPriceChartDocument, options);
+      }
+export function useTokenPriceChartLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TokenPriceChartQuery, TokenPriceChartQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TokenPriceChartQuery, TokenPriceChartQueryVariables>(TokenPriceChartDocument, options);
+        }
+export type TokenPriceChartQueryHookResult = ReturnType<typeof useTokenPriceChartQuery>;
+export type TokenPriceChartLazyQueryHookResult = ReturnType<typeof useTokenPriceChartLazyQuery>;
+export type TokenPriceChartQueryResult = Apollo.QueryResult<TokenPriceChartQuery, TokenPriceChartQueryVariables>;
+export const TokenTvlChartDocument = gql`
+    query TokenTVLChart($token: String!) {
+  tokenDayDatas(where: {token: $token}, orderBy: date, orderDirection: asc) {
+    date
+    totalValueLockedUSD
+  }
+}
+    `;
+
+/**
+ * __useTokenTvlChartQuery__
+ *
+ * To run a query within a React component, call `useTokenTvlChartQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTokenTvlChartQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTokenTvlChartQuery({
+ *   variables: {
+ *      token: // value for 'token'
+ *   },
+ * });
+ */
+export function useTokenTvlChartQuery(baseOptions: Apollo.QueryHookOptions<TokenTvlChartQuery, TokenTvlChartQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TokenTvlChartQuery, TokenTvlChartQueryVariables>(TokenTvlChartDocument, options);
+      }
+export function useTokenTvlChartLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TokenTvlChartQuery, TokenTvlChartQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TokenTvlChartQuery, TokenTvlChartQueryVariables>(TokenTvlChartDocument, options);
+        }
+export type TokenTvlChartQueryHookResult = ReturnType<typeof useTokenTvlChartQuery>;
+export type TokenTvlChartLazyQueryHookResult = ReturnType<typeof useTokenTvlChartLazyQuery>;
+export type TokenTvlChartQueryResult = Apollo.QueryResult<TokenTvlChartQuery, TokenTvlChartQueryVariables>;
+export const TokenVolumeChartDocument = gql`
+    query TokenVolumeChart($token: String!) {
+  tokenDayDatas(where: {token: $token}, orderBy: date, orderDirection: asc) {
+    date
+    volumeUSD
+  }
+}
+    `;
+
+/**
+ * __useTokenVolumeChartQuery__
+ *
+ * To run a query within a React component, call `useTokenVolumeChartQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTokenVolumeChartQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTokenVolumeChartQuery({
+ *   variables: {
+ *      token: // value for 'token'
+ *   },
+ * });
+ */
+export function useTokenVolumeChartQuery(baseOptions: Apollo.QueryHookOptions<TokenVolumeChartQuery, TokenVolumeChartQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TokenVolumeChartQuery, TokenVolumeChartQueryVariables>(TokenVolumeChartDocument, options);
+      }
+export function useTokenVolumeChartLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TokenVolumeChartQuery, TokenVolumeChartQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TokenVolumeChartQuery, TokenVolumeChartQueryVariables>(TokenVolumeChartDocument, options);
+        }
+export type TokenVolumeChartQueryHookResult = ReturnType<typeof useTokenVolumeChartQuery>;
+export type TokenVolumeChartLazyQueryHookResult = ReturnType<typeof useTokenVolumeChartLazyQuery>;
+export type TokenVolumeChartQueryResult = Apollo.QueryResult<TokenVolumeChartQuery, TokenVolumeChartQueryVariables>;
+export const TopTokensDocument = gql`
+    query TopTokens($orderDirection: OrderDirection = asc) {
+  tokens(orderBy: totalValueLockedUSD, orderDirection: $orderDirection) {
+    id
+    name
+    symbol
+    volumeUSD
+    totalSupply
+    decimals
+    tokenDayData(first: 2, orderBy: date, orderDirection: desc) {
+      date
+      priceUSD
+    }
+  }
+}
+    `;
+
+/**
+ * __useTopTokensQuery__
+ *
+ * To run a query within a React component, call `useTopTokensQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTopTokensQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTopTokensQuery({
+ *   variables: {
+ *      orderDirection: // value for 'orderDirection'
+ *   },
+ * });
+ */
+export function useTopTokensQuery(baseOptions?: Apollo.QueryHookOptions<TopTokensQuery, TopTokensQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TopTokensQuery, TopTokensQueryVariables>(TopTokensDocument, options);
+      }
+export function useTopTokensLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TopTokensQuery, TopTokensQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TopTokensQuery, TopTokensQueryVariables>(TopTokensDocument, options);
+        }
+export type TopTokensQueryHookResult = ReturnType<typeof useTopTokensQuery>;
+export type TopTokensLazyQueryHookResult = ReturnType<typeof useTopTokensLazyQuery>;
+export type TopTokensQueryResult = Apollo.QueryResult<TopTokensQuery, TopTokensQueryVariables>;
+export const TokenHourDataDocument = gql`
+    query TokenHourData($tokenId: String!) {
+  tokenHourDatas(
+    first: 120
+    orderBy: periodStartUnix
+    orderDirection: desc
+    where: {token: $tokenId}
+  ) {
+    periodStartUnix
+    priceUSD
+    token {
+      id
+    }
+  }
+}
+    `;
+
+/**
+ * __useTokenHourDataQuery__
+ *
+ * To run a query within a React component, call `useTokenHourDataQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTokenHourDataQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTokenHourDataQuery({
+ *   variables: {
+ *      tokenId: // value for 'tokenId'
+ *   },
+ * });
+ */
+export function useTokenHourDataQuery(baseOptions: Apollo.QueryHookOptions<TokenHourDataQuery, TokenHourDataQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TokenHourDataQuery, TokenHourDataQueryVariables>(TokenHourDataDocument, options);
+      }
+export function useTokenHourDataLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TokenHourDataQuery, TokenHourDataQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TokenHourDataQuery, TokenHourDataQueryVariables>(TokenHourDataDocument, options);
+        }
+export type TokenHourDataQueryHookResult = ReturnType<typeof useTokenHourDataQuery>;
+export type TokenHourDataLazyQueryHookResult = ReturnType<typeof useTokenHourDataLazyQuery>;
+export type TokenHourDataQueryResult = Apollo.QueryResult<TokenHourDataQuery, TokenHourDataQueryVariables>;
+export const TransactionHistoryQueryDocument = gql`
+    query TransactionHistoryQuery {
+  transactions(first: 100, orderBy: timestamp, orderDirection: desc) {
+    burns(first: 10) {
+      amount0
+      amount1
+      amountUSD
+      origin
+      token1 {
+        id
+      }
+      token0 {
+        id
+      }
+    }
+    id
+    timestamp
+    swaps {
+      amount0
+      amount1
+      amountUSD
+      token0 {
+        name
+        id
+        symbol
+      }
+      token1 {
+        name
+        id
+        symbol
+      }
+      timestamp
+      id
+      recipient
+    }
+    mints {
+      amount0
+      amount1
+      amountUSD
+      origin
+      token0 {
+        id
+        name
+      }
+      token1 {
+        id
+        name
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useTransactionHistoryQueryQuery__
+ *
+ * To run a query within a React component, call `useTransactionHistoryQueryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTransactionHistoryQueryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTransactionHistoryQueryQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useTransactionHistoryQueryQuery(baseOptions?: Apollo.QueryHookOptions<TransactionHistoryQueryQuery, TransactionHistoryQueryQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TransactionHistoryQueryQuery, TransactionHistoryQueryQueryVariables>(TransactionHistoryQueryDocument, options);
+      }
+export function useTransactionHistoryQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TransactionHistoryQueryQuery, TransactionHistoryQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TransactionHistoryQueryQuery, TransactionHistoryQueryQueryVariables>(TransactionHistoryQueryDocument, options);
+        }
+export type TransactionHistoryQueryQueryHookResult = ReturnType<typeof useTransactionHistoryQueryQuery>;
+export type TransactionHistoryQueryLazyQueryHookResult = ReturnType<typeof useTransactionHistoryQueryLazyQuery>;
+export type TransactionHistoryQueryQueryResult = Apollo.QueryResult<TransactionHistoryQueryQuery, TransactionHistoryQueryQueryVariables>;
+export const UniswapTvlQueryDocument = gql`
+    query UniswapTvlQuery {
+  uniswapDayDatas(orderBy: date, orderDirection: asc) {
+    tvlUSD
+    date
+  }
+}
+    `;
+
+/**
+ * __useUniswapTvlQueryQuery__
+ *
+ * To run a query within a React component, call `useUniswapTvlQueryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUniswapTvlQueryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUniswapTvlQueryQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useUniswapTvlQueryQuery(baseOptions?: Apollo.QueryHookOptions<UniswapTvlQueryQuery, UniswapTvlQueryQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<UniswapTvlQueryQuery, UniswapTvlQueryQueryVariables>(UniswapTvlQueryDocument, options);
+      }
+export function useUniswapTvlQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UniswapTvlQueryQuery, UniswapTvlQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<UniswapTvlQueryQuery, UniswapTvlQueryQueryVariables>(UniswapTvlQueryDocument, options);
+        }
+export type UniswapTvlQueryQueryHookResult = ReturnType<typeof useUniswapTvlQueryQuery>;
+export type UniswapTvlQueryLazyQueryHookResult = ReturnType<typeof useUniswapTvlQueryLazyQuery>;
+export type UniswapTvlQueryQueryResult = Apollo.QueryResult<UniswapTvlQueryQuery, UniswapTvlQueryQueryVariables>;
+export const UniswapVolumeQueryDocument = gql`
+    query UniswapVolumeQuery {
+  uniswapDayDatas(orderBy: date, orderDirection: asc) {
+    date
+    volumeUSD
+  }
+}
+    `;
+
+/**
+ * __useUniswapVolumeQueryQuery__
+ *
+ * To run a query within a React component, call `useUniswapVolumeQueryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUniswapVolumeQueryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUniswapVolumeQueryQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useUniswapVolumeQueryQuery(baseOptions?: Apollo.QueryHookOptions<UniswapVolumeQueryQuery, UniswapVolumeQueryQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<UniswapVolumeQueryQuery, UniswapVolumeQueryQueryVariables>(UniswapVolumeQueryDocument, options);
+      }
+export function useUniswapVolumeQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UniswapVolumeQueryQuery, UniswapVolumeQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<UniswapVolumeQueryQuery, UniswapVolumeQueryQueryVariables>(UniswapVolumeQueryDocument, options);
+        }
+export type UniswapVolumeQueryQueryHookResult = ReturnType<typeof useUniswapVolumeQueryQuery>;
+export type UniswapVolumeQueryLazyQueryHookResult = ReturnType<typeof useUniswapVolumeQueryLazyQuery>;
+export type UniswapVolumeQueryQueryResult = Apollo.QueryResult<UniswapVolumeQueryQuery, UniswapVolumeQueryQueryVariables>;
+export const AllActivitiesDocument = gql`
+    query AllActivities($address: Bytes!) {
+  swaps(orderDirection: desc, where: {recipient: $address}, orderBy: timestamp) {
+    amount0
+    amount1
+    amountUSD
+    timestamp
+    token0 {
+      id
+      name
+      symbol
+      decimals
+    }
+    token1 {
+      id
+      name
+      symbol
+      decimals
+    }
+    transaction {
+      id
+    }
+  }
+  mints(where: {origin: $address}, orderBy: timestamp, orderDirection: desc) {
+    origin
+    timestamp
+    amount0
+    amount1
+    amountUSD
+    token0 {
+      id
+      name
+      symbol
+      decimals
+    }
+    token1 {
+      id
+      name
+      symbol
+      decimals
+    }
+    transaction {
+      id
+    }
+  }
+  burns(orderBy: timestamp, orderDirection: desc, where: {origin: $address}) {
+    amount0
+    amount1
+    amountUSD
+    timestamp
+    token0 {
+      id
+      name
+      symbol
+      decimals
+    }
+    token1 {
+      id
+      name
+      symbol
+      decimals
+    }
+    transaction {
+      id
+    }
+  }
+}
+    `;
+
+/**
+ * __useAllActivitiesQuery__
+ *
+ * To run a query within a React component, call `useAllActivitiesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAllActivitiesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAllActivitiesQuery({
+ *   variables: {
+ *      address: // value for 'address'
+ *   },
+ * });
+ */
+export function useAllActivitiesQuery(baseOptions: Apollo.QueryHookOptions<AllActivitiesQuery, AllActivitiesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AllActivitiesQuery, AllActivitiesQueryVariables>(AllActivitiesDocument, options);
+      }
+export function useAllActivitiesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AllActivitiesQuery, AllActivitiesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AllActivitiesQuery, AllActivitiesQueryVariables>(AllActivitiesDocument, options);
+        }
+export type AllActivitiesQueryHookResult = ReturnType<typeof useAllActivitiesQuery>;
+export type AllActivitiesLazyQueryHookResult = ReturnType<typeof useAllActivitiesLazyQuery>;
+export type AllActivitiesQueryResult = Apollo.QueryResult<AllActivitiesQuery, AllActivitiesQueryVariables>;

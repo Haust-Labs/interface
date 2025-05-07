@@ -23,6 +23,7 @@ export function Review({
   outOfRange: boolean
   ticksAtLimit: { [bound in Bound]?: boolean | undefined }
 }) {
+
   return (
     <Wrapper>
       <AutoColumn gap="lg">

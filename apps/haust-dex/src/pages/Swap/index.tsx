@@ -7,6 +7,8 @@ import { useDerivedSwapInfo } from 'state/swap/hooks';
 
 import SendCurrencyInputForm from "./components/Send/SendCurrencyInputForm";
 import SwapForm from './components/Swap/SwapForm';
+import { Currency } from '@uniswap/sdk-core';
+import useNativeCurrency from 'lib/hooks/useNativeCurrency';
 
 type SwapTab = 'Swap' | 'Send';
 
@@ -20,8 +22,12 @@ export default function SwapPage({ className }: { className?: string }) {
 
 export function Swap({
   className,
+  syncTabToUrl = true,
+  initialOutputCurrency
 }: {
   className?: string;
+  syncTabToUrl?: boolean;
+  initialOutputCurrency?: Currency;
 }) {
   const [currentTab, setCurrentTab] = useState<SwapTab>('Swap');
   const { chainId } = useWeb3React();
@@ -31,8 +37,6 @@ export function Swap({
   const handleTabChange = (tab: SwapTab) => {
     setCurrentTab(tab);
   };
-
-  const syncTabToUrl = true;
 
   const onTabClick = useCallback(
     (tab: SwapTab) => {
@@ -58,6 +62,7 @@ export function Swap({
     allowedSlippage,
   } = useDerivedSwapInfo();
 
+  const initialInputCurrency = useNativeCurrency()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       <SwapWrapper chainId={chainId} className={className} id="swap-page">
@@ -67,8 +72,8 @@ export function Swap({
           onTabClick={onTabClick}
         />
         <div style={{ flexGrow: 1, width: '100%' }}>
-          {currentTab === 'Swap' && <SwapForm />}
-          {currentTab === 'Send' && <SendCurrencyInputForm />}
+          {currentTab === 'Swap' && <SwapForm initialOutputCurrency={initialOutputCurrency} />}
+          {currentTab === 'Send' && <SendCurrencyInputForm initialInputCurrency={initialInputCurrency} />}
         </div>
       </SwapWrapper>
     </div>

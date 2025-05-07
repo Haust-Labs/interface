@@ -1,39 +1,47 @@
-import { t } from '@lingui/macro'
-import { Currency, CurrencyAmount, TradeType } from '@uniswap/sdk-core'
-import { formatCurrencyAmount } from 'conedison/format'
-import { SupportedChainId } from 'constants/chains'
-import { nativeOnChain } from 'constants/tokens';
-import { TransactionPartsFragment, TransactionStatus } from 'graphql/data/__generated__/types-and-hooks'
-import { useTokenFromActiveNetwork } from 'lib/hooks/useCurrency';
-import { useMemo } from 'react'
-import { TokenAddressMap, useCombinedActiveList } from 'state/lists/hooks'
-import { useMultichainTransactions } from 'state/transactions/hooks'
+import { t } from "@lingui/macro";
+import { Currency, CurrencyAmount, Token, TradeType } from "@uniswap/sdk-core";
+import { formatCurrencyAmount } from "conedison/format";
+import { SupportedChainId } from "constants/chains";
+import { nativeOnChain } from "constants/tokens";
+import {
+  TransactionPartsFragment,
+  TransactionStatus,
+} from "graphql/data/__generated__/types-and-hooks";
+import useAllActivities from "graphql/thegraph/useAllActivities";
+import { useMemo } from "react";
+import { TokenAddressMap, useCombinedActiveList } from "state/lists/hooks";
+import { useMultichainTransactions } from "state/transactions/hooks";
 import {
   AddLiquidityV2PoolTransactionInfo,
   AddLiquidityV3PoolTransactionInfo,
   ApproveTransactionInfo,
+  ClaimRewardsV3TransactionInfo,
   CollectFeesTransactionInfo,
   CreateV3PoolTransactionInfo,
   ExactInputSwapTransactionInfo,
   ExactOutputSwapTransactionInfo,
   MigrateV2LiquidityToV3TransactionInfo,
   RemoveLiquidityV3TransactionInfo,
+  SendTransactionInfo,
+  StakeLiquidityV3TransactionInfo,
   TransactionDetails,
   TransactionType,
+  UnstakeLiquidityV3TransactionInfo,
   WrapTransactionInfo,
-} from 'state/transactions/types'
+} from "state/transactions/types";
 
-import { getActivityTitle } from '../constants'
-import { Activity, ActivityMap } from './types'
+import { getActivityTitle } from "../constants";
+import { Activity, ActivityMap } from "./types";
 
-function getCurrency(currencyId: string, chainId: SupportedChainId, tokens: TokenAddressMap): Currency | undefined {
-  if (currencyId === 'HST') {
-    return nativeOnChain(chainId)
+function getCurrency(
+  currencyId: string,
+  chainId: SupportedChainId,
+  tokens: TokenAddressMap
+): Currency | undefined {
+  if (currencyId === "HST") {
+    return nativeOnChain(chainId);
   }
-  if (tokens[chainId]?.[currencyId]?.token) return tokens[chainId]?.[currencyId].token
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const token = useTokenFromActiveNetwork(currencyId)
-  return token as Currency
+  return tokens[chainId]?.[currencyId]?.token;
 }
 
 function buildCurrencyDescriptor(
@@ -43,11 +51,17 @@ function buildCurrencyDescriptor(
   amtB: string,
   delimiter = t`for`
 ) {
-  const formattedA = currencyA ? formatCurrencyAmount(CurrencyAmount.fromRawAmount(currencyA, amtA)) : t`Unknown`
-  const symbolA = currencyA?.symbol ?? ''
-  const formattedB = currencyB ? formatCurrencyAmount(CurrencyAmount.fromRawAmount(currencyB, amtB)) : t`Unknown`
-  const symbolB = currencyB?.symbol ?? ''
-  return [formattedA, symbolA, delimiter, formattedB, symbolB].filter(Boolean).join(' ')
+  const formattedA = currencyA
+    ? formatCurrencyAmount(CurrencyAmount.fromRawAmount(currencyA, amtA))
+    : t`Unknown`;
+  const symbolA = currencyA?.symbol ?? "";
+  const formattedB = currencyB
+    ? formatCurrencyAmount(CurrencyAmount.fromRawAmount(currencyB, amtB))
+    : t`Unknown`;
+  const symbolB = currencyB?.symbol ?? "";
+  return [formattedA, symbolA, delimiter, formattedB, symbolB]
+    .filter(Boolean)
+    .join(" ");
 }
 
 function parseSwap(
@@ -55,29 +69,58 @@ function parseSwap(
   chainId: SupportedChainId,
   tokens: TokenAddressMap
 ): Partial<Activity> {
-  const tokenIn = getCurrency(swap.inputCurrencyId, chainId, tokens)
-  const tokenOut = getCurrency(swap.outputCurrencyId, chainId, tokens)
+  const tokenIn = getCurrency(swap.inputCurrencyId, chainId, tokens);
+  const tokenOut = getCurrency(swap.outputCurrencyId, chainId, tokens);
   const [inputRaw, outputRaw] =
     swap.tradeType === TradeType.EXACT_INPUT
       ? [swap.inputCurrencyAmountRaw, swap.expectedOutputCurrencyAmountRaw]
-      : [swap.expectedInputCurrencyAmountRaw, swap.outputCurrencyAmountRaw]
+      : [swap.expectedInputCurrencyAmountRaw, swap.outputCurrencyAmountRaw];
 
   return {
     descriptor: buildCurrencyDescriptor(tokenIn, inputRaw, tokenOut, outputRaw),
     currencies: [tokenIn, tokenOut],
-  }
+  };
 }
 
-function parseWrap(wrap: WrapTransactionInfo, chainId: SupportedChainId, status: TransactionStatus): Partial<Activity> {
-  const native = nativeOnChain(chainId)
-  const wrapped = native.wrapped
-  const [input, output] = wrap.unwrapped ? [wrapped, native] : [native, wrapped]
+function parseSend(
+  send: SendTransactionInfo,
+  chainId: SupportedChainId,
+  tokens: TokenAddressMap
+): Partial<Activity> {
+  const { currencyId, amount, recipient } = send;
+  const currency = getCurrency(currencyId, chainId, tokens);
+  const formattedAmount = currency
+    ? formatCurrencyAmount(CurrencyAmount.fromRawAmount(currency, amount))
+    : `Unknown`;
 
-  const descriptor = buildCurrencyDescriptor(input, wrap.currencyAmountRaw, output, wrap.currencyAmountRaw)
-  const title = getActivityTitle(TransactionType.WRAP, status, wrap.unwrapped)
-  const currencies = wrap.unwrapped ? [wrapped, native] : [native, wrapped]
+  return {
+    descriptor: `Send ${formattedAmount} ${currency?.symbol} to ${recipient}`,
+    otherAccount: recipient,
+    currencies: [currency],
+  };
+}
 
-  return { title, descriptor, currencies }
+function parseWrap(
+  wrap: WrapTransactionInfo,
+  chainId: SupportedChainId,
+  status: TransactionStatus
+): Partial<Activity> {
+  const native = nativeOnChain(chainId);
+  const wrapped = native.wrapped;
+  const [input, output] = wrap.unwrapped
+    ? [wrapped, native]
+    : [native, wrapped];
+
+  const descriptor = buildCurrencyDescriptor(
+    input,
+    wrap.currencyAmountRaw,
+    output,
+    wrap.currencyAmountRaw
+  );
+  const title = getActivityTitle(TransactionType.WRAP, status, wrap.unwrapped);
+  const currencies = wrap.unwrapped ? [wrapped, native] : [native, wrapped];
+
+  return { title, descriptor, currencies };
 }
 
 function parseApproval(
@@ -85,26 +128,40 @@ function parseApproval(
   chainId: SupportedChainId,
   tokens: TokenAddressMap
 ): Partial<Activity> {
-  // TODO: Add 'amount' approved to ApproveTransactionInfo so we can distinguish between revoke and approve
-  const currency = getCurrency(approval.tokenAddress, chainId, tokens)
-  const descriptor = currency?.symbol ?? currency?.name ?? t`Unknown`
+  const currency = getCurrency(approval.tokenAddress, chainId, tokens);
+  const descriptor = currency?.symbol ?? currency?.name ?? t`Unknown`;
   return {
     descriptor,
     currencies: [currency],
-  }
+  };
 }
 
 type GenericLPInfo = Omit<
-  AddLiquidityV3PoolTransactionInfo | RemoveLiquidityV3TransactionInfo | AddLiquidityV2PoolTransactionInfo,
-  'type'
->
-function parseLP(lp: GenericLPInfo, chainId: SupportedChainId, tokens: TokenAddressMap): Partial<Activity> {
-  const baseCurrency = getCurrency(lp.baseCurrencyId, chainId, tokens)
-  const quoteCurrency = getCurrency(lp.quoteCurrencyId, chainId, tokens)
-  const [baseRaw, quoteRaw] = [lp.expectedAmountBaseRaw, lp.expectedAmountQuoteRaw]
-  const descriptor = buildCurrencyDescriptor(baseCurrency, baseRaw, quoteCurrency, quoteRaw, t`and`)
+  | AddLiquidityV3PoolTransactionInfo
+  | RemoveLiquidityV3TransactionInfo
+  | AddLiquidityV2PoolTransactionInfo,
+  "type"
+>;
+function parseLP(
+  lp: GenericLPInfo,
+  chainId: SupportedChainId,
+  tokens: TokenAddressMap
+): Partial<Activity> {
+  const baseCurrency = getCurrency(lp.baseCurrencyId, chainId, tokens);
+  const quoteCurrency = getCurrency(lp.quoteCurrencyId, chainId, tokens);
+  const [baseRaw, quoteRaw] = [
+    lp.expectedAmountBaseRaw,
+    lp.expectedAmountQuoteRaw,
+  ];
+  const descriptor = buildCurrencyDescriptor(
+    baseCurrency,
+    baseRaw,
+    quoteCurrency,
+    quoteRaw,
+    t`and`
+  );
 
-  return { descriptor, currencies: [baseCurrency, quoteCurrency] }
+  return { descriptor, currencies: [baseCurrency, quoteCurrency] };
 }
 
 function parseCollectFees(
@@ -118,8 +175,17 @@ function parseCollectFees(
     currencyId1: quoteCurrencyId,
     expectedCurrencyOwed0: expectedAmountBaseRaw,
     expectedCurrencyOwed1: expectedAmountQuoteRaw,
-  } = collect
-  return parseLP({ baseCurrencyId, quoteCurrencyId, expectedAmountBaseRaw, expectedAmountQuoteRaw }, chainId, tokens)
+  } = collect;
+  return parseLP(
+    {
+      baseCurrencyId,
+      quoteCurrencyId,
+      expectedAmountBaseRaw,
+      expectedAmountQuoteRaw,
+    },
+    chainId,
+    tokens
+  );
 }
 
 function parseMigrateCreateV3(
@@ -127,13 +193,59 @@ function parseMigrateCreateV3(
   chainId: SupportedChainId,
   tokens: TokenAddressMap
 ): Partial<Activity> {
-  const baseCurrency = getCurrency(lp.baseCurrencyId, chainId, tokens)
-  const baseSymbol = baseCurrency?.symbol ?? t`Unknown`
-  const quoteCurrency = getCurrency(lp.quoteCurrencyId, chainId, tokens)
-  const quoteSymbol = quoteCurrency?.symbol ?? t`Unknown`
-  const descriptor = t`${baseSymbol} and ${quoteSymbol}`
+  const baseCurrency = getCurrency(lp.baseCurrencyId, chainId, tokens);
+  const baseSymbol = baseCurrency?.symbol ?? t`Unknown`;
+  const quoteCurrency = getCurrency(lp.quoteCurrencyId, chainId, tokens);
+  const quoteSymbol = quoteCurrency?.symbol ?? t`Unknown`;
+  const descriptor = t`${baseSymbol} and ${quoteSymbol}`;
 
-  return { descriptor, currencies: [baseCurrency, quoteCurrency] }
+  return { descriptor, currencies: [baseCurrency, quoteCurrency] };
+}
+
+function parseStakeLiquidityV3(
+  stake: StakeLiquidityV3TransactionInfo,
+  chainId: SupportedChainId,
+  tokens: TokenAddressMap
+): Partial<Activity> {
+  const baseCurrency = getCurrency(stake.token0Id, chainId, tokens);
+  const quoteCurrency = getCurrency(stake.token1Id, chainId, tokens);
+
+  return {
+    descriptor: `Stake LP position #${stake.tokenId}`,
+    currencies: [baseCurrency, quoteCurrency],
+  };
+}
+
+function parseClaimStakingReward(
+  claim: ClaimRewardsV3TransactionInfo,
+  chainId: SupportedChainId,
+  tokens: TokenAddressMap
+): Partial<Activity> {
+  const rewardToken = getCurrency("HST", chainId, tokens);
+  const amount = Number(claim.rewardAmount);
+  const formattedAmount = amount < 0.01 ? "<0.01" : amount.toFixed(2);
+  return {
+    descriptor: `Claim ${formattedAmount} ${rewardToken?.symbol}`,
+    currencies: [rewardToken],
+  };
+}
+
+function parseUnstakeLiquidityV3(
+  unstake: UnstakeLiquidityV3TransactionInfo,
+  chainId: SupportedChainId,
+  tokens: TokenAddressMap
+): Partial<Activity> {
+  const baseCurrency = getCurrency(unstake.token0Id, chainId, tokens);
+  const quoteCurrency = getCurrency(unstake.token1Id, chainId, tokens);
+  const rewardToken = getCurrency("HST", chainId, tokens);
+  const amount = Number(unstake.rewardAmount);
+  const formattedAmount =
+    !unstake.rewardAmount || amount < 0.01 ? "<0.01" : amount.toFixed(2);
+
+  return {
+    descriptor: `Unstake and claim ${formattedAmount} ${rewardToken?.symbol}`,
+    currencies: [baseCurrency, quoteCurrency],
+  };
 }
 
 export function parseLocalActivity(
@@ -146,7 +258,7 @@ export function parseLocalActivity(
       ? TransactionStatus.Pending
       : details.receipt.status === 1 || details.receipt?.status === undefined
       ? TransactionStatus.Confirmed
-      : TransactionStatus.Failed
+      : TransactionStatus.Failed;
 
     const receipt: TransactionPartsFragment | undefined = details.receipt
       ? {
@@ -155,7 +267,7 @@ export function parseLocalActivity(
           ...details,
           status,
         }
-      : undefined
+      : undefined;
 
     const defaultFields = {
       hash: details.hash,
@@ -164,46 +276,288 @@ export function parseLocalActivity(
       status,
       timestamp: (details.confirmedTime ?? details.addedTime) / 1000,
       receipt,
-    }
+    };
 
-    let additionalFields: Partial<Activity> = {}
-    const info = details.info
+    let additionalFields: Partial<Activity> = {};
+    const info = details.info;
     if (info.type === TransactionType.SWAP) {
-      additionalFields = parseSwap(info, chainId, tokens)
+      additionalFields = parseSwap(info, chainId, tokens);
     } else if (info.type === TransactionType.APPROVAL) {
-      additionalFields = parseApproval(info, chainId, tokens)
+      additionalFields = parseApproval(info, chainId, tokens);
     } else if (info.type === TransactionType.WRAP) {
-      additionalFields = parseWrap(info, chainId, status)
+      additionalFields = parseWrap(info, chainId, status);
     } else if (
       info.type === TransactionType.ADD_LIQUIDITY_V3_POOL ||
       info.type === TransactionType.REMOVE_LIQUIDITY_V3 ||
       info.type === TransactionType.ADD_LIQUIDITY_V2_POOL
     ) {
-      additionalFields = parseLP(info, chainId, tokens)
+      additionalFields = parseLP(info, chainId, tokens);
     } else if (info.type === TransactionType.COLLECT_FEES) {
-      additionalFields = parseCollectFees(info, chainId, tokens)
-    } else if (info.type === TransactionType.MIGRATE_LIQUIDITY_V3 || info.type === TransactionType.CREATE_V3_POOL) {
-      additionalFields = parseMigrateCreateV3(info, chainId, tokens)
+      additionalFields = parseCollectFees(info, chainId, tokens);
+    } else if (
+      info.type === TransactionType.MIGRATE_LIQUIDITY_V3 ||
+      info.type === TransactionType.CREATE_V3_POOL
+    ) {
+      additionalFields = parseMigrateCreateV3(info, chainId, tokens);
+    } else if (info.type === TransactionType.STAKE_LIQUIDITY_V3) {
+      additionalFields = parseStakeLiquidityV3(info, chainId, tokens);
+    } else if (info.type === TransactionType.CLAIM_STAKING_REWARD) {
+      additionalFields = parseClaimStakingReward(info, chainId, tokens);
+    } else if (info.type === TransactionType.UNSTAKE_LIQUIDITY_V3) {
+      additionalFields = parseUnstakeLiquidityV3(info, chainId, tokens);
+    } else if (info.type === TransactionType.SEND) {
+      additionalFields = parseSend(info, chainId, tokens);
     }
 
-    return { ...defaultFields, ...additionalFields }
+    return { ...defaultFields, ...additionalFields, from: details.from ?? "" };
   } catch (error) {
-    console.debug(`Failed to parse transaction ${details.hash}`, error)
-    return undefined
+    console.debug(`Failed to parse transaction ${details.hash}`, error);
+    return undefined;
   }
 }
 
 export function useLocalActivities(account: string): ActivityMap {
-  const allTransactions = useMultichainTransactions()
-  const tokens = useCombinedActiveList()
+  const allTransactions = useMultichainTransactions();
+  const tokens = useCombinedActiveList();
 
   return useMemo(() => {
-    const activityByHash: ActivityMap = {}
+    const activityByHash: ActivityMap = {};
     for (const [transaction, chainId] of allTransactions) {
-      if (transaction.from !== account) continue
+      if (transaction.from !== account) continue;
 
-      activityByHash[transaction.hash] = parseLocalActivity(transaction, chainId, tokens)
+      activityByHash[transaction.hash] = parseLocalActivity(
+        transaction,
+        chainId,
+        tokens
+      );
     }
-    return activityByHash
-  }, [account, allTransactions, tokens])
+    return activityByHash;
+  }, [account, allTransactions, tokens]);
+}
+
+type TimeGroupedActivities = {
+  today: Activity[];
+  yesterday: Activity[];
+  thisWeek: Activity[];
+  thisMonth: Activity[];
+  thisYear: Activity[];
+  [key: string]: Activity[]; // For years before current year
+};
+
+// Add new types for GraphQL activities
+type GraphQLActivity = {
+  transaction: {
+    id: string;
+  };
+  timestamp: number;
+  token0: {
+    id: string;
+    name: string;
+    symbol: string;
+    decimals: string;
+  };
+  token1: {
+    id: string;
+    name: string;
+    symbol: string;
+    decimals: string;
+  };
+  amount0: string;
+  amount1: string;
+  amountUSD?: string;
+};
+
+function parseGraphQLActivity(
+  activity: GraphQLActivity,
+  type: "swap" | "mint" | "burn",
+  chainId: SupportedChainId
+): Activity {
+  // Check for HAUST/WHAUST tokens
+  const isHaustToken = (tokenId: string, symbol: string) => {
+    return (
+      symbol === "HST" ||
+      symbol.toLowerCase() === "whaust" ||
+      symbol.toLowerCase() === "whaust" ||
+      symbol.toLowerCase() === "whaust"
+    );
+  };
+
+  const token0 = isHaustToken(activity.token0.id, activity.token0.symbol)
+    ? nativeOnChain(chainId)
+    : new Token(
+        chainId,
+        activity.token0.id,
+        Number(activity.token0.decimals),
+        activity.token0.symbol,
+        activity.token0.name
+      );
+
+  const token1 = isHaustToken(activity.token1.id, activity.token1.symbol)
+    ? nativeOnChain(chainId)
+    : new Token(
+        chainId,
+        activity.token1.id,
+        Number(activity.token1.decimals),
+        activity.token1.symbol,
+        activity.token1.name
+      );
+
+  // Convert decimal amounts to wei (multiply by 10^18)
+  const amount0Wei = BigInt(Math.floor(Number(activity.amount0) * 10 ** Number(activity.token0.decimals)));
+  const amount1Wei = BigInt(Math.floor(Number(activity.amount1) * 10 ** Number(activity.token1.decimals)));
+
+  const descriptor = buildCurrencyDescriptor(
+    token0,
+    amount0Wei.toString(),
+    token1,
+    amount1Wei.toString(),
+    type === "swap" ? t`for` : t`and`
+  );
+
+  return {
+    hash: activity.transaction.id,
+    chainId,
+    title:
+      type === "swap"
+        ? t`Swap`
+        : type === "mint"
+        ? t`Add Liquidity`
+        : t`Remove Liquidity`,
+    descriptor,
+    status: TransactionStatus.Confirmed,
+    timestamp: Number(activity.timestamp),
+    currencies: [token0, token1],
+    from: "",
+  };
+}
+
+export function useActivities(account: string): TimeGroupedActivities {
+  const allTransactions = useMultichainTransactions();
+  const tokens = useCombinedActiveList();
+  const { data: graphQLActivities } = useAllActivities(account, 10000);
+
+  return useMemo(() => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const grouped: TimeGroupedActivities = {
+      today: [],
+      yesterday: [],
+      thisWeek: [],
+      thisMonth: [],
+      thisYear: [],
+    };
+
+    // Helper function to validate token addresses
+    const isValidToken = (address: string) => {
+      return Object.values(tokens).some((tokenMap) =>
+        Object.keys(tokenMap).some(
+          (tokenAddress) => tokenAddress.toLowerCase() === address.toLowerCase()
+        )
+      );
+    };
+
+    // Track processed transaction hashes to avoid duplicates
+    const processedHashes = new Set<string>();
+
+    // Process local transactions first
+    for (const [transaction, chainId] of allTransactions) {
+      if (transaction.from !== account) continue;
+
+      const activity = parseLocalActivity(transaction, chainId, tokens);
+      if (!activity) continue;
+
+      processedHashes.add(activity.hash);
+      addActivityToGroup(activity, grouped, now, today, yesterday);
+    }
+
+    // Process GraphQL activities
+    if (graphQLActivities) {
+      const chainId = SupportedChainId.HAUST_TESTNET;
+
+      // Process swaps
+      graphQLActivities.swaps.forEach((swap) => {
+        if (
+          !processedHashes.has(swap.transaction.id) &&
+          isValidToken(swap.token0.id) &&
+          isValidToken(swap.token1.id)
+        ) {
+          const activity = parseGraphQLActivity(swap, "swap", chainId);
+          addActivityToGroup(activity, grouped, now, today, yesterday);
+        }
+      });
+
+      // Process mints
+      graphQLActivities.mints.forEach((mint) => {
+        if (
+          !processedHashes.has(mint.transaction.id) &&
+          isValidToken(mint.token0.id) &&
+          isValidToken(mint.token1.id)
+        ) {
+          const activity = parseGraphQLActivity(mint, "mint", chainId);
+          addActivityToGroup(activity, grouped, now, today, yesterday);
+        }
+      });
+
+      // Process burns
+      graphQLActivities.burns.forEach((burn) => {
+        if (
+          !processedHashes.has(burn.transaction.id) &&
+          isValidToken(burn.token0.id) &&
+          isValidToken(burn.token1.id)
+        ) {
+          const activity = parseGraphQLActivity(burn, "burn", chainId);
+          addActivityToGroup(activity, grouped, now, today, yesterday);
+        }
+      });
+    }
+
+    // Sort activities within each group
+    Object.values(grouped).forEach((activities) => {
+      activities.sort((a, b) => b.timestamp - a.timestamp);
+    });
+
+    return grouped;
+  }, [account, allTransactions, tokens, graphQLActivities]);
+}
+
+function addActivityToGroup(
+  activity: Activity,
+  grouped: TimeGroupedActivities,
+  now: Date,
+  today: Date,
+  yesterday: Date
+) {
+  const timestamp = new Date(activity.timestamp * 1000);
+  const timestampDate = new Date(
+    timestamp.getFullYear(),
+    timestamp.getMonth(),
+    timestamp.getDate()
+  );
+
+  if (timestampDate.getTime() === today.getTime()) {
+    grouped.today.push(activity);
+  } else if (timestampDate.getTime() === yesterday.getTime()) {
+    grouped.yesterday.push(activity);
+  } else if (
+    timestamp > today &&
+    timestamp.getTime() - today.getTime() <= 7 * 24 * 60 * 60 * 1000
+  ) {
+    grouped.thisWeek.push(activity);
+  } else if (
+    timestamp.getMonth() === now.getMonth() &&
+    timestamp.getFullYear() === now.getFullYear()
+  ) {
+    grouped.thisMonth.push(activity);
+  } else if (timestamp.getFullYear() === now.getFullYear()) {
+    grouped.thisYear.push(activity);
+  } else {
+    const year = timestamp.getFullYear().toString();
+    if (!grouped[year]) {
+      grouped[year] = [];
+    }
+    grouped[year].push(activity);
+  }
 }

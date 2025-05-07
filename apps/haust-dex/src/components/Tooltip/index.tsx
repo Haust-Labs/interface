@@ -5,11 +5,19 @@ import noop from 'utils/noop'
 
 import Popover, { PopoverProps } from '../Popover'
 
-export const TooltipContainer = styled.div`
+export enum TooltipSize {
+  ExtraSmall = '200px',
+  Small = '256px',
+  Large = '400px',
+  Max = 'max-content',
+}
+
+export const TooltipContainer = styled.div<{ zIndex?: number }>`
   max-width: 256px;
   cursor: default;
   padding: 0.6rem 1rem;
   pointer-events: auto;
+  z-index: ${({ zIndex }) => zIndex ?? 9999};
 
   color: ${({ theme }) => theme.textPrimary};
   font-weight: 400;
@@ -17,9 +25,9 @@ export const TooltipContainer = styled.div`
   line-height: 16px;
   word-break: break-word;
 
-  background: ${({ theme }) => theme.backgroundSurface};
+  background: ${({ theme }) => theme.backgroundInteractive};
   border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.backgroundInteractive};
+  border: 1px solid ${({ theme }) => theme.neutralBorder};
   box-shadow: 0 4px 8px 0 ${({ theme }) => transparentize(0.9, theme.shadow1)};
 `
 
@@ -29,6 +37,7 @@ interface TooltipProps extends Omit<PopoverProps, 'content'> {
   close?: () => void
   disableHover?: boolean // disable the hover and content display
   timeout?: number
+  zIndex?: number
 }
 
 interface TooltipContentProps extends Omit<PopoverProps, 'content'> {
@@ -41,12 +50,16 @@ interface TooltipContentProps extends Omit<PopoverProps, 'content'> {
   disableHover?: boolean // disable the hover and content display
 }
 
-export default function Tooltip({ text, open, close, disableHover, ...rest }: TooltipProps) {
+export default function Tooltip({ text, open, close, disableHover, zIndex, ...rest }: TooltipProps) {
   return (
     <Popover
       content={
         text && (
-          <TooltipContainer onMouseEnter={disableHover ? noop : open} onMouseLeave={disableHover ? noop : close}>
+          <TooltipContainer 
+            onMouseEnter={disableHover ? noop : open} 
+            onMouseLeave={disableHover ? noop : close}
+            zIndex={zIndex}
+          >
             {text}
           </TooltipContainer>
         )
@@ -74,15 +87,27 @@ function TooltipContent({ content, wrap = false, open, close, disableHover, ...r
 }
 
 /** Standard text tooltip. */
-export function MouseoverTooltip({ text, disableHover, children, timeout, ...rest }: Omit<TooltipProps, 'show'>) {
-  const [show, setShow] = useState(false)
-  const open = () => text && setShow(true)
-  const close = () => setShow(false)
+export function MouseoverTooltip({ 
+  text, 
+  disableHover, 
+  children, 
+  timeout, 
+  show: controlledShow,
+  zIndex,
+  ...rest 
+}: Omit<TooltipProps, 'show'> & { 
+  show?: boolean
+  zIndex?: number
+}) {
+  const [internalShow, setInternalShow] = useState(false)
+  const show = controlledShow ?? internalShow
+  const open = () => text && setInternalShow(true)
+  const close = () => setInternalShow(false)
 
   useEffect(() => {
     if (show && timeout) {
       const tooltipTimer = setTimeout(() => {
-        setShow(false)
+        setInternalShow(false)
       }, timeout)
 
       return () => {
@@ -100,6 +125,7 @@ export function MouseoverTooltip({ text, disableHover, children, timeout, ...res
       disableHover={disableHover}
       show={show}
       text={disableHover ? null : text}
+      zIndex={zIndex}
     >
       <div onMouseEnter={disableHover ? noop : open} onMouseLeave={disableHover || timeout ? noop : close}>
         {children}

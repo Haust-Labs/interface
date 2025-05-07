@@ -8,6 +8,7 @@ import { AboutContainer, AboutHeader } from './About'
 import { BreadcrumbNavLink } from './BreadcrumbNavLink'
 import { TokenPrice } from './PriceChart'
 import { StatPair, StatsWrapper, StatWrapper } from './StatsSection'
+import { TDPBreadcrumb } from '.'
 
 export const Hr = styled.hr`
   background-color: ${({ theme }) => theme.backgroundOutline};
@@ -34,14 +35,17 @@ export const TokenDetailsLayout = styled.div`
 `
 export const LeftPanel = styled.div`
   flex: 1;
-  max-width: 1160px;
-  overflow: hidden;
+  max-width: 700px;
+  @media screen and (max-width: ${({ theme }) => theme.breakpoint.xs}px) {
+    max-width: 350px;
+  }
 `
 export const RightPanel = styled.div`
   display: none;
   flex-direction: column;
-  gap: 20px;
+  gap: 40px;
   width: 360px;
+  margin-top: 60px;
 
   @media screen and (min-width: ${({ theme }) => theme.breakpoint.lg}px) {
     display: flex;
@@ -219,9 +223,7 @@ export default function TokenDetailsSkeleton() {
   const { chainName } = useParams<{ chainName?: string }>()
   return (
     <LeftPanel>
-      <BreadcrumbNavLink to={chainName ? `/tokens/${chainName}` : `/explore`}>
-        <ArrowLeft size={14} /> Tokens
-      </BreadcrumbNavLink>
+      <TDPBreadcrumb />
       <TokenInfoContainer>
         <TokenNameCell>
           <TokenLogoBubble />

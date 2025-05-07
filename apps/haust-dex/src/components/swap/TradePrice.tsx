@@ -10,9 +10,11 @@ import { formatTransactionAmount, priceToPreciseFloat } from 'utils/formatNumber
 
 interface TradePriceProps {
   price: Price<Currency, Currency>
+  color?: string
+  fontSize?: string
 }
 
-const StyledPriceContainer = styled.button`
+const StyledPriceContainer = styled.button<{ $color?: string; $fontSize?: string }>`
   background-color: transparent;
   border: none;
   cursor: pointer;
@@ -25,11 +27,12 @@ const StyledPriceContainer = styled.button`
   flex-direction: row;
   text-align: left;
   flex-wrap: wrap;
-  padding: 8px 0;
   user-select: text;
+  color: ${({ $color }) => $color || 'inherit'};
+  font-size: ${({ $fontSize }) => $fontSize || 'inherit'};
 `
 
-export default function TradePrice({ price }: TradePriceProps) {
+export default function TradePrice({ price, color, fontSize }: TradePriceProps) {
   const [showInverted, setShowInverted] = useState<boolean>(false)
 
   const { baseCurrency, quoteCurrency } = price
@@ -57,10 +60,12 @@ export default function TradePrice({ price }: TradePriceProps) {
         flipPrice()
       }}
       title={text}
+      $color={color}
+      $fontSize={fontSize}
     >
-      <ThemedText.BodySecondary>{text}</ThemedText.BodySecondary>{' '}
+      <ThemedText.BodySecondary style={{ color, fontSize }}>{text}</ThemedText.BodySecondary>{' '}
       {usdPrice && (
-        <ThemedText.DeprecatedDarkGray>
+        <ThemedText.DeprecatedDarkGray style={{ color, fontSize }}>
           <Trans>({formatNumber(usdPrice, NumberType.FiatTokenPrice)})</Trans>
         </ThemedText.DeprecatedDarkGray>
       )}

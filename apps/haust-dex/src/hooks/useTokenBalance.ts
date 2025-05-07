@@ -2,199 +2,161 @@ import { Contract } from "@ethersproject/contracts";
 import { formatUnits } from "@ethersproject/units";
 import { useWeb3React } from "@web3-react/core";
 import ERC20_ABI from "abis/erc20.json";
-import useCurrencyLogoURIs from "lib/hooks/useCurrencyLogoURIs";
-import { useCallback, useEffect, useState } from "react";
-import { generateBearerToken } from "utils/generateBearerToken";
+import useBalanceMidnightForToken from "graphql/thegraph/BalanceMidnightForTokenQuery";
+import useCurrentTokenPrice from "graphql/thegraph/CurrentPriceTokensQuery";
+import { useCallback, useEffect, useState, useRef } from "react";
+
+const balanceCache = new Map<
+  string,
+  {
+    balance: TokenBalance;
+    timestamp: number;
+  }
+>();
+
+const CACHE_DURATION = 30 * 1000;
+const POLLING_INTERVAL = 15 * 1000;
+const DEBOUNCE_DELAY = 500;
 
 export interface TokenBalance {
-  chainId: number;
-  address: string;
-  symbol: string;
-  name: string;
-  decimals: number;
-  logoURI: string;
   balance: number;
   balanceUSD: number;
   priceChange: number;
-}
-
-interface TokenPrice {
-  price: string;
-  price_decimals: number;
-  token: {
-    address: string | null;
-    symbol: string;
-  };
 }
 
 export function useTokenBalance(token: any) {
   const { account, provider } = useWeb3React();
   const [balance, setBalance] = useState<TokenBalance | null>(null);
   const [loading, setLoading] = useState(true);
-  const nonce = Date.now().toString();
-  const authToken = generateBearerToken(nonce);
+  const [error, setError] = useState<Error | null>(null);
 
-  const logoURI = useCurrencyLogoURIs(token)[0];
-  const getBalance = useCallback(async () => {
-    if (!account || !provider || !token) return;
+  const { data: tokenPriceData } = useCurrentTokenPrice(
+    token?.wrapped?.address,
+    1000
+  );
+  const { data: midnightData } = useBalanceMidnightForToken(
+    token?.wrapped?.address,
+    1000
+  );
 
-    try {
-      // Get token balance with error handling
-      let tokenBalance = "0";
-      try {
-        if (token.isNative) {
-          const nativeBalance = await provider.getBalance(account);
-          tokenBalance = formatUnits(nativeBalance, token.decimals);
-        } else {
-          const contract = new Contract(token.address, ERC20_ABI, provider);
-          const rawBalance = await contract.balanceOf(account);
-          tokenBalance = formatUnits(rawBalance, token.decimals);
+  const pollingInterval = useRef<NodeJS.Timeout>();
+  const debounceTimer = useRef<NodeJS.Timeout>();
+
+  const getCacheKey = useCallback(() => {
+    return `${account}-${token?.address}`;
+  }, [account, token]);
+
+  const getBalance = useCallback(
+    async (skipCache = false) => {
+      if (!account || !provider || !token) return;
+
+      const cacheKey = getCacheKey();
+
+      if (!skipCache) {
+        const cached = balanceCache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+          setBalance(cached.balance);
+          setLoading(false);
+          return;
         }
-      } catch (error) {
-        console.error("Error fetching token balance:", error);
       }
-      // Get prices with error handling
-      let prices: TokenPrice[] = [];
+
       try {
-        const pricesResponse = await fetch(
-          "https://entrypointv02.stage.haust.app/v1/fiat_prices",
-          {
-            headers: {
-              "X-Haust-Wallet-Version": "0.1",
-              Authorization: authToken,
-            },
-          }
-        );
-        prices = await pricesResponse.json();
-      } catch (error) {
-        console.error("Error fetching prices:", error);
-      }
+        setError(null);
 
-      // Get token details with error handling
-      let tokenDetails = [];
-      try {
-        const detailsResponse = await fetch(
-          "https://entrypointv02.stage.haust.app/v1/tokens/details/?lang=EN",
-          {
-            headers: {
-              "X-Haust-Wallet-Version": "0.1",
-              Authorization: authToken,
-            },
-          }
-        );
-        tokenDetails = await detailsResponse.json();
-      } catch (error) {
-        console.error("Error fetching token details:", error);
-      }
-
-      const tokenDetail = tokenDetails.find((detail: any) => {
-        if (token.symbol === "WHAUST" || token.isNative) {
-          return detail.token_id === 5;
-        }
-        return (
-          detail.token_address?.toLowerCase() === token.address.toLowerCase()
-        );
-      });
-
-      // Get midnight data and calculate price change with error handling
-      let priceChange = 0;
-      if (tokenDetail && account) {
+        let tokenBalance = "0";
         try {
-          const midnightResponse = await fetch(
-            `https://entrypointv02.stage.haust.app/v1/account/${account}/balance_midnight`,
-            {
-              headers: {
-                "X-Haust-Wallet-Version": "0.1",
-                Authorization: authToken,
-              },
-            }
-          );
-          const midnightData = await midnightResponse.json();
-          const midnightPrice = midnightData.find(
-            (item: any) => item.id === tokenDetail.token_id
-          );
-
-          if (midnightPrice) {
-            const midnightPriceValue =
-              Number(midnightPrice.usd_price_midnight) /
-              Math.pow(10, midnightPrice.usd_price_decimals);
-            const priceData = prices.find((p) => {
-              if (token.symbol === "WHAUST" || token.isNative) {
-                return p.token.symbol === "HAUST";
-              }
-              return (
-                p.token.address?.toLowerCase() === token.address.toLowerCase()
-              );
-            });
-
-
-            if (priceData) {
-              const currentPrice =
-                Number(priceData.price) /
-                Math.pow(10, priceData.price_decimals);
-              priceChange =
-                ((currentPrice - midnightPriceValue) / midnightPriceValue) *
-                100;
-            }
+          if (token.isNative) {
+            const nativeBalance = await provider.getBalance(account);
+            tokenBalance = formatUnits(nativeBalance, token.decimals);
+          } else {
+            const contract = new Contract(token.address, ERC20_ABI, provider);
+            const rawBalance = await contract.balanceOf(account);
+            tokenBalance = formatUnits(rawBalance, token.decimals);
           }
         } catch (error) {
-          console.error("Error fetching midnight data:", error);
+          console.error("Error fetching token balance:", error);
+          throw error;
         }
-      }
 
-      // Calculate token price
-      let tokenPrice = 0;
-      const priceData = prices.find((p) => {
-        if (token.symbol === "WHAUST" || token.isNative) {
-          return p.token.symbol === "HAUST";
+        let tokenPrice = 0;
+        if (
+          tokenPriceData?.bundle?.ethPriceUSD &&
+          tokenPriceData?.token?.derivedETH
+        ) {
+          tokenPrice =
+            Number(tokenPriceData.bundle.ethPriceUSD) *
+            Number(tokenPriceData.token.derivedETH);
         }
-        
-        return p.token.address?.toLowerCase() === token.address.toLowerCase();
-      });
 
-      if (priceData) {
-        tokenPrice =
-          Number(priceData.price) / Math.pow(10, priceData.price_decimals);
+        let priceChange = 0;
+        const midnightPrice = Number(
+          midnightData?.token?.tokenDayData[0]?.priceUSD || 0
+        );
+
+        if (midnightPrice > 0 && tokenPrice > 0) {
+          priceChange = ((tokenPrice - midnightPrice) / midnightPrice) * 100;
+        }
+
+        const newBalance = {
+          balance: Number(tokenBalance),
+          balanceUSD: parseFloat(tokenBalance) * tokenPrice,
+          priceChange,
+        };
+
+        balanceCache.set(cacheKey, {
+          balance: newBalance,
+          timestamp: Date.now(),
+        });
+
+        setBalance(newBalance);
+      } catch (error) {
+        console.error("Error in getBalance:", error);
+        setError(error as Error);
+        setBalance({
+          balance: 0,
+          balanceUSD: 0,
+          priceChange: 0,
+        });
+      } finally {
+        setLoading(false);
       }
+    },
+    [account, provider, token, tokenPriceData, midnightData, getCacheKey]
+  );
 
-      setBalance({
-        chainId: token.chainId,
-        address: token.address,
-        symbol: token.symbol || "",
-        name: token.name || "",
-        decimals: token.decimals,
-        logoURI,
-        balance: Number(tokenBalance),
-        balanceUSD: parseFloat(tokenBalance) * tokenPrice,
-        priceChange,
-      });
-    } catch (error) {
-      console.error("Error in getBalance:", error);
-      // Set default values in case of error
-      setBalance({
-        chainId: token.chainId,
-        address: token.address,
-        symbol: token.symbol || "",
-        name: token.name || "",
-        decimals: token.decimals,
-        logoURI,
-        balance: 0,
-        balanceUSD: 0,
-        priceChange: 0,
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [account, provider, token, logoURI]);
+  const debouncedGetBalance = useCallback(
+    (skipCache = false) => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+      debounceTimer.current = setTimeout(() => {
+        getBalance(skipCache);
+      }, DEBOUNCE_DELAY);
+    },
+    [getBalance]
+  );
 
-  // Expose refetch function
   const refetch = useCallback(() => {
-    getBalance();
+    getBalance(true);
   }, [getBalance]);
 
   useEffect(() => {
-    getBalance();
-  }, [getBalance]);
+    debouncedGetBalance();
 
-  return { balance, loading, refetch };
+    pollingInterval.current = setInterval(() => {
+      debouncedGetBalance();
+    }, POLLING_INTERVAL);
+
+    return () => {
+      if (pollingInterval.current) {
+        clearInterval(pollingInterval.current);
+      }
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, [debouncedGetBalance]);
+
+  return { balance, loading, error, refetch };
 }

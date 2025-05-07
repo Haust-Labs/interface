@@ -1,13 +1,12 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { TransactionResponse } from '@ethersproject/providers'
 import { Trans } from '@lingui/macro'
-import { Currency, CurrencyAmount, Fraction, Percent, Price, Token } from '@uniswap/sdk-core'
+import { Currency, CurrencyAmount, Percent, Price, Token } from '@uniswap/sdk-core'
 import { NonfungiblePositionManager, Pool, Position } from '@uniswap/v3-sdk'
 import { useWeb3React } from '@web3-react/core'
-import {useTokenApi} from "api/Token";
-import BigNumber from "bignumber.js";
 // import { sendEvent } from 'components/analytics'
 import Badge from 'components/Badge'
-import { ButtonConfirmed, ButtonGray, ButtonPrimary } from 'components/Button'
+import { ButtonConfirmed, ButtonPrimary } from 'components/Button'
 import { DarkCard, LightCard } from 'components/Card'
 import { AutoColumn } from 'components/Column'
 import DoubleCurrencyLogo from 'components/DoubleLogo'
@@ -20,23 +19,22 @@ import TransactionConfirmationModal, { ConfirmationModalContent } from 'componen
 import { formatPrice, NumberType } from 'conedison/format'
 import { CHAIN_IDS_TO_NAMES, isSupportedChain } from 'constants/chains'
 import {BigNumber as BN } from 'ethers';
-import {HistoryDuration} from "graphql/data/__generated__/types-and-hooks";
 import { isGqlSupportedChain } from 'graphql/data/util'
 import { useToken } from 'hooks/Tokens'
 import { useV3NFTPositionManagerContract } from 'hooks/useContract'
 import useIsTickAtLimit from 'hooks/useIsTickAtLimit'
 import { PoolState, usePool } from 'hooks/usePools'
-import useStablecoinPrice from 'hooks/useStablecoinPrice'
+import { useV3Incentive } from 'hooks/useV3Incentive'
 import { useV3PositionFees } from 'hooks/useV3PositionFees'
 import { useV3PositionFromTokenId } from 'hooks/useV3Positions'
 import { useSingleCallResult } from 'lib/hooks/multicall'
 import useNativeCurrency from 'lib/hooks/useNativeCurrency'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect,useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Bound } from 'state/mint/v3/actions'
 import { useIsTransactionPending, useTransactionAdder } from 'state/transactions/hooks'
 import styled, { useTheme } from 'styled-components/macro'
-import { ExternalLink, HideExtraSmall, HideSmall, ThemedText } from 'theme'
+import { ExternalLink, HideExtraSmall, ThemedText } from 'theme'
 import { currencyId } from 'utils/currencyId'
 import { formatCurrencyAmount } from 'utils/formatCurrencyAmount'
 import { formatTickPrice } from 'utils/formatTickPrice'
@@ -51,11 +49,14 @@ import { usePositionTokenURI } from '../../hooks/usePositionTokenURI'
 import { TransactionType } from '../../state/transactions/types'
 import { calculateGasMargin } from '../../utils/calculateGasMargin'
 import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
+import { RewardInfo } from './RewardInfo'
 import { LoadingRows } from './styleds'
+import { useV3StakedNftTokenIds } from 'hooks/useV3StakedNftTokenIds'
+
 const getTokenLink = (chainId: any, address: string) => {
   if (isGqlSupportedChain(chainId)) {
     const chainName = CHAIN_IDS_TO_NAMES[chainId]
-    return `${window.location.origin}/#/tokens/${chainName}/${address}`
+    return `${window.location.origin}/#/explore/tokens/${chainName}/${address}`
   } else {
     return getExplorerLink(chainId, address, ExplorerDataType.TOKEN)
   }
@@ -122,7 +123,7 @@ const DoubleArrow = styled.span`
   color: ${({ theme }) => theme.textTertiary};
   margin: 0 1rem;
 `
-const ResponsiveRow = styled(RowBetween)`
+export const ResponsiveRow = styled(RowBetween)`
   @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.sm}px`}) {
     flex-direction: column;
     align-items: flex-start;
@@ -159,10 +160,10 @@ const ResponsiveButtonConfirmed = styled(ButtonConfirmed)`
   }
 `
 
-const NFTGrid = styled.div`
+const NFTGrid = styled.div<{ $minHeight?: number }>`
   display: grid;
   grid-template: 'overlap';
-  min-height: 400px;
+  min-height: ${({ $minHeight }) => ($minHeight ? `${$minHeight}px` : '400px')};
 `
 
 const NFTCanvas = styled.canvas`
@@ -174,6 +175,15 @@ const NFTImage = styled.img`
   height: 400px;
   /* Ensures SVG appears on top of canvas. */
   z-index: 1;
+`
+
+export const NFTContainer = styled.div`
+  margin-right: 12px;
+  width: 100%;
+  
+  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.sm}px`}) {
+    margin-right: 0;
+  }
 `
 
 function CurrentPriceCard({
@@ -284,34 +294,55 @@ function getSnapshot(src: HTMLImageElement, canvas: HTMLCanvasElement, targetHei
   }
 }
 
-function NFT({ image, height: targetHeight }: { image: string; height: number }) {
+export function NFT({ 
+  image, 
+  height: targetHeight, 
+  minHeight,
+  disableHover = false
+}: { 
+  image: string; 
+  height: number;
+  minHeight?: number;
+  disableHover?: boolean;
+}) {
   const [animate, setAnimate] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const imageRef = useRef<HTMLImageElement>(null)
 
+  useEffect(() => {
+    if (imageLoaded && imageRef.current && canvasRef.current) {
+      const timer = setTimeout(() => {
+        getSnapshot(imageRef.current!, canvasRef.current!, targetHeight)
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+    return undefined
+  }, [imageLoaded, targetHeight])
+
   return (
     <NFTGrid
+      $minHeight={minHeight}
       onMouseEnter={() => {
-        setAnimate(true)
+        if (!disableHover) setAnimate(true)
       }}
       onMouseLeave={() => {
-        // snapshot the current frame so the transition to the canvas is smooth
-        if (imageRef.current && canvasRef.current) {
+        if (!disableHover && imageRef.current && canvasRef.current) {
           getSnapshot(imageRef.current, canvasRef.current, targetHeight)
+          setAnimate(false)
         }
-        setAnimate(false)
       }}
     >
-      <NFTCanvas ref={canvasRef} />
+      <NFTCanvas ref={canvasRef} style={{ display: imageLoaded ? 'block' : 'none' }} />
       <NFTImage
         ref={imageRef}
         src={image}
-        hidden={!animate}
+        hidden={!animate && imageLoaded}
+        style={{ display: !imageLoaded ? 'block' : animate ? 'block' : 'none' }}
         onLoad={() => {
-          // snapshot for the canvas
           if (imageRef.current && canvasRef.current) {
-            getSnapshot(imageRef.current, canvasRef.current, targetHeight)
+            setImageLoaded(true)
           }
         }}
       />
@@ -365,6 +396,24 @@ export function PositionPageUnsupportedContent() {
 
 export default function PositionPage() {
   const { chainId } = useWeb3React()
+  
+  if (chainId === undefined || chainId === null) {
+    return <LoadingRows>
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+    </LoadingRows>
+  }
+  
   if (isSupportedChain(chainId)) {
     return <PositionPageContent />
   } else {
@@ -376,6 +425,12 @@ function PositionPageContent() {
   const { tokenId: tokenIdFromUrl } = useParams<{ tokenId?: string }>()
   const { chainId, account, provider } = useWeb3React()
   const theme = useTheme()
+  const {incentiveEvents, loading: incentivesLoading} = useV3Incentive()
+  const {tokenIds, loading: stakedLoading} = useV3StakedNftTokenIds(account)
+  
+  const stakedInfo = incentiveEvents?.find(incentive => 
+    incentive.tokenIds?.includes(Number(tokenIdFromUrl))
+  )
 
   const parsedTokenId = tokenIdFromUrl ? BN.from(tokenIdFromUrl) : undefined
   const { loading, position: positionDetails } = useV3PositionFromTokenId(parsedTokenId)
@@ -406,7 +461,18 @@ function PositionPageContent() {
   const nativeWrappedSymbol = nativeCurrency.wrapped.symbol
 
   // construct Position from details returned
-  const [poolState, pool] = usePool(token0 ?? undefined, token1 ?? undefined, feeAmount)
+  const [poolState, pool, poolAddress] = usePool(token0 ?? undefined, token1 ?? undefined, feeAmount)
+  
+  const incentive = useMemo(() => {
+    if (!incentiveEvents?.length || !poolAddress) return undefined;
+    
+    const now = Math.floor(Date.now() / 1000);
+    return incentiveEvents.find(incentive => 
+      incentive.pool.toLowerCase() === poolAddress.toLowerCase() && 
+      Number(incentive.endTime) > now
+    );
+  }, [incentiveEvents, poolAddress]);
+
   const position = useMemo(() => {
     if (pool && liquidity && typeof tickLower === 'number' && typeof tickUpper === 'number') {
       return new Position({ pool, liquidity: liquidity.toString(), tickLower, tickUpper })
@@ -453,56 +519,7 @@ function PositionPageContent() {
   const [collectMigrationHash, setCollectMigrationHash] = useState<string | null>(null)
   const isCollectPending = useIsTransactionPending(collectMigrationHash ?? undefined)
   const [showConfirm, setShowConfirm] = useState(false)
-
-  // usdc prices always in terms of tokens
-  const price0 = useStablecoinPrice(token0 ?? undefined)
-  const price1 = useStablecoinPrice(token1 ?? undefined)
-
-  const { data: token0Api } = useTokenApi(token0?.address, HistoryDuration.Year);
-  const { data: token1Api } = useTokenApi(token1?.address, HistoryDuration.Year);
   
-  const fiatValueOfLiquidityApi: BigNumber | null = useMemo(() => {
-    if (!token0Api || !token1Api || !position) return null;
-    const price0Api = new BigNumber(token0Api.priceUsd);
-    const price1Api = new BigNumber(token1Api.priceUsd);
-    const amount0 = price0Api.multipliedBy(position.amount0.toFixed());
-    const amount1 = price1Api.multipliedBy(position.amount1.toFixed())
-    return amount0.plus(amount1)
-  }, [position, token0Api, token1Api])
-
-  const fiatValueOfFeesApi: BigNumber | null = useMemo(() => {
-    if (!token0Api || !token1Api || !feeValue0 || !feeValue1) return null
-    const price0Api = new BigNumber(token0Api.priceUsd);
-    const price1Api = new BigNumber(token1Api.priceUsd);
-    const feeValue0Wrapped = feeValue0?.wrapped
-    const feeValue1Wrapped = feeValue1?.wrapped
-
-    if (!feeValue0Wrapped || !feeValue1Wrapped) return null
-    const amount0 = price0Api.multipliedBy(feeValue0.wrapped.toFixed());
-    const amount1 = price1Api.multipliedBy(feeValue1.wrapped.toFixed())
-    return amount0.plus(amount1)
-  }, [feeValue0, feeValue1, token0Api, token1Api])
-
-  const fiatValueOfFees: CurrencyAmount<Currency> | null = useMemo(() => {
-    if (!price0 || !price1 || !feeValue0 || !feeValue1) return null
-
-    // we wrap because it doesn't matter, the quote returns a USDC amount
-    const feeValue0Wrapped = feeValue0?.wrapped
-    const feeValue1Wrapped = feeValue1?.wrapped
-
-    if (!feeValue0Wrapped || !feeValue1Wrapped) return null
-
-    const amount0 = price0.quote(feeValue0Wrapped)
-    const amount1 = price1.quote(feeValue1Wrapped)
-    return amount0.add(amount1)
-  }, [price0, price1, feeValue0, feeValue1])
-
-  const fiatValueOfLiquidity: CurrencyAmount<Token> | null = useMemo(() => {
-    if (!price0 || !price1 || !position) return null
-    const amount0 = price0.quote(position.amount0)
-    const amount1 = price1.quote(position.amount1)
-    return amount0.add(amount1)
-  }, [price0, price1, position])
 
   const addTransaction = useTransactionAdder()
   const positionManager = useV3NFTPositionManagerContract()
@@ -594,6 +611,13 @@ function PositionPageContent() {
   const above = pool && typeof tickUpper === 'number' ? pool.tickCurrent >= tickUpper : undefined
   const inRange: boolean = typeof below === 'boolean' && typeof above === 'boolean' ? !below && !above : false
 
+  const isPositionStaked = !!stakedInfo
+
+  const isUsersNFT = useMemo(() => {
+    if (!tokenIdFromUrl || !tokenIds) return false;
+    return tokenIds.includes(Number(tokenIdFromUrl));
+  }, [tokenIdFromUrl, tokenIds]);
+
   function modalHeader() {
     return (
       <AutoColumn gap="md" style={{ marginTop: '20px' }}>
@@ -642,7 +666,7 @@ function PositionPageContent() {
     return <PositionPageUnsupportedContent />
   }
 
-  return loading || poolState === PoolState.LOADING || !feeAmount ? (
+  return loading || incentivesLoading || stakedLoading || poolState === PoolState.LOADING || !feeAmount ? (
     <LoadingRows>
       <div />
       <div />
@@ -696,44 +720,62 @@ function PositionPageContent() {
                     <Trans>{new Percent(feeAmount, 1_000_000).toSignificant()}%</Trans>
                   </BadgeText>
                 </Badge>
-                <RangeBadge removed={removed} inRange={inRange} />
+                <RangeBadge removed={removed} inRange={inRange} staked={isPositionStaked} />
               </RowFixed>
-              {ownsNFT && (
                 <ActionButtonResponsiveRow>
                   {currency0 && currency1 && feeAmount && tokenId ? (
-                    <SmallButtonPrimary
-                      as={Link}
-                      to={`/increase/${currencyId(currency0)}/${currencyId(currency1)}/${feeAmount}/${tokenId}`}
-                      padding="6px 8px"
-                      width="fit-content"
-                      $borderRadius="12px"
-                      style={{ marginRight: '8px' }}
-                    >
-                      <Trans>Increase Liquidity</Trans>
-                    </SmallButtonPrimary>
+                    isPositionStaked || !isUsersNFT ? (
+                      <SmallButtonPrimary
+                        padding="6px 8px"
+                        width="fit-content"
+                        $borderRadius="12px"
+                        style={{ marginRight: '8px', opacity: 0.5 }}
+                        disabled
+                      >
+                        <Trans>Increase Liquidity</Trans>
+                      </SmallButtonPrimary>
+                    ) : (
+                      <SmallButtonPrimary
+                        as={Link}
+                        to={`/increase/${currencyId(currency0)}/${currencyId(currency1)}/${feeAmount}/${tokenId}`}
+                        padding="6px 8px"
+                        width="fit-content"
+                        $borderRadius="12px"
+                        style={{ marginRight: '8px' }}
+                      >
+                        <Trans>Increase Liquidity</Trans>
+                      </SmallButtonPrimary>
+                    )
                   ) : null}
                   {tokenId && !removed ? (
-                    <SmallButtonPrimary
-                      as={Link}
-                      to={`/remove/${tokenId}`}
-                      padding="6px 8px"
-                      width="fit-content"
-                      $borderRadius="12px"
-                    >
-                      <Trans>Remove Liquidity</Trans>
-                    </SmallButtonPrimary>
+                    isPositionStaked || !isUsersNFT ? (
+                      <SmallButtonPrimary
+                        padding="6px 8px"
+                        width="fit-content"
+                        $borderRadius="12px"
+                        style={{ opacity: 0.5 }}
+                        disabled
+                      >
+                        <Trans>Remove Liquidity</Trans>
+                      </SmallButtonPrimary>
+                    ) : (
+                      <SmallButtonPrimary
+                        as={Link}
+                        to={`/remove/${tokenId}`}
+                        padding="6px 8px"
+                        width="fit-content"
+                        $borderRadius="12px"
+                      >
+                        <Trans>Remove Liquidity</Trans>
+                      </SmallButtonPrimary>
+                    )
                   ) : null}
                 </ActionButtonResponsiveRow>
-              )}
             </ResponsiveRow>
             <RowBetween></RowBetween>
           </AutoColumn>
           <ResponsiveRow align="flex-start">
-            <HideSmall
-              style={{
-                marginRight: '12px',
-              }}
-            >
+            <NFTContainer>
               {'result' in metadata ? (
                 <DarkCard
                   width="100%"
@@ -743,28 +785,25 @@ function PositionPageContent() {
                     alignItems: 'center',
                     flexDirection: 'column',
                     justifyContent: 'space-around',
-                    minWidth: '340px',
+                    height: isPositionStaked ? '510px' : '100%'
                   }}
                 >
                   <NFT image={metadata.result.image} height={400} />
-                  {typeof chainId === 'number' && owner && !ownsNFT ? (
-                    <ExternalLink href={getExplorerLink(chainId, owner, ExplorerDataType.ADDRESS)}>
-                      <Trans>Owner</Trans>
-                    </ExternalLink>
-                  ) : null}
+                  {!isUsersNFT && (
+                    <ThemedText.DeprecatedMain fontSize={12} style={{ marginTop: '20px' }}>
+                      * This LP-token is not associated with your wallet.
+                    </ThemedText.DeprecatedMain>
+                  )}
                 </DarkCard>
               ) : (
                 <DarkCard
                   width="100%"
                   height="100%"
-                  style={{
-                    minWidth: '340px',
-                  }}
                 >
                   <Loader />
                 </DarkCard>
               )}
-            </HideSmall>
+            </NFTContainer>
             <AutoColumn gap="sm" style={{ width: '100%', height: '100%' }}>
               <DarkCard>
                 <AutoColumn gap="md" style={{ width: '100%' }}>
@@ -816,10 +855,42 @@ function PositionPageContent() {
                       </RowBetween>
                     </AutoColumn>
                   </LightCard>
+                  {incentive && !removed && (
+                    <>
+                      {!isUsersNFT ? null : !isPositionStaked ? (
+                        <SmallButtonPrimary
+                          as={Link}
+                          to={`/stake/${tokenId}`}
+                          padding="6px 8px"
+                          width="fit-content"
+                          $borderRadius="12px"
+                        >
+                          Stake Position
+                        </SmallButtonPrimary>
+                      ) : (
+                        <SmallButtonPrimary
+                          as={Link}
+                          to={`/unstake/${tokenId}`}
+                          padding="6px 8px"
+                          width="fit-content"
+                          $borderRadius="12px"
+                        >
+                          Unstake position
+                        </SmallButtonPrimary>
+                      )}
+                    </>
+                  )}
                 </AutoColumn>
               </DarkCard>
+              {isPositionStaked && stakedInfo && tokenIdFromUrl && isUsersNFT && (
+                <RewardInfo tokenId={tokenIdFromUrl} stakedInfo={stakedInfo} />
+              )}
               <DarkCard>
-                <AutoColumn gap="md" style={{ width: '100%' }}>
+                <AutoColumn gap="md" style={{ 
+                  width: '100%',
+                  opacity: !isUsersNFT || isPositionStaked ? '0.3' : '1',
+                  pointerEvents: !isUsersNFT || isPositionStaked ? 'none' : 'auto'
+                }}>
                   <AutoColumn gap="md">
                     <RowBetween style={{ alignItems: 'flex-start' }}>
                       <AutoColumn gap="md">
@@ -840,7 +911,7 @@ function PositionPageContent() {
                           </ThemedText.DeprecatedLargeHeader>
                         )} */}
                       </AutoColumn>
-                      {ownsNFT && (feeValue0?.greaterThan(0) || feeValue1?.greaterThan(0) || !!collectMigrationHash) ? (
+                      {feeValue0?.greaterThan(0) || feeValue1?.greaterThan(0) || !!collectMigrationHash ? (
                         <ResponsiveButtonConfirmed
                           disabled={collecting || !!collectMigrationHash}
                           confirmed={!!collectMigrationHash && !isCollectPending}
@@ -849,24 +920,24 @@ function PositionPageContent() {
                           padding="4px 8px"
                           onClick={() => setShowConfirm(true)}
                         >
-                          {!!collectMigrationHash && !isCollectPending ? (
-                            <ThemedText.DeprecatedMain color={theme.textPrimary}>
-                              <Trans> Collected</Trans>
-                            </ThemedText.DeprecatedMain>
-                          ) : isCollectPending || collecting ? (
-                            <ThemedText.DeprecatedMain color={theme.textPrimary}>
-                              {' '}
-                              <Dots>
-                                <Trans>Collecting</Trans>
-                              </Dots>
-                            </ThemedText.DeprecatedMain>
-                          ) : (
-                            <>
-                              <ThemedText.DeprecatedMain color={theme.white}>
-                                <Trans>Collect fees</Trans>
-                              </ThemedText.DeprecatedMain>
-                            </>
-                          )}
+                              {!!collectMigrationHash && !isCollectPending ? (
+                                <ThemedText.DeprecatedMain color={theme.textPrimary}>
+                                  <Trans> Collected</Trans>
+                                </ThemedText.DeprecatedMain>
+                              ) : isCollectPending || collecting ? (
+                                <ThemedText.DeprecatedMain color={theme.textPrimary}>
+                                  {' '}
+                                  <Dots>
+                                    <Trans>Collecting</Trans>
+                                  </Dots>
+                                </ThemedText.DeprecatedMain>
+                              ) : (
+                                <>
+                                  <ThemedText.DeprecatedMain color={theme.white}>
+                                    <Trans>Collect fees</Trans>
+                                  </ThemedText.DeprecatedMain>
+                                </>
+                              )}
                         </ResponsiveButtonConfirmed>
                       ) : null}
                     </RowBetween>

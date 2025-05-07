@@ -1,22 +1,25 @@
 import { Trans } from '@lingui/macro'
 import { useWeb3React } from '@web3-react/core'
 import { useToggleAccountDrawer } from 'components/AccountDrawer'
-import { ButtonPrimary, ButtonText } from 'components/Button'
+import { ButtonPrimary } from 'components/Button'
 import { AutoColumn } from 'components/Column'
-import PositionList from 'components/PositionList'
-import { RowBetween, RowFixed } from 'components/Row'
+import PositionListItem from 'components/PositionListItem'
+import { RowBetween } from 'components/Row'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
+import { TOKEN_ADDRESSES } from 'constants/tokens'
+import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
 import { useV3Positions } from 'hooks/useV3Positions'
-import { useMemo } from 'react'
+import { atom, useAtom } from 'jotai'
+import { isSupportedChainId } from 'lib/hooks/routing/clientSideSmartOrderRouter'
+import { useCallback, useMemo } from 'react'
 import { AlertTriangle, Inbox } from 'react-feather'
-import { Link } from 'react-router-dom'
 import { useUserHideClosedPositions } from 'state/user/hooks'
 import styled, { css, useTheme } from 'styled-components/macro'
 import { ThemedText } from 'theme'
 import { PositionDetails } from 'types/position'
 
+import { PositionsHeader, PositionStatus } from './PositionHeader'
 import { LoadingRows } from './styleds'
-import { isSupportedChainId } from 'lib/hooks/routing/clientSideSmartOrderRouter'
 
 const PageWrapper = styled(AutoColumn)`
   padding: 68px 8px 0;
@@ -47,18 +50,6 @@ const TitleRow = styled(RowBetween)`
     width: 100%;
   `};
 `
-const ButtonRow = styled(RowFixed)`
-  & > *:not(:last-child) {
-    margin-left: 8px;
-  }
-
-  ${({ theme }) => theme.deprecated_mediaWidth.deprecated_upToSmall`
-    width: 100%;
-    flex-direction: row;
-    justify-content: space-between;
-    flex-direction: row-reverse;
-  `};
-`
 
 const ErrorContainer = styled.div`
   align-items: center;
@@ -82,17 +73,6 @@ const NetworkIcon = styled(AlertTriangle)`
 
 const InboxIcon = styled(Inbox)`
   ${IconStyle}
-`
-
-const ResponsiveButtonPrimary = styled(ButtonPrimary)`
-  border-radius: 12px;
-  font-size: 16px;
-  padding: 6px 8px;
-  width: fit-content;
-  ${({ theme }) => theme.deprecated_mediaWidth.deprecated_upToSmall`
-    flex: 1 1 auto;
-    width: 100%;
-  `};
 `
 
 const MainContentWrapper = styled.main`
@@ -126,9 +106,9 @@ function PositionsLoadingPlaceholder() {
   )
 }
 
-function WrongNetworkCard() {
+export function WrongNetworkCard({ title }: { title: string }) {
   const theme = useTheme()
-
+  const { switchNetwork } = useSwitchNetwork()
   return (
     <>
       <PageWrapper>
@@ -136,7 +116,7 @@ function WrongNetworkCard() {
           <AutoColumn gap="lg" style={{ width: '100%' }}>
             <TitleRow padding="0">
               <ThemedText.LargeHeader>
-                <Trans>Pools</Trans>
+                {title}
               </ThemedText.LargeHeader>
             </TitleRow>
 
@@ -147,6 +127,12 @@ function WrongNetworkCard() {
                   <div data-testid="pools-unsupported-err">
                     <Trans>Your connected network is unsupported.</Trans>
                   </div>
+                  <ButtonPrimary
+                    style={{ marginTop: '2em', padding: '8px 16px' }}
+                    onClick={switchNetwork}
+                  >
+                    <Trans>Switch network</Trans>
+                  </ButtonPrimary>
                 </ThemedText.DeprecatedBody>
               </ErrorContainer>
             </MainContentWrapper>
@@ -158,30 +144,52 @@ function WrongNetworkCard() {
   )
 }
 
+const statusFilterAtom = atom<PositionStatus[]>([PositionStatus.IN_RANGE, PositionStatus.OUT_OF_RANGE, PositionStatus.STAKED])
+
 export default function Pool() {
   const { account, chainId } = useWeb3React()
   const toggleWalletDrawer = useToggleAccountDrawer()
   const theme = useTheme()
-  const [userHideClosedPositions, setUserHideClosedPositions] = useUserHideClosedPositions()
+  const [userHideClosedPositions] = useUserHideClosedPositions()
+  const [statusFilter, setStatusFilter] = useAtom(statusFilterAtom)
 
   const { positions, loading: positionsLoading } = useV3Positions(account)
   
+  const isValidToken = useCallback((address: string) => {
+    return Object.values(TOKEN_ADDRESSES).some(
+      tokenAddress => tokenAddress?.address?.toLowerCase() === address.toLowerCase()
+    )
+  }, [])
 
-  const [openPositions, closedPositions] = positions?.reduce<[PositionDetails[], PositionDetails[]]>(
-    (acc, p) => {
-      acc[p.liquidity?.isZero() ? 1 : 0].push(p)
-      return acc
-    },
-    [[], []]
-  ) ?? [[], []]
+  const [openPositions, closedPositions] = useMemo(() => {
+    if (!positions) return [[], []]
+    return positions.reduce<[PositionDetails[], PositionDetails[]]>(
+      (acc, p) => {
+        if (isValidToken(p.token0) && isValidToken(p.token1)) {
+          acc[p.liquidity?.isZero() ? 1 : 0].push(p)
+        }
+        return acc
+      },
+      [[], []]
+    )
+  }, [positions, isValidToken])
 
   const filteredPositions = useMemo(
     () => [...openPositions, ...(userHideClosedPositions ? [] : closedPositions)],
     [closedPositions, openPositions, userHideClosedPositions]
   )
 
+  const handleStatusChange = useCallback((toggledStatus: PositionStatus) => {
+    setStatusFilter((currentFilter) => {
+      if (currentFilter.includes(toggledStatus)) {
+        return currentFilter.filter((s) => s !== toggledStatus)
+      }
+      return [...currentFilter, toggledStatus]
+    })
+  }, [setStatusFilter])
+
   if (chainId && !isSupportedChainId(chainId)) {
-    return <WrongNetworkCard />
+    return <WrongNetworkCard title="Pools" />
   }
 
   if (!account) {
@@ -220,51 +228,38 @@ export default function Pool() {
   }
 
   const showConnectAWallet = Boolean(!account)
-
   return (
     <>
       <PageWrapper>
         <AutoColumn gap="lg" justify="center">
           <AutoColumn gap="lg" style={{ width: '100%' }}>
-            <TitleRow padding="0">
-              <ThemedText.LargeHeader>
-                <Trans>Pools</Trans>
-              </ThemedText.LargeHeader>
-              <ButtonRow>
-                <ResponsiveButtonPrimary data-cy="join-pool-button" id="join-pool-button" as={Link} to="/add/BNB">
-                  + <Trans>New Position</Trans>
-                </ResponsiveButtonPrimary>
-              </ButtonRow>
-            </TitleRow>
-
-            <MainContentWrapper>
-              {positionsLoading ? (
-                <PositionsLoadingPlaceholder />
-              ) : filteredPositions && closedPositions && filteredPositions.length > 0 ? (
-                <PositionList
-                  positions={filteredPositions}
-                  setUserHideClosedPositions={setUserHideClosedPositions}
-                  userHideClosedPositions={userHideClosedPositions}
-                />
-              ) : (
-                <ErrorContainer>
-                  <ThemedText.DeprecatedBody color={theme.textTertiary} textAlign="center">
-                    <InboxIcon strokeWidth={1} style={{ marginTop: '2em' }} />
-                    <div>
-                      <Trans>Your active V3 liquidity positions will appear here.</Trans>
-                    </div>
-                  </ThemedText.DeprecatedBody>
-                  {!showConnectAWallet && closedPositions.length > 0 && (
-                    <ButtonText
-                      style={{ marginTop: '.5rem' }}
-                      onClick={() => setUserHideClosedPositions(!userHideClosedPositions)}
-                    >
-                      <Trans>Show closed positions</Trans>
-                    </ButtonText>
-                  )}
-                </ErrorContainer>
-              )}
-            </MainContentWrapper>
+            <PositionsHeader 
+              selectedStatus={statusFilter}   
+              onStatusChange={handleStatusChange}
+            />
+            {positionsLoading ? (
+              <PositionsLoadingPlaceholder />
+            ) : filteredPositions && filteredPositions.length > 0 ? (
+              <>
+                {filteredPositions.map((p) => (
+                  <PositionListItem 
+                    staked={p.staked}
+                    key={p.tokenId.toString()} 
+                    {...p} 
+                    filterStatus={statusFilter}
+                  />
+                ))}
+              </>
+            ) : (
+              <ErrorContainer>
+                <ThemedText.DeprecatedBody color={theme.textTertiary} textAlign="center">
+                  <InboxIcon strokeWidth={1} style={{ marginTop: '2em' }} />
+                  <div>
+                    <Trans>Your active V3 liquidity positions will appear here.</Trans>
+                  </div>
+                </ThemedText.DeprecatedBody>
+              </ErrorContainer>
+            )}
           </AutoColumn>
         </AutoColumn>
       </PageWrapper>
