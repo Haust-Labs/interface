@@ -396,6 +396,24 @@ export function PositionPageUnsupportedContent() {
 
 export default function PositionPage() {
   const { chainId } = useWeb3React()
+  
+  if (chainId === undefined || chainId === null) {
+    return <LoadingRows>
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+    </LoadingRows>
+  }
+  
   if (isSupportedChain(chainId)) {
     return <PositionPageContent />
   } else {
