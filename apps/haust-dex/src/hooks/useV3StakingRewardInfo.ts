@@ -38,7 +38,10 @@ export function useV3StakingRewardInfo(
         incentive.reward,
       ],
       tokenId,
-    ]
+    ],
+    {
+      blocksPerFetch: 1,
+    }
   );
 
   const { loading: globalLockLoading, result: globalLock } =
