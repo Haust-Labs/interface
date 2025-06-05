@@ -469,7 +469,8 @@ function PositionPageContent() {
     const now = Math.floor(Date.now() / 1000);
     return incentiveEvents.find(incentive => 
       incentive.pool.toLowerCase() === poolAddress.toLowerCase() && 
-      Number(incentive.endTime) > now
+      Number(incentive.endTime) > now &&
+      Number(incentive.startTime) <= now
     );
   }, [incentiveEvents, poolAddress]);
 
@@ -724,52 +725,52 @@ function PositionPageContent() {
               </RowFixed>
                 <ActionButtonResponsiveRow>
                   {currency0 && currency1 && feeAmount && tokenId ? (
-                    isPositionStaked || !isUsersNFT ? (
-                      <SmallButtonPrimary
-                        padding="6px 8px"
-                        width="fit-content"
-                        $borderRadius="12px"
-                        style={{ marginRight: '8px', opacity: 0.5 }}
-                        disabled
-                      >
-                        <Trans>Increase Liquidity</Trans>
-                      </SmallButtonPrimary>
-                    ) : (
-                      <SmallButtonPrimary
-                        as={Link}
-                        to={`/increase/${currencyId(currency0)}/${currencyId(currency1)}/${feeAmount}/${tokenId}`}
-                        padding="6px 8px"
-                        width="fit-content"
-                        $borderRadius="12px"
-                        style={{ marginRight: '8px' }}
-                      >
-                        <Trans>Increase Liquidity</Trans>
-                      </SmallButtonPrimary>
-                    )
-                  ) : null}
+                        isPositionStaked || !isUsersNFT ? (
+                          <SmallButtonPrimary
+                            padding="6px 8px"
+                            width="fit-content"
+                            $borderRadius="12px"
+                            style={{ marginRight: '8px', opacity: 0.5 }}
+                            disabled
+                          >
+                            <Trans>Increase Liquidity</Trans>
+                          </SmallButtonPrimary>
+                        ) : (
+                          <SmallButtonPrimary
+                            as={Link}
+                            to={`/increase/${currencyId(currency0)}/${currencyId(currency1)}/${feeAmount}/${tokenId}`}
+                            padding="6px 8px"
+                            width="fit-content"
+                            $borderRadius="12px"
+                            style={{ marginRight: '8px' }}
+                          >
+                            <Trans>Increase Liquidity</Trans>
+                          </SmallButtonPrimary>
+                        )
+                      ) : null}
                   {tokenId && !removed ? (
-                    isPositionStaked || !isUsersNFT ? (
-                      <SmallButtonPrimary
-                        padding="6px 8px"
-                        width="fit-content"
-                        $borderRadius="12px"
-                        style={{ opacity: 0.5 }}
-                        disabled
-                      >
-                        <Trans>Remove Liquidity</Trans>
-                      </SmallButtonPrimary>
-                    ) : (
-                      <SmallButtonPrimary
-                        as={Link}
-                        to={`/remove/${tokenId}`}
-                        padding="6px 8px"
-                        width="fit-content"
-                        $borderRadius="12px"
-                      >
-                        <Trans>Remove Liquidity</Trans>
-                      </SmallButtonPrimary>
-                    )
-                  ) : null}
+                        isPositionStaked || !isUsersNFT ? (
+                          <SmallButtonPrimary
+                            padding="6px 8px"
+                            width="fit-content"
+                            $borderRadius="12px"
+                            style={{ opacity: 0.5 }}
+                            disabled
+                          >
+                            <Trans>Remove Liquidity</Trans>
+                          </SmallButtonPrimary>
+                        ) : (
+                          <SmallButtonPrimary
+                            as={Link}
+                            to={`/remove/${tokenId}`}
+                            padding="6px 8px"
+                            width="fit-content"
+                            $borderRadius="12px"
+                          >
+                            <Trans>Remove Liquidity</Trans>
+                          </SmallButtonPrimary>
+                        )
+                      ) : null}
                 </ActionButtonResponsiveRow>
             </ResponsiveRow>
             <RowBetween></RowBetween>
