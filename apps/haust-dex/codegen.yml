@@ -1,5 +1,5 @@
 overrideExisting: false
-schema: 'https://graph.stage.haust.app/subgraphs/name/haust/uniswap-v3'
+schema: 'https://graph.testnet.haust.app/subgraphs/name/haust/uniswap-v3'
 generates:
   ./src/graphql/thegraph/schema/schema.graphql:
     plugins:

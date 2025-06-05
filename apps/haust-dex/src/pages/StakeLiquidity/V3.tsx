@@ -116,7 +116,8 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
     const now = Math.floor(Date.now() / 1000);
     return incentiveEvents.find(incentive => 
       incentive.pool.toLowerCase() === poolAddress?.toLowerCase() && 
-      Number(incentive.endTime) > now
+      Number(incentive.endTime) > now &&
+      Number(incentive.startTime) <= now
     );
   }, [feeAmount, incentiveEvents, poolAddress, token0, token1]);
 
