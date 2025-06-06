@@ -303,7 +303,7 @@ export function ConfirmationModalContent({
     <Wrapper>
       <Section>
         <RowBetween padding="8px 12px 0px 12px">
-          <Text fontWeight={500} fontSize={16} color={theme.textSecondary}>
+          <Text fontWeight={500} fontSize={18} color={theme.iconPrimary}>
             {title}
           </Text>
           <CloseIcon onClick={onDismiss} data-cy="confirmation-close-icon" />

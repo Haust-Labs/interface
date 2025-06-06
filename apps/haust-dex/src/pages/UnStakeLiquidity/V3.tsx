@@ -135,12 +135,23 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
         0 // Claim all available rewards
       ])
 
-      const restakeData = staker.interface.encodeFunctionData("stakeToken", [
-        incentiveKey,
-        tokenId.toString()
-      ])
-
-      const calls = [unstakeData, claimRewardData, restakeData]
+      const currentTimestamp = Math.floor(Date.now() / 1000)
+      const calls = [unstakeData, claimRewardData]
+      
+      if (stakedInfo.endTime > currentTimestamp) {
+        const restakeData = staker.interface.encodeFunctionData("stakeToken", [
+          incentiveKey,
+          tokenId.toString()
+        ])
+        calls.push(restakeData)
+      } else {
+        const withdrawData = staker.interface.encodeFunctionData("withdrawToken", [
+          tokenId.toString(),
+          account,
+          '0x'
+        ])
+        calls.push(withdrawData)
+      }
 
       // Execute multicall transaction
       const tx = await staker.multicall(calls)
@@ -177,10 +188,20 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
     return (
       <AutoColumn gap="sm" style={{ padding: '16px' }}>
         {stakedInfo && (
+          <>
+          <ThemedText.SubHeader fontSize={14}>
+            You’ve earned rewards from staking your LP-token.
+          </ThemedText.SubHeader>
           <RewardInfo tokenId={tokenId.toString()} stakedInfo={stakedInfo} onRewardAmountChange={setCurrentRewardAmount} />
+          </>
+        )}
+        {currentRewardAmount && Number(currentRewardAmount) < 0.01 && (
+          <ThemedText.DeprecatedMain fontSize={14}>
+            *  Your reward is below the display threshold. It will accumulate over time.
+          </ThemedText.DeprecatedMain>
         )}
         <ButtonPrimary mt="16px" onClick={claimRewards}>
-            Claim rewards
+            Confirm
         </ButtonPrimary>
       </AutoColumn>
     )
@@ -210,7 +231,7 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
           positionID={tokenId.toString()}
           hideSettings={true}
           defaultSlippage={DEFAULT_REMOVE_V3_LIQUIDITY_SLIPPAGE_TOLERANCE}
-          unstake={true}
+          claimRewards={true}
         />
         <Wrapper>
           {position ? (

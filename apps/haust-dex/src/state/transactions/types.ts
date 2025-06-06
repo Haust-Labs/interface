@@ -195,6 +195,7 @@ export interface UnstakeLiquidityV3TransactionInfo {
   tokenId: string;
   token0Id: string;
   token1Id: string;
+  rewardAmount: string;
 }
 
 export type TransactionInfo =

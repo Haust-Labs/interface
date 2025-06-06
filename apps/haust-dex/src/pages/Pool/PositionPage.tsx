@@ -51,6 +51,7 @@ import { calculateGasMargin } from '../../utils/calculateGasMargin'
 import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
 import { RewardInfo } from './RewardInfo'
 import { LoadingRows } from './styleds'
+import { useV3StakedNftTokenIds } from 'hooks/useV3StakedNftTokenIds'
 
 const getTokenLink = (chainId: any, address: string) => {
   if (isGqlSupportedChain(chainId)) {
@@ -395,6 +396,24 @@ export function PositionPageUnsupportedContent() {
 
 export default function PositionPage() {
   const { chainId } = useWeb3React()
+  
+  if (chainId === undefined || chainId === null) {
+    return <LoadingRows>
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+    </LoadingRows>
+  }
+  
   if (isSupportedChain(chainId)) {
     return <PositionPageContent />
   } else {
@@ -407,6 +426,7 @@ function PositionPageContent() {
   const { chainId, account, provider } = useWeb3React()
   const theme = useTheme()
   const {incentiveEvents, loading: incentivesLoading} = useV3Incentive()
+  const {tokenIds, loading: stakedLoading} = useV3StakedNftTokenIds(account)
   
   const stakedInfo = incentiveEvents?.find(incentive => 
     incentive.tokenIds?.includes(Number(tokenIdFromUrl))
@@ -449,7 +469,8 @@ function PositionPageContent() {
     const now = Math.floor(Date.now() / 1000);
     return incentiveEvents.find(incentive => 
       incentive.pool.toLowerCase() === poolAddress.toLowerCase() && 
-      Number(incentive.endTime) > now
+      Number(incentive.endTime) > now &&
+      Number(incentive.startTime) <= now
     );
   }, [incentiveEvents, poolAddress]);
 
@@ -593,6 +614,11 @@ function PositionPageContent() {
 
   const isPositionStaked = !!stakedInfo
 
+  const isUsersNFT = useMemo(() => {
+    if (!tokenIdFromUrl || !tokenIds) return false;
+    return tokenIds.includes(Number(tokenIdFromUrl));
+  }, [tokenIdFromUrl, tokenIds]);
+
   function modalHeader() {
     return (
       <AutoColumn gap="md" style={{ marginTop: '20px' }}>
@@ -641,7 +667,7 @@ function PositionPageContent() {
     return <PositionPageUnsupportedContent />
   }
 
-  return loading || incentivesLoading || poolState === PoolState.LOADING || !feeAmount ? (
+  return loading || incentivesLoading || stakedLoading || poolState === PoolState.LOADING || !feeAmount ? (
     <LoadingRows>
       <div />
       <div />
@@ -699,52 +725,52 @@ function PositionPageContent() {
               </RowFixed>
                 <ActionButtonResponsiveRow>
                   {currency0 && currency1 && feeAmount && tokenId ? (
-                    isPositionStaked ? (
-                      <SmallButtonPrimary
-                        padding="6px 8px"
-                        width="fit-content"
-                        $borderRadius="12px"
-                        style={{ marginRight: '8px', opacity: 0.5 }}
-                        disabled
-                      >
-                        <Trans>Increase Liquidity</Trans>
-                      </SmallButtonPrimary>
-                    ) : (
-                      <SmallButtonPrimary
-                        as={Link}
-                        to={`/increase/${currencyId(currency0)}/${currencyId(currency1)}/${feeAmount}/${tokenId}`}
-                        padding="6px 8px"
-                        width="fit-content"
-                        $borderRadius="12px"
-                        style={{ marginRight: '8px' }}
-                      >
-                        <Trans>Increase Liquidity</Trans>
-                      </SmallButtonPrimary>
-                    )
-                  ) : null}
+                        isPositionStaked || !isUsersNFT ? (
+                          <SmallButtonPrimary
+                            padding="6px 8px"
+                            width="fit-content"
+                            $borderRadius="12px"
+                            style={{ marginRight: '8px', opacity: 0.5 }}
+                            disabled
+                          >
+                            <Trans>Increase Liquidity</Trans>
+                          </SmallButtonPrimary>
+                        ) : (
+                          <SmallButtonPrimary
+                            as={Link}
+                            to={`/increase/${currencyId(currency0)}/${currencyId(currency1)}/${feeAmount}/${tokenId}`}
+                            padding="6px 8px"
+                            width="fit-content"
+                            $borderRadius="12px"
+                            style={{ marginRight: '8px' }}
+                          >
+                            <Trans>Increase Liquidity</Trans>
+                          </SmallButtonPrimary>
+                        )
+                      ) : null}
                   {tokenId && !removed ? (
-                    isPositionStaked ? (
-                      <SmallButtonPrimary
-                        padding="6px 8px"
-                        width="fit-content"
-                        $borderRadius="12px"
-                        style={{ opacity: 0.5 }}
-                        disabled
-                      >
-                        <Trans>Remove Liquidity</Trans>
-                      </SmallButtonPrimary>
-                    ) : (
-                      <SmallButtonPrimary
-                        as={Link}
-                        to={`/remove/${tokenId}`}
-                        padding="6px 8px"
-                        width="fit-content"
-                        $borderRadius="12px"
-                      >
-                        <Trans>Remove Liquidity</Trans>
-                      </SmallButtonPrimary>
-                    )
-                  ) : null}
+                        isPositionStaked || !isUsersNFT ? (
+                          <SmallButtonPrimary
+                            padding="6px 8px"
+                            width="fit-content"
+                            $borderRadius="12px"
+                            style={{ opacity: 0.5 }}
+                            disabled
+                          >
+                            <Trans>Remove Liquidity</Trans>
+                          </SmallButtonPrimary>
+                        ) : (
+                          <SmallButtonPrimary
+                            as={Link}
+                            to={`/remove/${tokenId}`}
+                            padding="6px 8px"
+                            width="fit-content"
+                            $borderRadius="12px"
+                          >
+                            <Trans>Remove Liquidity</Trans>
+                          </SmallButtonPrimary>
+                        )
+                      ) : null}
                 </ActionButtonResponsiveRow>
             </ResponsiveRow>
             <RowBetween></RowBetween>
@@ -764,6 +790,11 @@ function PositionPageContent() {
                   }}
                 >
                   <NFT image={metadata.result.image} height={400} />
+                  {!isUsersNFT && (
+                    <ThemedText.DeprecatedMain fontSize={12} style={{ marginTop: '20px' }}>
+                      * This LP-token is not associated with your wallet.
+                    </ThemedText.DeprecatedMain>
+                  )}
                 </DarkCard>
               ) : (
                 <DarkCard
@@ -825,38 +856,41 @@ function PositionPageContent() {
                       </RowBetween>
                     </AutoColumn>
                   </LightCard>
-                  {incentive && !removed && !isPositionStaked && (
-                    <SmallButtonPrimary
-                      as={Link}
-                      to={`/stake/${tokenId}`}
-                      padding="6px 8px"
-                      width="fit-content"
-                      $borderRadius="12px"
-                    >
-                      Stake Position
-                    </SmallButtonPrimary>
-                  )}
-                  {incentive && !removed && isPositionStaked && (
-                    <SmallButtonPrimary
-                      as={Link}
-                      to={`/unstake/${tokenId}`}
-                      padding="6px 8px"
-                      width="fit-content"
-                      $borderRadius="12px"
-                    >
-                      Unstake position
-                    </SmallButtonPrimary>
+                  {incentive && !removed && (
+                    <>
+                      {!isUsersNFT ? null : !isPositionStaked ? (
+                        <SmallButtonPrimary
+                          as={Link}
+                          to={`/stake/${tokenId}`}
+                          padding="6px 8px"
+                          width="fit-content"
+                          $borderRadius="12px"
+                        >
+                          Stake Position
+                        </SmallButtonPrimary>
+                      ) : (
+                        <SmallButtonPrimary
+                          as={Link}
+                          to={`/unstake/${tokenId}`}
+                          padding="6px 8px"
+                          width="fit-content"
+                          $borderRadius="12px"
+                        >
+                          Unstake position
+                        </SmallButtonPrimary>
+                      )}
+                    </>
                   )}
                 </AutoColumn>
               </DarkCard>
-              {isPositionStaked && stakedInfo && tokenIdFromUrl && (
+              {isPositionStaked && stakedInfo && tokenIdFromUrl && isUsersNFT && (
                 <RewardInfo tokenId={tokenIdFromUrl} stakedInfo={stakedInfo} />
               )}
               <DarkCard>
                 <AutoColumn gap="md" style={{ 
                   width: '100%',
-                  opacity: isPositionStaked ? '0.3' : '1',
-                  pointerEvents: isPositionStaked ? 'none' : 'auto'
+                  opacity: !isUsersNFT || isPositionStaked ? '0.3' : '1',
+                  pointerEvents: !isUsersNFT || isPositionStaked ? 'none' : 'auto'
                 }}>
                   <AutoColumn gap="md">
                     <RowBetween style={{ alignItems: 'flex-start' }}>

@@ -410,7 +410,8 @@ export default function PositionListItem({
     const now = Math.floor(Date.now() / 1000)
     return incentiveEvents.some((incentive) => 
       incentive.pool.toLowerCase() === poolAddress.toLowerCase() &&
-      Number(incentive.endTime) > now
+      Number(incentive.endTime) > now &&
+      Number(incentive.startTime) <= now
     )
   }, [incentiveEvents, poolAddress])
 
