@@ -160,7 +160,7 @@ const StyledHeaderRow = styled.div`
   }
 `
 
-const ListNumberCell = styled(Cell)`
+const ListNumberCell = styled(Cell)<{ header?: boolean }>`
   color: ${({ theme }) => theme.textSecondary};
   min-width: 32px;
   font-size: 14px;
