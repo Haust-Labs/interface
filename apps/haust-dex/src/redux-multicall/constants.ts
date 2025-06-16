@@ -1,16 +1,21 @@
-import type { CallResult, CallState, ListenerOptions } from './types'
+import type { CallResult, CallState, ListenerOptions } from "./types";
 
-export const DEFAULT_BLOCKS_PER_FETCH = 1
-export const DEFAULT_CALL_GAS_REQUIRED = 15_000_000
-export const DEFAULT_CHUNK_GAS_REQUIRED = 30_000
-export const CHUNK_GAS_LIMIT = 15_000_000
-export const CONSERVATIVE_BLOCK_GAS_LIMIT = 10_000_000 // conservative, hard-coded estimate of the current block gas limit
+export const DEFAULT_BLOCKS_PER_FETCH = 1;
+export const DEFAULT_CALL_GAS_REQUIRED = 15_000_000;
+export const DEFAULT_CHUNK_GAS_REQUIRED = 30_000;
+export const CHUNK_GAS_LIMIT = 15_000_000;
+export const CONSERVATIVE_BLOCK_GAS_LIMIT = 10_000_000; // conservative, hard-coded estimate of the current block gas limit
+export const MAX_CHUNK_SIZE = 30; // new constant to limit chunk size
 
 // Consts for hooks
-export const INVALID_RESULT: CallResult = { valid: false, blockNumber: undefined, data: undefined }
+export const INVALID_RESULT: CallResult = {
+  valid: false,
+  blockNumber: undefined,
+  data: undefined,
+};
 export const NEVER_RELOAD: ListenerOptions = {
   blocksPerFetch: Infinity,
-}
+};
 
 export const INVALID_CALL_STATE: CallState = {
   valid: false,
@@ -18,11 +23,11 @@ export const INVALID_CALL_STATE: CallState = {
   loading: false,
   syncing: false,
   error: false,
-}
+};
 export const LOADING_CALL_STATE: CallState = {
   valid: true,
   result: undefined,
   loading: true,
   syncing: true,
   error: false,
-}
+};

@@ -1,28 +1,59 @@
-import React, { Dispatch, useEffect, useMemo, useRef } from 'react'
+import React, { Dispatch, useCallback, useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
-import type { UniswapInterfaceMulticall } from "../types/v3";
-import { CHUNK_GAS_LIMIT, DEFAULT_CALL_GAS_REQUIRED } from './constants'
+import type { UniswapInterfaceMulticall } from "../types/v3"
+import { DEFAULT_CALL_GAS_REQUIRED } from './constants'
 import type { MulticallContext } from './context'
 import type { MulticallActions } from './slice'
-import type { Call, ListenerOptions,MulticallState, WithMulticallState } from './types'
+import type { Call, ListenerOptions, MulticallState, WithMulticallState } from './types'
 import { parseCallKey, toCallKey } from './utils/callKeys'
 import chunkCalls from './utils/chunkCalls'
-import { retry, RetryableError } from './utils/retry'
+import { RetryableError } from './utils/retry'
 import useDebounce from './utils/useDebounce'
 
 const FETCH_RETRY_CONFIG = {
-  n: Infinity,
+  n: 2,
   minWait: 1000,
-  maxWait: 2500,
+  maxWait: 2000
+}
+
+const POLLING_INTERVAL = 2000
+const UPDATE_DEBOUNCE = 100
+const MAX_CHUNK_SIZE = 50
+const CACHE_TTL = 3000
+
+const failedCallsCache = new Map<string, number>();
+const FAILED_CALLS_TTL = 30000;
+
+const requestCache = new Map<string, {
+  timestamp: number;
+  result: any;
+}>()
+
+let isInitialized = false
+let initializationPromise: Promise<void> | null = null
+
+async function initializeMulticall(contract: UniswapInterfaceMulticall) {
+  if (isInitialized || initializationPromise) return initializationPromise
+
+  initializationPromise = new Promise((resolve) => {
+    contract.callStatic.multicall([], { blockTag: 'latest' })
+      .then(() => {
+        isInitialized = true
+        resolve()
+      })
+      .catch((error) => {
+        console.error('Failed to initialize multicall:', error)
+        isInitialized = false
+        resolve()
+      })
+  })
+
+  return initializationPromise
 }
 
 /**
- * Fetches a chunk of calls, enforcing a minimum block number constraint
- * @param multicall multicall contract to fetch against
- * @param chunk chunk of calls to make
- * @param blockNumber block number passed as the block tag in the eth_call
- * @param isDebug
+ * Оптимизированная функция для получения чанка данных
  */
 async function fetchChunk(
   multicall: UniswapInterfaceMulticall,
@@ -30,44 +61,47 @@ async function fetchChunk(
   blockNumber: number,
   isDebug?: boolean
 ): Promise<{ success: boolean; returnData: string }[]> {
+  if (!isInitialized) {
+    await initializeMulticall(multicall)
+  }
+
+  const cacheKey = `${blockNumber}-${chunk.map(c => `${c.address}-${c.callData}`).join('-')}`
+  const now = Date.now()
+  const cached = requestCache.get(cacheKey)
+
+  if (cached && now - cached.timestamp < CACHE_TTL) {
+    return cached.result
+  }
+
   try {
     const { returnData } = await multicall.callStatic.multicall(
       chunk.map((obj) => ({
         target: obj.address,
         callData: obj.callData,
-        gasLimit: DEFAULT_CALL_GAS_REQUIRED,
+        gasLimit: obj.gasRequired ?? DEFAULT_CALL_GAS_REQUIRED,
       })),
-      // we aren't passing through the block gas limit we used to create the chunk, because it causes a problem with the integ tests
       { blockTag: blockNumber }
     )
 
-    if (isDebug) {
-      returnData.forEach(({ gasUsed, returnData, success }, i) => {
-        if (
-          !success &&
-          returnData.length === 2 &&
-          gasUsed.gte(Math.floor((chunk[i].gasRequired ?? DEFAULT_CALL_GAS_REQUIRED) * 0.95))
-        ) {
-          console.warn(
-            `A call failed due to requiring ${gasUsed.toString()} vs. allowed ${
-              chunk[i].gasRequired ?? DEFAULT_CALL_GAS_REQUIRED
-            }`,
-            chunk[i]
-          )
-        }
-      })
+    requestCache.set(cacheKey, { timestamp: now, result: returnData })
+
+    for (const [key, value] of requestCache.entries()) {
+      if (now - value.timestamp > CACHE_TTL) {
+        requestCache.delete(key)
+      }
     }
 
     return returnData
-  } catch (e) {
-    const error = e as any
+  } catch (error: any) {
     if (error.code === -32000 || error.message?.indexOf('header not found') !== -1) {
       throw new RetryableError(`header not found for block number ${blockNumber}`)
-    } else if (error.code === -32603 || error.message?.indexOf('execution ran out of gas') !== -1) {
+    }
+
+    if (error.code === -32603 || 
+        error.message?.indexOf('execution ran out of gas') !== -1 ||
+        error.message?.indexOf('missing revert data') !== -1 ||
+        error.message?.indexOf('returndata.limit') !== -1) {
       if (chunk.length > 1) {
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('Splitting a chunk in 2', chunk)
-        }
         const half = Math.floor(chunk.length / 2)
         const [c0, c1] = await Promise.all([
           fetchChunk(multicall, chunk.slice(0, half), blockNumber),
@@ -76,7 +110,12 @@ async function fetchChunk(
         return c0.concat(c1)
       }
     }
-    console.error('(Updater) Failed to fetch chunk', error)
+
+    if (error.code === -32603 || error.message?.indexOf('Internal JSON-RPC error') !== -1) {
+      isInitialized = false
+      initializationPromise = null
+    }
+
     throw error
   }
 }
@@ -212,10 +251,9 @@ function onFetchChunkFailure(context: FetchChunkContext, chunk: Call[], error: a
   const { actions, dispatch, chainId, latestBlockNumber } = context
 
   if (error.isCancelledError) {
-    console.debug('Cancelled fetch for blockNumber', latestBlockNumber, chunk, chainId)
     return
   }
-  console.error('(Updater.onFetchChunkFailure) Failed to fetch multicall chunk', chunk, chainId, error)
+
   dispatch(
     actions.errorFetchingMulticallResults({
       calls: chunk,
@@ -238,81 +276,124 @@ function Updater(props: UpdaterProps): null {
   const { context, chainId, latestBlockNumber, contract, isDebug, listenerOptions } = props
   const { actions, reducerPath } = context
   const dispatch = useDispatch()
+  const state = useSelector((state: WithMulticallState) => state[reducerPath])
+  
+  const [isUpdating, setIsUpdating] = useState(false)
+  const lastUpdateRef = useRef<number>(0)
+  const pendingUpdatesRef = useRef<Set<string>>(new Set())
+  const errorCountRef = useRef<{ [key: string]: number }>({})
 
-  // set user configured listenerOptions in state for given chain ID.
+  const debouncedListeners = useDebounce(state.callListeners, UPDATE_DEBOUNCE)
+
+  const getUpdateKeys = useCallback(() => {
+    if (!chainId || !latestBlockNumber) return []
+    
+    const listeningKeys = activeListeningKeys(debouncedListeners, chainId)
+    return outdatedListeningKeys(
+      state.callResults,
+      listeningKeys,
+      chainId,
+      latestBlockNumber
+    )
+  }, [chainId, latestBlockNumber, state.callResults, debouncedListeners])
+
+  const performUpdate = useCallback(async () => {
+    if (!chainId || !latestBlockNumber || !contract || isUpdating) return
+
+    const outdatedCallKeys = getUpdateKeys()
+    if (outdatedCallKeys.length === 0) return
+
+    const now = Date.now()
+    if (now - lastUpdateRef.current < POLLING_INTERVAL) return
+    
+    setIsUpdating(true)
+    lastUpdateRef.current = now
+
+    try {
+      const calls = outdatedCallKeys
+        .filter(key => {
+          const errorCount = errorCountRef.current[key] || 0
+          return errorCount < 3 && !pendingUpdatesRef.current.has(key)
+        })
+        .map(key => parseCallKey(key))
+
+      if (calls.length === 0) return
+
+      calls.forEach(call => {
+        pendingUpdatesRef.current.add(toCallKey(call))
+      })
+
+      dispatch(
+        actions.fetchingMulticallResults({
+          calls,
+          chainId,
+          fetchingBlockNumber: latestBlockNumber,
+        })
+      )
+
+      const chunks = chunkCalls(calls, MAX_CHUNK_SIZE)
+      await Promise.all(
+        chunks.map(async chunk => {
+          try {
+            const result = await fetchChunk(contract, chunk, latestBlockNumber, isDebug)
+            
+            const { results } = chunk.reduce<{ results: { [callKey: string]: string | null } }>(
+              (memo, call, i) => {
+                const key = toCallKey(call)
+                memo.results[key] = result[i].success ? result[i].returnData : null
+                pendingUpdatesRef.current.delete(key)
+                errorCountRef.current[key] = 0
+                return memo
+              },
+              { results: {} }
+            )
+
+            dispatch(
+              actions.updateMulticallResults({
+                chainId,
+                results,
+                blockNumber: latestBlockNumber,
+              })
+            )
+          } catch (error) {
+            console.error('Failed to fetch chunk:', error)
+            chunk.forEach(call => {
+              const key = toCallKey(call)
+              pendingUpdatesRef.current.delete(key)
+              errorCountRef.current[key] = (errorCountRef.current[key] || 0) + 1
+            })
+          }
+        })
+      )
+    } finally {
+      setIsUpdating(false)
+    }
+  }, [chainId, latestBlockNumber, contract, isUpdating, getUpdateKeys, dispatch, actions, isDebug])
+
+  useEffect(() => {
+    const interval = setInterval(performUpdate, POLLING_INTERVAL)
+    return () => {
+      clearInterval(interval)
+      setIsUpdating(false)
+      pendingUpdatesRef.current.clear()
+      errorCountRef.current = {}
+    }
+  }, [performUpdate])
+
   useEffect(() => {
     if (chainId && listenerOptions) {
       dispatch(actions.updateListenerOptions({ chainId, listenerOptions }))
     }
   }, [chainId, listenerOptions, actions, dispatch])
 
-  const state = useSelector((state: WithMulticallState) => state[reducerPath])
-
-  // wait for listeners to settle before triggering updates
-  const debouncedListeners = useDebounce(state.callListeners, 100)
-  const cancellations = useRef<{ blockNumber: number; cancellations: (() => void)[] }>()
-
-  const listeningKeys: { [callKey: string]: number } = useMemo(() => {
-    return activeListeningKeys(debouncedListeners, chainId)
-  }, [debouncedListeners, chainId])
-
-  const serializedOutdatedCallKeys = useMemo(() => {
-    const outdatedCallKeys = outdatedListeningKeys(state.callResults, listeningKeys, chainId, latestBlockNumber)
-    return JSON.stringify(outdatedCallKeys.sort())
-  }, [chainId, state.callResults, listeningKeys, latestBlockNumber])
-
-  useEffect(() => {
-    if (!latestBlockNumber || !chainId || !contract) return
-
-    const outdatedCallKeys: string[] = JSON.parse(serializedOutdatedCallKeys)
-    if (outdatedCallKeys.length === 0) return
-    const calls = outdatedCallKeys.map((key) => parseCallKey(key))
-
-    const chunkedCalls = chunkCalls(calls, CHUNK_GAS_LIMIT)
-
-    if (cancellations.current && cancellations.current.blockNumber !== latestBlockNumber) {
-      cancellations.current.cancellations.forEach((c) => c())
-    }
-
-    dispatch(
-      actions.fetchingMulticallResults({
-        calls,
-        chainId,
-        fetchingBlockNumber: latestBlockNumber,
-      })
-    )
-
-    const fetchChunkContext = {
-      actions,
-      dispatch,
-      chainId,
-      latestBlockNumber,
-      isDebug,
-    }
-    // Execute fetches and gather cancellation callbacks
-    const newCancellations = chunkedCalls.map((chunk) => {
-      const { cancel, promise } = retry(
-        () => fetchChunk(contract, chunk, latestBlockNumber, isDebug),
-        FETCH_RETRY_CONFIG
-      )
-      promise
-        .then((result) => onFetchChunkSuccess(fetchChunkContext, chunk, result))
-        .catch((error) => onFetchChunkFailure(fetchChunkContext, chunk, error))
-      return cancel
-    })
-
-    cancellations.current = {
-      blockNumber: latestBlockNumber,
-      cancellations: newCancellations,
-    }
-  }, [actions, chainId, contract, dispatch, serializedOutdatedCallKeys, latestBlockNumber, isDebug])
-
   return null
 }
 
+export const MemoizedUpdater = React.memo(Updater)
+
 export function createUpdater(context: MulticallContext) {
   const UpdaterContextBound = (props: Omit<UpdaterProps, 'context'>) => {
-    return <Updater context={context} {...props} />
+    return <MemoizedUpdater context={context} {...props} />
   }
   return UpdaterContextBound
 }
