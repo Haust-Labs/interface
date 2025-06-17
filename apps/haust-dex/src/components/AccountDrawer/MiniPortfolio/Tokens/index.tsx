@@ -50,7 +50,8 @@ export default function Tokens({ totalBalance }: { totalBalance?: number }) {
 
   const tokensList = useMemo(() => {
     const allTokens = [nativeCurrency, ...Object.values(tokens)]
-    
+      .filter(token => token?.symbol !== 'MYR')
+
     return allTokens
       .filter(Boolean)
       .sort((a, b) => {

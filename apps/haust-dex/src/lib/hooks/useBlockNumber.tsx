@@ -1,3 +1,4 @@
+import { JsonRpcProvider } from '@ethersproject/providers'
 import { useWeb3React } from '@web3-react/core'
 import useIsWindowVisible from 'hooks/useIsWindowVisible'
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react'
@@ -11,9 +12,13 @@ const BlockNumberContext = createContext<
   | typeof MISSING_PROVIDER
 >(MISSING_PROVIDER)
 
+// RPC URL for fallback provider
+const FALLBACK_RPC_URL = 'https://rpc-testnet.haust.app' // Можно будет заменить на нужный URL
+
 function useBlockNumberContext() {
   const blockNumber = useContext(BlockNumberContext)
   if (blockNumber === MISSING_PROVIDER) {
+    console.error('[useBlockNumberContext] Missing BlockNumberProvider')
     throw new Error('BlockNumber hooks must be wrapped in a <BlockNumberProvider>')
   }
   return blockNumber
@@ -29,7 +34,40 @@ export function useFastForwardBlockNumber(): (block: number) => void {
 }
 
 export function BlockNumberProvider({ children }: { children: ReactNode }) {
-  const { chainId: activeChainId, provider } = useWeb3React()
+  const { chainId: web3ChainId, provider: web3Provider } = useWeb3React()
+  const [fallbackProvider, setFallbackProvider] = useState<JsonRpcProvider | null>(null)
+  const [fallbackChainId, setFallbackChainId] = useState<number | undefined>()
+  
+  // Use web3Provider if available, otherwise use fallback
+  const provider = web3Provider || fallbackProvider
+  const activeChainId = web3ChainId || fallbackChainId
+  
+  useEffect(() => {
+    if (!web3Provider) {
+      const provider = new JsonRpcProvider(FALLBACK_RPC_URL)
+      setFallbackProvider(provider)
+      
+      // Get chainId from fallback provider
+      provider.getNetwork().then(
+        network => {
+          setFallbackChainId(network.chainId)
+        },
+        error => console.error('[BlockNumberProvider] Failed to get fallback network:', error)
+      )
+    } else {
+      setFallbackProvider(null)
+      setFallbackChainId(undefined)
+    }
+  }, [web3Provider])
+
+  if (provider) {
+    // Safe way to inspect provider
+    provider.getNetwork().then(
+      network => console.log('[BlockNumberProvider] Provider network:', network),
+      error => console.error('[BlockNumberProvider] Failed to get network:', error)
+    )
+  }
+
   const [{ chainId, block }, setChainBlock] = useState<{ chainId?: number; block?: number }>({ chainId: activeChainId })
 
   const onBlock = useCallback(
@@ -51,22 +89,74 @@ export function BlockNumberProvider({ children }: { children: ReactNode }) {
     let stale = false
 
     if (provider && activeChainId && windowVisible) {
-      // If chainId hasn't changed, don't clear the block. This prevents re-fetching still valid data.
-      setChainBlock((chainBlock) => (chainBlock.chainId === activeChainId ? chainBlock : { chainId: activeChainId }))
+      setChainBlock((chainBlock) => {
+        const newState = chainBlock.chainId === activeChainId ? chainBlock : { chainId: activeChainId }
+        return newState
+      })
 
-      provider
-        .getBlockNumber()
+      // Check RPC availability and capabilities      
+      const tryGetBlockNumber = async (provider: JsonRpcProvider | typeof web3Provider, isFallback = false) => {
+        const prefix = isFallback ? '[Fallback] ' : ''
+        try {
+          // Add timeout to detect hanging requests
+          const blockNumberPromise = provider?.getBlockNumber()
+          const timeoutPromise = new Promise<number>((_, reject) => {
+            setTimeout(() => reject(new Error('Block number request timeout')), 5000)
+          })
+
+          const block = await Promise.race([blockNumberPromise, timeoutPromise])
+          return block
+        } catch (error) {
+          console.error(`[BlockNumberProvider] ${prefix}Failed to get block number:`, error)
+          throw error
+        }
+      }
+
+      // Try with primary provider first
+      tryGetBlockNumber(provider)
+        .catch(async (error) => {
+          // If primary fails and we don't have fallback yet, create it
+          let fbProvider = fallbackProvider
+          if (!fbProvider) {
+            fbProvider = new JsonRpcProvider(FALLBACK_RPC_URL)
+            setFallbackProvider(fbProvider)
+          }
+          // Try with fallback provider
+          return tryGetBlockNumber(fbProvider, true)
+        })
         .then((block) => {
-          if (!stale) onBlock(block)
+          if (!stale) {
+            onBlock(block || 0)
+          } else {
+            console.log('[BlockNumberProvider] Block number fetched, but stale:', block)
+          }
         })
         .catch((error) => {
-          console.error(`Failed to get block number for chainId ${activeChainId}`, error)
+          console.error(`[BlockNumberProvider] All providers failed to get block number:`, error)
         })
 
-      provider.on('block', onBlock)
+      
+      // Set up listeners for both providers
+      const setupBlockListener = (provider: JsonRpcProvider | typeof web3Provider, isFallback = false) => {
+        const prefix = isFallback ? '[Fallback] ' : ''
+        provider?.on('block', (block: number) => {
+          if (!stale) onBlock(block || 0)
+        })
+      }
+
+      setupBlockListener(provider)
+      if (fallbackProvider) {
+        setupBlockListener(fallbackProvider, true)
+      }
+
       return () => {
         stale = true
-        provider.removeListener('block', onBlock)
+        if (provider) {
+          provider.removeListener('block', onBlock)
+        }
+        if (fallbackProvider) {
+          fallbackProvider.removeListener('block', onBlock)
+        }
       }
     }
 
@@ -74,14 +164,17 @@ export function BlockNumberProvider({ children }: { children: ReactNode }) {
   }, [activeChainId, provider, onBlock, setChainBlock, windowVisible])
 
   const value = useMemo(
-    () => ({
-      value: chainId === activeChainId ? block : undefined,
-      fastForward: (update: number) => {
-        if (block && update > block) {
-          setChainBlock({ chainId: activeChainId, block: update })
-        }
-      },
-    }),
+    () => {
+      const result = {
+        value: chainId === activeChainId ? block : undefined,
+        fastForward: (update: number) => {
+          if (block && update > block) {
+            setChainBlock({ chainId: activeChainId, block: update })
+          }
+        },
+      }
+      return result
+    },
     [activeChainId, block, chainId]
   )
   return <BlockNumberContext.Provider value={value}>{children}</BlockNumberContext.Provider>

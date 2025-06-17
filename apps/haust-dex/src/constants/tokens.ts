@@ -17,6 +17,14 @@ export const USDT_HAUST_TESTNET = new Token(
   'Tether'
 )
 
+export const MYR_HAUST_TESTNET = new Token(
+  SupportedChainId.HAUST_TESTNET,
+  '0x07607F6cccd147660cC2D78EA2c6fc8b9d918601',
+  18,
+  'MYR',
+  'Malaysian ringgit'
+)
+
 export const USDC_HAUST_TESTNET = new Token(
   SupportedChainId.HAUST_TESTNET,
   '0x1AfB500AFfBBc8a7FC8aB0f5C4D06c59AC87B111',
@@ -64,7 +72,8 @@ export const TOKEN_ADDRESSES = {
   'USDT': USDT_HAUST_TESTNET,
   'USDC': USDC_HAUST_TESTNET,
   'WBTC': WBTC_HAUST_TESTNET,
-  'WHAUST': WRAPPED_NATIVE_CURRENCY[SupportedChainId.HAUST_TESTNET]
+  'WHAUST': WRAPPED_NATIVE_CURRENCY[SupportedChainId.HAUST_TESTNET],
+  'MYR': MYR_HAUST_TESTNET
 }
 
 function isHaust(chainId: number): chainId is SupportedChainId.HAUST {
