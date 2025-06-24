@@ -22,16 +22,17 @@ const StakingLabel = styled(ThemedText.UtilityBadge)`
 interface PositionListItemProps {
   incentive: {
     rewardToken: string;
-  pool: string;
-  startTime: number;
-  endTime: number;
-  reward: string;
+    pool: string;
+    startTime: number;
+    endTime: number;
+    reward: string;
+    isLocked?: boolean;
   }
   tokenId: BigNumber
 }
 
 const formatTime = (totalSeconds: number): string => {
-  if (totalSeconds <= 0) return 'Staking ended'
+  if (totalSeconds <= 0) return 'Staking Rewards Available'
   
   const days = Math.floor(totalSeconds / 86400)
   const hours = Math.floor((totalSeconds % 86400) / 3600)
@@ -50,7 +51,7 @@ export default function RewardLabel({
   incentive,
   tokenId,
 }: PositionListItemProps) {
-  const {rewardInfo, globalLock} = useV3StakingRewardInfo(
+  const {rewardInfo} = useV3StakingRewardInfo(
     incentive,
     tokenId.toString()
   )
@@ -76,7 +77,7 @@ export default function RewardLabel({
     return null
   }
 
-  if (rewardInfo && globalLock) {
+  if (rewardInfo && incentive?.isLocked) {
     return (
       <StakingLabel>
         {timeRemaining}

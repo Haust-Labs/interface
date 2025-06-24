@@ -868,7 +868,7 @@ function PositionPageContent() {
                         >
                           Stake Position
                         </SmallButtonPrimary>
-                      ) : (
+                      ) : !incentive?.isLocked ? (
                         <SmallButtonPrimary
                           as={Link}
                           to={`/unstake/${tokenId}`}
@@ -878,7 +878,7 @@ function PositionPageContent() {
                         >
                           Unstake position
                         </SmallButtonPrimary>
-                      )}
+                      ) : null}
                     </>
                   )}
                 </AutoColumn>
