@@ -44,9 +44,6 @@ export function useV3StakingRewardInfo(
     }
   );
 
-  const { loading: globalLockLoading, result: globalLock } =
-    useSingleCallResult(staker, "globalLock");
-
   const rewardInfo = useMemo(() => {
     if (!activeIncentives) return undefined;
 
@@ -56,8 +53,8 @@ export function useV3StakingRewardInfo(
   }, [activeIncentives]);
 
   return {
-    loading: loading || globalLockLoading,
+    loading,
     rewardInfo,
-    globalLock: globalLock?.[0] ?? false,
+    globalLock: true,
   };
 }
