@@ -48,23 +48,38 @@ export function useAllTokensMultichain(): TokenAddressMap {
 }
 
 // Returns all tokens from the default list + user added tokens
-export function useDefaultActiveTokens(): { [address: string]: Token } {
+export function useDefaultActiveTokens(forPools?: boolean): {
+  [address: string]: Token;
+} {
   const defaultListTokens = useCombinedActiveList();
   const tokensFromMap = useTokensFromMap(defaultListTokens);
   const userAddedTokens = useUserAddedTokens();
 
   return useMemo(() => {
+    // First filter out MYR tokens from tokensFromMap
+    const filteredTokensFromMap = forPools
+      ? tokensFromMap
+      : Object.entries(tokensFromMap).reduce((acc, [address, token]) => {
+          if (token.symbol !== "MYR") {
+            acc[address] = token;
+          }
+          return acc;
+        }, {} as { [address: string]: Token });
+
     return (
       userAddedTokens
         // reduce into all ALL_TOKENS filtered by the current chain
         .reduce<{ [address: string]: Token }>(
           (tokenMap, token) => {
-            tokenMap[token.address] = token;
+            // Only add tokens that are not MYR
+            if (token.symbol !== "MYR" || !forPools) {
+              tokenMap[token.address] = token;
+            }
             return tokenMap;
           },
           // must make a copy because reduce modifies the map, and we do not
           // want to make a copy in every iteration
-          { ...tokensFromMap }
+          { ...filteredTokensFromMap }
         )
     );
   }, [tokensFromMap, userAddedTokens]);
@@ -203,9 +218,10 @@ export function useIsUserAddedTokenOnChain(
 // null if loading or null was passed
 // otherwise returns the token
 export function useToken(
-  tokenAddress?: string | null
+  tokenAddress?: string | null,
+  forPools?: boolean
 ): Token | null | undefined {
-  const tokens = useDefaultActiveTokens();
+  const tokens = useDefaultActiveTokens(forPools);
   return useTokenFromMapOrNetwork(tokens, tokenAddress);
 }
 

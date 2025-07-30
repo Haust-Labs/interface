@@ -307,8 +307,8 @@ export default function PositionListItem({
 }: PositionListItemProps) {
   const { chainId } = useWeb3React()
   const theme = useTheme()
-  const token0 = useToken(token0Address)
-  const token1 = useToken(token1Address)
+  const token0 = useToken(token0Address, true)
+  const token1 = useToken(token1Address, true)
   const {incentiveEvents, loading: incentivesLoading} = useV3Incentive()
 
   const currency0 = token0 ? unwrappedToken(token0) : undefined

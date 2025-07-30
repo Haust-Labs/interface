@@ -15,6 +15,7 @@ interface IncentiveCreatedEvent {
   endTime: number;
   reward: string;
   tokenIds: number[];
+  isLocked?: boolean;
 }
 
 export function useV3Incentive(): UseV3IncentivesCreatedResults {
@@ -31,7 +32,7 @@ export function useV3Incentive(): UseV3IncentivesCreatedResults {
   const incentiveEvents = useMemo(() => {
     if (!activeIncentives?.[0]?.[0]) return [];
     return activeIncentives[0].map((incentiveData: any[]) => {
-      const [incentive, tokenIdsData] = incentiveData;
+      const [incentive, tokenIdsData, isLocked] = incentiveData;
       return {
         rewardToken: incentive[0],
         pool: incentive[1],
@@ -41,6 +42,7 @@ export function useV3Incentive(): UseV3IncentivesCreatedResults {
         tokenIds: tokenIdsData.map(
           (tokenId: { _hex: string; _isBigNumber: boolean }) => Number(tokenId)
         ),
+        isLocked,
       };
     });
   }, [activeIncentives]);
