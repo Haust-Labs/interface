@@ -3,7 +3,7 @@ name: Build and Push Docker Image prod
 on:
   push:
     tags:
-      - "release-v*"
+      - "release-beta-v*"
 
 jobs:
   build:
