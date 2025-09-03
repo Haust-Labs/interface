@@ -8,7 +8,7 @@ import { useAppDispatch, useAppSelector } from "state/hooks";
 
 import { setLoading, TokenData, updateTokenPrices } from "./slice";
 
-const WHAUST_ADDRESS = "0x6c25c1cb4b8677982791328471be1bfb187687c1";
+const WHAUST_ADDRESS = "0x2c990daddaf3b760443b512da9f001f721951438";
 const HAUST_SYMBOL = "HAUST";
 const CACHE_DURATION = 30000;
 const POLLING_INTERVAL = 5000;

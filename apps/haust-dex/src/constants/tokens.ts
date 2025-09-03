@@ -11,7 +11,7 @@ export const DEFAULT_ERC20_DECIMALS = 18
 //TODO
 export const USDT_HAUST_TESTNET = new Token(
   SupportedChainId.HAUST_TESTNET,
-  '0x87054392461F52a513d83EF2e06af50f4e2F6614',
+  '0xb9882bc4f209d6bb26e971874779aa7447f82aa7',
   6,
   'USDT',
   'Tether'
@@ -27,7 +27,7 @@ export const MYR_HAUST_TESTNET = new Token(
 
 export const USDC_HAUST_TESTNET = new Token(
   SupportedChainId.HAUST_TESTNET,
-  '0x1AfB500AFfBBc8a7FC8aB0f5C4D06c59AC87B111',
+  '0xad73118d8a179c17a2653e7342977e82e54cc4a7',
   6,
   'USDC',
   'USD Coin'
@@ -35,7 +35,7 @@ export const USDC_HAUST_TESTNET = new Token(
 
 export const WETH_HAUST_TESTNET = new Token(
   SupportedChainId.HAUST_TESTNET,
-  '0x48C3C36CE1DF7d5852FB4cda746015a9971A882E',
+  '0xe6a3136f060cc22a866abee3e3725311a600f3ee',
   18,
   'WETH',
   'Wrapped ETH'
@@ -43,7 +43,7 @@ export const WETH_HAUST_TESTNET = new Token(
 
 export const WBTC_HAUST_TESTNET = new Token(
   SupportedChainId.HAUST_TESTNET,
-  '0x595BC82909f2311Cf19E865bc82e7930b103540C',
+  '0x75b69949d11013856e60b7386c28163daed1de81',
   8,
   'WBTC',
   'Wrapped BTC'
@@ -60,7 +60,7 @@ export const WRAPPED_NATIVE_CURRENCY: { [chainId: number]: Token | undefined } =
   ),
   [SupportedChainId.HAUST_TESTNET]: new Token(
     SupportedChainId.HAUST_TESTNET,
-    '0x6C25C1Cb4b8677982791328471be1bFB187687c1',
+    '0x2c990daddaf3b760443b512da9f001f721951438',
     18,
     'WHAUST',
     'Wrapped Haust'
@@ -124,7 +124,7 @@ class ExtendedEther extends Ether {
   public get wrapped(): Token {
     const wrapped = WRAPPED_NATIVE_CURRENCY[this.chainId]
     if (wrapped) return wrapped
-    return new Token(this.chainId, '0xB28c9A32fA8C9cd8d9E1F59132CBcAe0164864D6', 18, 'WHAUST', 'Wrapped Haust')
+    return new Token(this.chainId, '0x2c990daddaf3b760443b512da9f001f721951438', 18, 'WHAUST', 'Wrapped Haust')
   }
 
   private static _cachedExtendedEther: { [chainId: number]: NativeCurrency } = {}

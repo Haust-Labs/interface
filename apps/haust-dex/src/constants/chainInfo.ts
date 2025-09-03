@@ -51,7 +51,7 @@ const CHAIN_INFO: ChainInfoMap = {
     blockWaitMsBeforeWarning: ms`10m`,
     bridge: '',
     docs: 'https://haust.network/',
-    explorer: 'https://haust-testnet-blockscout.eu-north-2.gateway.fm/',
+    explorer: 'https://haust-devnet-blockscout.eu-north-2.gateway.fm/',
     infoLink: '',
     label: 'Haust Network Testnet',
     logoUrl: haustLogo,

@@ -29,6 +29,7 @@ import SendAddressInputPanel from './SendAddressInputPanel'
 import SendCurrencyInputPanel from './SendCurrencyInputPanel'
 import { SendReviewModal } from './SendReviewModal'
 import { TransactionRequest } from "@ethersproject/abstract-provider";
+import TransactionConfirmationModal, { ConfirmationModalContent } from 'components/TransactionConfirmationModal'
 
 enum SendFormModalState {
   None = 'None',
@@ -44,6 +45,7 @@ export default function SendCurrencyInputForm({
   const { account, chainId, provider } = useWeb3React()
   const loadedUrlParams = useDefaultsFromURLSearch()
   const [sendFormModalState, setSendFormModalState] = useState(SendFormModalState.None)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   // token warning stuff
   const [loadedInputCurrency] = [
@@ -191,13 +193,23 @@ export default function SendCurrencyInputForm({
 
   return (
     <>
-      <TokenSafetyModal
-        isOpen={importTokensNotInDefault.length > 0 && !dismissTokenWarning}
-        tokenAddress={importTokensNotInDefault[0]?.address}
-        secondTokenAddress={importTokensNotInDefault[1]?.address}
-        onContinue={handleConfirmTokenWarning}
-        onCancel={handleDismissTokenWarning}
-        showCancel={true}
+      <TransactionConfirmationModal
+        isOpen={showConfirm}
+        onDismiss={() => setShowConfirm(false)}
+        attemptingTxn={false}
+        hash={undefined}
+        content={() => (
+          <ConfirmationModalContent
+            title={<Trans>Claim fees</Trans>}
+            onDismiss={() => setShowConfirm(false)}
+            topContent={() => (
+              <div>
+                <Trans>Sending</Trans>
+              </div>
+            )}
+          />
+        )}
+        pendingText={<Trans>Sending</Trans>}
       />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <SendCurrencyInputPanel
@@ -223,6 +235,7 @@ export default function SendCurrencyInputForm({
                 <ButtonPrimary
                   onClick={() => {
                     handleModalState(SendFormModalState.REVIEW)
+                    setShowConfirm(true)
                   }}
                   id="swap-button"
                   disabled={

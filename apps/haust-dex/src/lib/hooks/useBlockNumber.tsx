@@ -13,7 +13,7 @@ const BlockNumberContext = createContext<
 >(MISSING_PROVIDER)
 
 // RPC URL for fallback provider
-const FALLBACK_RPC_URL = 'https://rpc-testnet.haust.app' // Можно будет заменить на нужный URL
+const FALLBACK_RPC_URL = 'https://haust-devnet-rpc.eu-north-2.gateway.fm'
 
 function useBlockNumberContext() {
   const blockNumber = useContext(BlockNumberContext)

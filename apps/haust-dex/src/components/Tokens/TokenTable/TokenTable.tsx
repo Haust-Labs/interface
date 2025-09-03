@@ -159,12 +159,12 @@ export default function TokenTable() {
     if (!data?.tokens) return { tokens: [], sparklines: {} }
     
     const allowedTokenIds = [
-      '0x6c25c1cb4b8677982791328471be1bfb187687c1',
-      "0x87054392461F52a513d83EF2e06af50f4e2F6614",
-      "0x1AfB500AFfBBc8a7FC8aB0f5C4D06c59AC87B111",
-      "0x48C3C36CE1DF7d5852FB4cda746015a9971A882E",
-      "0x595BC82909f2311Cf19E865bc82e7930b103540C",
-      '0x6c25c1cb4b8677982791328471be1bfb187687c1_haust'
+      '0x2c990daddaf3b760443b512da9f001f721951438',
+      "0xe6a3136f060cc22a866abee3e3725311a600f3ee",
+      "0x75b69949d11013856e60b7386c28163daed1de81",
+      "0xb9882bc4f209d6bb26e971874779aa7447f82aa7",
+      "0xad73118d8a179c17a2653e7342977e82e54cc4a7",
+      '0x2c990daddaf3b760443b512da9f001f721951438_haust'
     ]
     
     let filteredTokens = data.tokens.filter((token: any) => 

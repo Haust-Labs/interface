@@ -84,12 +84,12 @@ export default function useTopTokensQuery(interval: number): {
 } {
   const allowedTokenIds = useMemo(
     () => [
-      "0x6c25c1cb4b8677982791328471be1bfb187687c1".toLowerCase(),
-      "0x87054392461F52a513d83EF2e06af50f4e2F6614".toLowerCase(),
-      "0x1AfB500AFfBBc8a7FC8aB0f5C4D06c59AC87B111".toLowerCase(),
-      "0x48C3C36CE1DF7d5852FB4cda746015a9971A882E".toLowerCase(),
-      "0x595BC82909f2311Cf19E865bc82e7930b103540C".toLowerCase(),
-      "0x6c25c1cb4b8677982791328471be1bfb187687c1_haust".toLowerCase(),
+      "0x2c990daddaf3b760443b512da9f001f721951438".toLowerCase(),
+      "0xe6a3136f060cc22a866abee3e3725311a600f3ee".toLowerCase(),
+      "0x75b69949d11013856e60b7386c28163daed1de81".toLowerCase(),
+      "0xb9882bc4f209d6bb26e971874779aa7447f82aa7".toLowerCase(),
+      "0xad73118d8a179c17a2653e7342977e82e54cc4a7".toLowerCase(),
+      "0x2c990daddaf3b760443b512da9f001f721951438_haust".toLowerCase(),
     ],
     []
   );
@@ -216,7 +216,7 @@ export default function useTopTokensQuery(interval: number): {
             .filter(
               (token: TopTokensQuery["tokens"][number]) =>
                 token.id.toLowerCase() ===
-                "0x6c25c1cb4b8677982791328471be1bfb187687c1".toLowerCase()
+                "0x2c990daddaf3b760443b512da9f001f721951438".toLowerCase()
             )
             .map((whaustToken: TopTokensQuery["tokens"][number]) => {
               const currentDayPrice = Number(
@@ -291,7 +291,7 @@ export default function useTopTokensQuery(interval: number): {
             acc[token.id] = sparklineData;
             if (
               token.id.toLowerCase() ===
-              "0x6c25c1cb4b8677982791328471be1bfb187687c1".toLowerCase()
+              "0x2c990daddaf3b760443b512da9f001f721951438".toLowerCase()
             ) {
               acc[token.id + "_haust"] = sparklineData;
             }

@@ -35,7 +35,7 @@ import { PositionInfo } from "./cache";
 
 type ContractMap<T extends BaseContract> = { [key: number]: T };
 
-const FALLBACK_RPC_URL = "https://rpc-testnet.haust.app";
+const FALLBACK_RPC_URL = "https://haust-devnet-rpc.eu-north-2.gateway.fm";
 
 // Constructs a chain-to-contract map, using the wallet's provider when available
 function useContractMultichain<T extends BaseContract>(
