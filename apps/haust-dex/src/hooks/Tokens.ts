@@ -60,19 +60,25 @@ export function useDefaultActiveTokens(forPools?: boolean): {
     const filteredTokensFromMap = forPools
       ? tokensFromMap
       : Object.entries(tokensFromMap).reduce((acc, [address, token]) => {
-          if (token.symbol !== "MYR") {
+          if (
+            token.symbol !== "MYR" &&
+            token.symbol?.toLocaleUpperCase() !== "WHAUST"
+          ) {
             acc[address] = token;
           }
           return acc;
         }, {} as { [address: string]: Token });
-
     return (
       userAddedTokens
         // reduce into all ALL_TOKENS filtered by the current chain
         .reduce<{ [address: string]: Token }>(
           (tokenMap, token) => {
             // Only add tokens that are not MYR
-            if (token.symbol !== "MYR" || !forPools) {
+            if (
+              (token.symbol !== "MYR" &&
+                token.symbol?.toLocaleUpperCase() !== "WHAUST") ||
+              !forPools
+            ) {
               tokenMap[token.address] = token;
             }
             return tokenMap;
