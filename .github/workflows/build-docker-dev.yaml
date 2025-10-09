@@ -38,7 +38,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-         docker build --build-arg GITHUB_TOKEN=${{ secrets.TOKEN }} -t ghcr.io/${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}:${{ env.DATE }} .
+         docker build --build-arg GITHUB_TOKEN=${{ secrets.TOKEN }} -t cr.haust.app/dex/dex:${{ env.DATE }} .
 
       - name: Push Docker image to GHCR
         run: |
