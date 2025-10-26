@@ -6,10 +6,10 @@ import { apolloClient } from "./apollo";
 
 const TRACKED_TOKENS = [
   "0x6c25c1cb4b8677982791328471be1bfb187687c1", // WHAUST
-  "0x87054392461F52a513d83EF2e06af50f4e2F6614", // USDT
-  "0x1AfB500AFfBBc8a7FC8aB0f5C4D06c59AC87B111", // USDC
-  "0x48C3C36CE1DF7d5852FB4cda746015a9971A882E", // WETH
-  "0x595BC82909f2311Cf19E865bc82e7930b103540C", // WBTC
+  "0x1e4a5963abfd975d8c9021ce480b42188849d41d", // USDT
+  "0xa8ce8aee21bc2a48a5ef670afcc9274c7bbbc035", // USDC
+  "0x5a77f1443d16ee5761d310e38b62f77f726bc71c", // WETH
+  "0xea034fb02eb1808c2cc3adbc15f447b93cbe08e1", // WBTC
 ].map((address) => address.toLowerCase());
 
 const query = gql`

@@ -112,7 +112,7 @@ export function useV3Positions(
 
   // we don't expect any account balance to ever exceed the bounds of max safe int
   const accountBalance: number | undefined = balanceResult?.[0]?.toNumber();
-
+  console.log("accountBalance", accountBalance);
   const tokenIdsArgs = useMemo(() => {
     if (accountBalance && account) {
       const tokenRequests = [];

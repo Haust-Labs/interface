@@ -160,10 +160,10 @@ export default function TokenTable() {
     
     const allowedTokenIds = [
       '0x6c25c1cb4b8677982791328471be1bfb187687c1',
-      "0x87054392461F52a513d83EF2e06af50f4e2F6614",
-      "0x1AfB500AFfBBc8a7FC8aB0f5C4D06c59AC87B111",
-      "0x48C3C36CE1DF7d5852FB4cda746015a9971A882E",
-      "0x595BC82909f2311Cf19E865bc82e7930b103540C",
+      "0x1e4a5963abfd975d8c9021ce480b42188849d41d",
+      "0xa8ce8aee21bc2a48a5ef670afcc9274c7bbbc035",
+      "0x5a77f1443d16ee5761d310e38b62f77f726bc71c",
+      "0xea034fb02eb1808c2cc3adbc15f447b93cbe08e1",
       '0x6c25c1cb4b8677982791328471be1bfb187687c1_haust'
     ]
     

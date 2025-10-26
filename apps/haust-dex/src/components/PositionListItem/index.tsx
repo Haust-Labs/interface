@@ -322,6 +322,8 @@ export default function PositionListItem({
     incentive.tokenIds?.includes(Number(tokenId))
   )
 
+  console.log(incentiveEvents, 'incentiveEvents');
+
   const position = useMemo(() => {
     if (pool) {
       return new Position({ pool, liquidity: liquidity.toString(), tickLower, tickUpper })

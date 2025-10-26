@@ -1,19 +1,19 @@
+import { Token } from "@uniswap/sdk-core";
 import {validateUrlChainParam} from "api/util";
 import TokenDetails from 'components/Tokens/TokenDetails'
 import { TokenDetailsPageSkeleton } from 'components/Tokens/TokenDetails/Skeleton'
+import { CHAIN_IDS_TO_NAMES, SupportedChainId } from "constants/chains";
 import { NATIVE_CHAIN_ID } from 'constants/tokens'
-import { TimePeriod, toHistoryDuration } from 'graphql/data/util'
+import { WRAPPED_NATIVE_CURRENCY } from "constants/tokens";
+import { TimePeriod } from 'graphql/data/util'
 import useTokenData from "graphql/thegraph/TokenDataQuery";
 import useParsedQueryString from 'hooks/useParsedQueryString'
 import { useAtom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
-import { getNativeTokenDBAddress } from 'utils/nativeTokens'
+
 import { LoadedTDPContext, PendingTDPContext, TDPProvider } from "./TDPContext";
-import { CHAIN_IDS_TO_NAMES, SupportedChainId } from "constants/chains";
-import { WRAPPED_NATIVE_CURRENCY } from "constants/tokens";
-import { Token } from "@uniswap/sdk-core";
 
 export const pageTimePeriodAtom = atomWithStorage<TimePeriod>('tokenDetailsTimePeriod', TimePeriod.DAY)
 

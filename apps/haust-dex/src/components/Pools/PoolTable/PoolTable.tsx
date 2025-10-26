@@ -241,7 +241,7 @@ export default function PoolTable({ referenceToken }: { referenceToken?: string 
     
     return filtered
   }, [pools, searchFilter, sortMethod, sortAscending, referenceToken])
-
+console.log(filteredPools, 'filteredPools')
   if ((isLoading) && !pools) {
     return <LoadingTokenTable rowCount={PAGE_SIZE} />
   } else if (!filteredPools) {
@@ -255,7 +255,7 @@ export default function PoolTable({ referenceToken }: { referenceToken?: string 
         }
       />
     )
-  } else if (filteredPools.length === 0) {
+  } else if (filteredPools.length === 0 || filteredPools[0]?.poolDayData?.length === 0) {
     return <NoTokensState message={<Trans>No pools found</Trans>} />
   } else {
     return (

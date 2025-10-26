@@ -654,6 +654,8 @@ function PositionPageContent() {
     )
   }
 
+  console.log(incentive, 'incentive2');
+
   const showCollectAsWeth = Boolean(
     ownsNFT &&
       (feeValue0?.greaterThan(0) || feeValue1?.greaterThan(0)) &&

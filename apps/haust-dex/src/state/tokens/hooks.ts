@@ -68,35 +68,35 @@ export function useTokensWithBalances() {
             isNative: true,
           });
 
-          const contract = new Contract(WHAUST_ADDRESS, ERC20_ABI, provider);
-          const whaustBalance = await contract.balanceOf(account);
-          const whaustAmount = Number(
-            formatUnits(whaustBalance, whaustToken.decimals)
-          );
+          // const contract = new Contract(WHAUST_ADDRESS, ERC20_ABI, provider);
+          // const whaustBalance = await contract.balanceOf(account);
+          // const whaustAmount = Number(
+          //   formatUnits(whaustBalance, whaustToken.decimals)
+          // );
 
-          const whaustMidnightValue = whaustAmount * midnightPrice;
-          const whaustCurrentValue = whaustAmount * currentPrice;
-          const whaustAbsoluteChange = whaustCurrentValue - whaustMidnightValue;
+          // const whaustMidnightValue = whaustAmount * midnightPrice;
+          // const whaustCurrentValue = whaustAmount * currentPrice;
+          // const whaustAbsoluteChange = whaustCurrentValue - whaustMidnightValue;
 
-          processedTokens.push({
-            id: whaustToken.id,
-            name: whaustToken.name,
-            symbol: whaustToken.symbol,
-            balance: whaustAmount,
-            balanceUSD: whaustCurrentValue,
-            priceUSD: currentPrice,
-            priceChange: ((currentPrice - midnightPrice) / midnightPrice) * 100,
-            derivedETH: whaustToken.derivedETH,
-            decimals: Number(whaustToken.decimals),
-            chainId: 1,
-            address: whaustToken.id,
-            isNative: false,
-          });
+          // processedTokens.push({
+          //   id: whaustToken.id,
+          //   name: whaustToken.name,
+          //   symbol: whaustToken.symbol,
+          //   balance: whaustAmount,
+          //   balanceUSD: whaustCurrentValue,
+          //   priceUSD: currentPrice,
+          //   priceChange: ((currentPrice - midnightPrice) / midnightPrice) * 100,
+          //   derivedETH: whaustToken.derivedETH,
+          //   decimals: Number(whaustToken.decimals),
+          //   chainId: 1,
+          //   address: whaustToken.id,
+          //   isNative: false,
+          // });
 
-          totalAbsoluteChange += haustAbsoluteChange + whaustAbsoluteChange;
+          totalAbsoluteChange += haustAbsoluteChange;
           totalPercentChange +=
             ((currentPrice - midnightPrice) / midnightPrice) * 200;
-          total += haustCurrentValue + whaustCurrentValue;
+          total += haustCurrentValue;
           validTokenCount += 2;
         }
       }

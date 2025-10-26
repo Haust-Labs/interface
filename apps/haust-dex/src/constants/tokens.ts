@@ -11,7 +11,7 @@ export const DEFAULT_ERC20_DECIMALS = 18
 //TODO
 export const USDT_HAUST_TESTNET = new Token(
   SupportedChainId.HAUST_TESTNET,
-  '0x87054392461F52a513d83EF2e06af50f4e2F6614',
+  '0x1e4a5963abfd975d8c9021ce480b42188849d41d',
   6,
   'USDT',
   'Tether'
@@ -27,7 +27,7 @@ export const MYR_HAUST_TESTNET = new Token(
 
 export const USDC_HAUST_TESTNET = new Token(
   SupportedChainId.HAUST_TESTNET,
-  '0x1AfB500AFfBBc8a7FC8aB0f5C4D06c59AC87B111',
+  '0xa8ce8aee21bc2a48a5ef670afcc9274c7bbbc035',
   6,
   'USDC',
   'USD Coin'
@@ -35,7 +35,7 @@ export const USDC_HAUST_TESTNET = new Token(
 
 export const WETH_HAUST_TESTNET = new Token(
   SupportedChainId.HAUST_TESTNET,
-  '0x48C3C36CE1DF7d5852FB4cda746015a9971A882E',
+  '0x5a77f1443d16ee5761d310e38b62f77f726bc71c',
   18,
   'WETH',
   'Wrapped ETH'
@@ -43,7 +43,7 @@ export const WETH_HAUST_TESTNET = new Token(
 
 export const WBTC_HAUST_TESTNET = new Token(
   SupportedChainId.HAUST_TESTNET,
-  '0x595BC82909f2311Cf19E865bc82e7930b103540C',
+  '0xea034fb02eb1808c2cc3adbc15f447b93cbe08e1',
   8,
   'WBTC',
   'Wrapped BTC'
@@ -53,14 +53,14 @@ export const WBTC_HAUST_TESTNET = new Token(
 export const WRAPPED_NATIVE_CURRENCY: { [chainId: number]: Token | undefined } = {
   [SupportedChainId.HAUST]: new Token(
     SupportedChainId.HAUST,
-    '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+    '0x6c25c1cb4b8677982791328471be1bfb187687c1',
     18,
     'WBNB',
     'Wrapped BNB'
   ),
   [SupportedChainId.HAUST_TESTNET]: new Token(
     SupportedChainId.HAUST_TESTNET,
-    '0x6C25C1Cb4b8677982791328471be1bFB187687c1',
+    '0x6c25c1cb4b8677982791328471be1bfb187687c1',
     18,
     'WHAUST',
     'Wrapped Haust'
@@ -124,7 +124,7 @@ class ExtendedEther extends Ether {
   public get wrapped(): Token {
     const wrapped = WRAPPED_NATIVE_CURRENCY[this.chainId]
     if (wrapped) return wrapped
-    return new Token(this.chainId, '0xB28c9A32fA8C9cd8d9E1F59132CBcAe0164864D6', 18, 'WHAUST', 'Wrapped Haust')
+    return new Token(this.chainId, '0x6c25c1cb4b8677982791328471be1bfb187687c1', 18, 'WHAUST', 'Wrapped Haust')
   }
 
   private static _cachedExtendedEther: { [chainId: number]: NativeCurrency } = {}

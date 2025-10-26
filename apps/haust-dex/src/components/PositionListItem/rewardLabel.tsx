@@ -55,7 +55,7 @@ export default function RewardLabel({
     incentive,
     tokenId.toString()
   )
-  
+
   const [timeRemaining, setTimeRemaining] = useState<string>('')
 
   useEffect(() => {

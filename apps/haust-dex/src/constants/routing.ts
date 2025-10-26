@@ -51,7 +51,7 @@ export const COMMON_BASES: ChainCurrencyList = {
     nativeOnChain(SupportedChainId.HAUST_TESTNET),
     USDT_HAUST_TESTNET,
     USDC_HAUST_TESTNET,
-    WRAPPED_NATIVE_CURRENCY[SupportedChainId.HAUST_TESTNET] as Token,
+    // WRAPPED_NATIVE_CURRENCY[SupportedChainId.HAUST_TESTNET] as Token,
   ],
 }
 

@@ -144,14 +144,12 @@ export function CurrencySearch({
     const s = debouncedQuery.toLowerCase().trim()
 
     const tokens = filteredSortedTokens.filter((t) => !(t.equals(wrapped) || (disableNonToken && t.isNative)))
-    const shouldShowWrapped =
-      !onlyShowCurrenciesWithBalance || (!balancesAreLoading && balances[wrapped.address]?.greaterThan(0))
+    const shouldShowWrapped = false
     const natives = (
       disableNonToken || native.equals(wrapped) ? [wrapped] : shouldShowWrapped ? [native, wrapped] : [native]
     ).filter((n) => n.symbol?.toLowerCase()?.indexOf(s) !== -1 || n.name?.toLowerCase()?.indexOf(s) !== -1)
 
     const allTokens = sortArrayByUnique([...natives, ...tokens], JSON.stringify)
-    
     // Sort tokens according to preferred order
     return allTokens.sort((a: Token, b: Token) => {
       const symbolA = a.symbol?.toUpperCase() || ''
@@ -283,7 +281,8 @@ export function CurrencySearch({
             )}
           />
         </Column>
-      ) : searchCurrencies?.length > 0 || isLoading ? (
+      )
+       : searchCurrencies?.length > 0 || isLoading ? (
         <div style={{ flex: '1' }}>
           <AutoSizer disableWidth>
             {({ height }) => (
@@ -303,7 +302,8 @@ export function CurrencySearch({
             )}
           </AutoSizer>
         </div>
-      ) : (
+      )
+       : (
         <Column style={{ padding: '20px', height: '100%' }}>
           <ThemedText.BodySecondary style={{ color: theme.textSecondary }} textAlign="center" mb="20px">
            This token isn't currently traded on Haust DEX

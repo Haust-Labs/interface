@@ -149,7 +149,7 @@ export default function SendCurrencyInputForm({
     amount: parsedAmount?.quotient?.toString(),
     recipient: address
   })
-  
+
   const handleSend = useCallback(() => {
     sendCallback()
       .then(() => {

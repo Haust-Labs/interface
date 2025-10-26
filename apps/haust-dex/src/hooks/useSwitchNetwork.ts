@@ -20,17 +20,17 @@ export const useSwitchNetwork = (): SwitchNetworkHookResult => {
     setIsLoading(true);
     setError(null);
 
-    const chainIdHex = "0x5AD4EB13";
+    const chainIdHex = "0xF18";
     const networkParams = {
       chainId: chainIdHex,
-      chainName: "HAUST Testnet Network",
+      chainName: "HAUST Network",
       nativeCurrency: {
         name: "Haust",
         symbol: "HAUST",
         decimals: 18,
       },
-      rpcUrls: ["https://rpc-testnet.haust.app"],
-      blockExplorerUrls: ["https://explorer-testnet.haust.app"],
+      rpcUrls: ["https://haust-network-rpc.eu-north-2.gateway.fm"],
+      blockExplorerUrls: ["https://haust-network-blockscout.eu-north-2.gateway.fm"],
     };
 
     try {

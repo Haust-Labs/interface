@@ -508,7 +508,7 @@ export const LoadedRow = forwardRef((props: LoadedRowProps, ref: ForwardedRef<HT
           apr={
             <ClickableContent>
               <PriceInfoCell>
-              {(Number(pool.poolDayData[0].feesUSD) / Number(pool.totalValueLockedUSD) * 365 * 100).toFixed(2)}%
+              {(Number(pool?.poolDayData[0]?.feesUSD) / Number(pool?.totalValueLockedUSD) * 365 * 100).toFixed(2)}%
               </PriceInfoCell>
             </ClickableContent>
           }
@@ -527,13 +527,13 @@ export const LoadedRow = forwardRef((props: LoadedRowProps, ref: ForwardedRef<HT
           }
           tvl={
             <ClickableContent>
-              {formatUSDPrice(Number(pool.totalValueLockedUSD), NumberType.FiatTokenStats)}
+              {formatUSDPrice(Number(pool?.totalValueLockedUSD), NumberType.FiatTokenStats)}
             </ClickableContent>
           }
           oneDayVolumeToTvl={
             <ClickableContent>
               {formatNumber(
-                Number(pool?.poolDayData[0]?.volumeUSD) / Number(pool.totalValueLockedUSD)
+                Number(pool?.poolDayData[0]?.volumeUSD) / Number(pool?.totalValueLockedUSD)
                 
               )}
             </ClickableContent>
