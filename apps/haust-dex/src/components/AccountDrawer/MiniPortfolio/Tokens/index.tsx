@@ -47,13 +47,21 @@ export default function Tokens({ totalBalance }: { totalBalance?: number }) {
   const [isLoading, setIsLoading] = useState(isFirstLoad)
   const { chainId } = useWeb3React()
   const { switchNetwork } = useSwitchNetwork()
+  const { tokens: tokensWithBalances } = useTokensWithBalances()
 
   const tokensList = useMemo(() => {
     const allTokens = [nativeCurrency, ...Object.values(tokens)]
       .filter(token => token?.symbol !== 'MYR' && token?.symbol?.toLocaleUpperCase() !== 'WHAUST')
 
-      return allTokens
+    return allTokens
       .filter(Boolean)
+      .filter(token => {
+        const tokenData = tokensWithBalances.find(t => {
+          const searchId = token.isNative ? 'native' : token.wrapped.address.toLowerCase();
+          return t.id.toLowerCase() === searchId;
+        });
+        return !!tokenData;
+      })
       .sort((a, b) => {
         const aSymbol = (a as Token | NativeCurrency).symbol
         const bSymbol = (b as Token | NativeCurrency).symbol
@@ -67,7 +75,7 @@ export default function Tokens({ totalBalance }: { totalBalance?: number }) {
         if (bIndex !== -1) return 1
         return 0
       })
-  }, [nativeCurrency, tokens])
+  }, [nativeCurrency, tokens, tokensWithBalances])
   const [loadedTokens, setLoadedTokens] = useState<Set<string>>(new Set())
   
   useEffect(() => {
@@ -142,10 +150,6 @@ function TokenRow({ token, hideSmallBalances, onLoaded }: { token: Token | Nativ
       toggleWalletDrawer()
     }
   }, [token, navigate, toggleWalletDrawer])
-
-  if (!tokenData) {
-    return null;
-  }
 
   if (hideSmallBalances && tokenData.balanceUSD < HIDE_SMALL_USD_BALANCES_THRESHOLD) {
     return null;

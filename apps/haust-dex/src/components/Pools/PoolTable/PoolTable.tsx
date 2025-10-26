@@ -241,7 +241,7 @@ export default function PoolTable({ referenceToken }: { referenceToken?: string 
     
     return filtered
   }, [pools, searchFilter, sortMethod, sortAscending, referenceToken])
-console.log(filteredPools, 'filteredPools')
+
   if ((isLoading) && !pools) {
     return <LoadingTokenTable rowCount={PAGE_SIZE} />
   } else if (!filteredPools) {
