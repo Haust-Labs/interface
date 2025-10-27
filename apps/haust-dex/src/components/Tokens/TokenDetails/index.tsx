@@ -191,7 +191,7 @@ export default function TokenDetails({
             </TokenNameCell>
           </TokenInfoContainer>
           
-          <ChartSection token={urlAddress} />
+          <ChartSection token={detailedToken.symbol === 'HAUST' ? '0x6c25c1cb4b8677982791328471be1bfb187687c1' : urlAddress} />
 
           <StatsSection
             chainId={pageChainId}

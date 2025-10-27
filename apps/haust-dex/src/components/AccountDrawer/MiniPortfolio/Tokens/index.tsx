@@ -151,7 +151,7 @@ function TokenRow({ token, hideSmallBalances, onLoaded }: { token: Token | Nativ
     }
   }, [token, navigate, toggleWalletDrawer])
 
-  if (hideSmallBalances && tokenData.balanceUSD < HIDE_SMALL_USD_BALANCES_THRESHOLD) {
+  if (hideSmallBalances && tokenData?.balanceUSD && tokenData.balanceUSD < HIDE_SMALL_USD_BALANCES_THRESHOLD) {
     return null;
   }
 
@@ -162,7 +162,7 @@ function TokenRow({ token, hideSmallBalances, onLoaded }: { token: Token | Nativ
       title={<ThemedText.SubHeader fontSize='14px' fontWeight={500}>{token.name}</ThemedText.SubHeader>}
       descriptor={
         <TokenBalanceText fontSize='13px'>
-          {formatNumber(tokenData.balance, NumberType.TokenNonTx)}{' '}
+          {formatNumber(tokenData?.balance, NumberType.TokenNonTx)}{' '}
           {token.symbol}
         </TokenBalanceText>
       }
