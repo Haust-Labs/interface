@@ -109,7 +109,7 @@ export function PoolDetailsLink({ address, tokens, loading }: PoolDetailsLinkPro
   const navigate = useNavigate()
   const handleTokenTextClick = useCallback(() => {
     if (!isPool) {
-      navigate(getTokenDetailsURL({ address: tokens[0]?.wrapped.address, chain: 'haust_testnet' }))
+      navigate(getTokenDetailsURL({ address: tokens[0]?.wrapped.address, chain: 'haust_mainnet' }))
     }
   }, [navigate, tokens, isPool])
 

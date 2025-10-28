@@ -13,8 +13,8 @@ export enum SupportedChainId {
 }
 
 export const CHAIN_IDS_TO_NAMES = {
-  [SupportedChainId.HAUST_TESTNET]: 'haust_testnet',
-  [SupportedChainId.HAUST]: 'haust_mainnet',
+  [SupportedChainId.HAUST_TESTNET]: 'haust_mainnet',
+  [SupportedChainId.HAUST]: 'haust_testnet',
 }
 
 /**

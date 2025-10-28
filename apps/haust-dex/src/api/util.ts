@@ -15,8 +15,8 @@ export const CHAIN_NAME_TO_CHAIN_ID: { [key in Chain]: SupportedChainId } = {
 }
 
 const URL_CHAIN_PARAM_TO_BACKEND: { [key: string]: Chain } = {
-  haust_mainnet: Chain.HAUST,
-  haust_testnet: Chain.HAUST_TESTNET,
+  haust_testnet: Chain.HAUST,
+  haust_mainnet: Chain.HAUST_TESTNET,
 }
 
 export function chainIdToBackendName(chainId: number | undefined) {
@@ -37,7 +37,7 @@ export function getTokenDetailsURL({
   chain?: string
 }) {
   const tokenAddress = address ?? NATIVE_CHAIN_ID
-  return `/explore/token/${chain ?? 'haust_testnet'}/${tokenAddress}`
+  return `/explore/token/haust_mainnet/${tokenAddress}`
 }
 
 export function getPoolDetailsURL({
@@ -47,5 +47,5 @@ export function getPoolDetailsURL({
  address?: string | null
  chain?: string
 }) {
- return `/explore/pools/${chain ?? 'haust_testnet'}/${address}`
+ return `/explore/pools/haust_mainnet/${address}`
 }

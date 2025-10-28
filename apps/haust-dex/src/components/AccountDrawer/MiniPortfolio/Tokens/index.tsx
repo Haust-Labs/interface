@@ -146,7 +146,7 @@ function TokenRow({ token, hideSmallBalances, onLoaded }: { token: Token | Nativ
       : token.address 
 
     if (address) {
-      navigate(`/explore/token/haust_testnet/${address}`)
+      navigate(`/explore/token/haust_mainnet/${address}`)
       toggleWalletDrawer()
     }
   }, [token, navigate, toggleWalletDrawer])
