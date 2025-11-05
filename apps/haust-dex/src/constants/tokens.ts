@@ -35,7 +35,7 @@ export const USDC_HAUST_TESTNET = new Token(
 
 export const WETH_HAUST_TESTNET = new Token(
   SupportedChainId.HAUST_TESTNET,
-  '0xe6a3136f060cc22a866abee3e3725311a600f3ee',
+  '0x1a1af9c78704d3a0ab9e031c92e7bd808711a582',
   18,
   'WETH',
   'Wrapped ETH'

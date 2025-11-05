@@ -85,7 +85,7 @@ export default function useTopTokensQuery(interval: number): {
   const allowedTokenIds = useMemo(
     () => [
       "0x2c990daddaf3b760443b512da9f001f721951438".toLowerCase(),
-      "0xe6a3136f060cc22a866abee3e3725311a600f3ee".toLowerCase(),
+      "0x1a1af9c78704d3a0ab9e031c92e7bd808711a582".toLowerCase(),
       "0x75b69949d11013856e60b7386c28163daed1de81".toLowerCase(),
       "0xb9882bc4f209d6bb26e971874779aa7447f82aa7".toLowerCase(),
       "0xad73118d8a179c17a2653e7342977e82e54cc4a7".toLowerCase(),
