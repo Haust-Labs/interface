@@ -18,18 +18,17 @@ function getMinDateForTimePeriod(timePeriod: string): number {
   const oneDay = 24 * 60 * 60; // 1 day in seconds
 
   switch (timePeriod) {
-    case "D":
-      // For DAY period, show last 30 days
-      const todayStart = getStartOfDay(now);
-      return todayStart - 29 * oneDay; // 30 days total (today + 29 days back)
-    case "W":
-      // For WEEK period, show last 90 days
-      const weekStart = getStartOfDay(now);
-      return weekStart - 89 * oneDay; // 90 days total
     case "M":
-      // For MONTH period, show last 365 days
+      // For MONTH period, show last 30 days
       const monthStart = getStartOfDay(now);
-      return monthStart - 364 * oneDay; // 365 days total
+      return monthStart - 29 * oneDay; // 30 days total (today + 29 days back)
+    case "Y":
+      // For YEAR period, show last 365 days
+      const yearStart = getStartOfDay(now);
+      return yearStart - 364 * oneDay; // 365 days total
+    case "ALL":
+      // For ALL period, get all available data
+      return 0; // Start from beginning
     default:
       const defaultStart = getStartOfDay(now);
       return defaultStart - 29 * oneDay;
@@ -39,19 +38,19 @@ function getMinDateForTimePeriod(timePeriod: string): number {
 // Helper function to get number of records to fetch for time period
 function getFirstForTimePeriod(timePeriod: string): number {
   switch (timePeriod) {
-    case "D":
-      return 30; // 30 days
-    case "W":
-      return 90; // 90 days
     case "M":
+      return 30; // 30 days
+    case "Y":
       return 365; // 365 days
+    case "ALL":
+      return 1000; // Large number to get all available data
     default:
       return 30;
   }
 }
 
 const query = gql`
-  query UniswapVolumeQuery($dateGte: Int!, $first: Int!) {
+  query UniswapVolumeQuery($dateGte: Int, $first: Int!) {
     uniswapDayDatas(
       where: { date_gte: $dateGte }
       orderBy: date
@@ -64,26 +63,38 @@ const query = gql`
   }
 `;
 
+const queryAll = gql`
+  query UniswapVolumeQueryAll($first: Int!) {
+    uniswapDayDatas(orderBy: date, orderDirection: desc, first: $first) {
+      date
+      volumeUSD
+    }
+  }
+`;
+
 export default function useUniswapVolume(
   interval: number,
-  timePeriod: string = "D"
+  timePeriod: string = "M"
 ): {
   error: ApolloError | undefined;
   isLoading: boolean;
-  data: UniswapVolumeQueryQuery;
+  data: UniswapVolumeQueryQuery | any; // Use any for queryAll as it has same structure
 } {
-  const minDate = getMinDateForTimePeriod(timePeriod);
+  const isAllPeriod = timePeriod === "ALL";
+  const minDate = isAllPeriod ? undefined : getMinDateForTimePeriod(timePeriod);
   const first = getFirstForTimePeriod(timePeriod);
+
+  const queryToUse = isAllPeriod ? queryAll : query;
+  const variables = isAllPeriod
+    ? { first: first }
+    : { dateGte: minDate, first: first };
 
   const {
     data,
     loading: isLoading,
     error,
-  } = useQuery(query, {
-    variables: {
-      dateGte: minDate,
-      first: first,
-    },
+  } = useQuery(queryToUse, {
+    variables: variables,
     pollInterval: interval,
     client: apolloClient,
   });
@@ -92,7 +103,7 @@ export default function useUniswapVolume(
     () => ({
       error,
       isLoading,
-      data,
+      data: data as UniswapVolumeQueryQuery, // Cast to same type as both queries return same structure
     }),
     [data, error, isLoading]
   );
