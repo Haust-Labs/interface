@@ -21,7 +21,7 @@ import { TimePeriod as GraphQLTimePeriod, toHistoryDuration } from "graphql/data
 import { useCurrency } from "hooks/Tokens"
 import { useUSDPrice } from "hooks/useUSDPrice"
 import { useAtomValue } from "jotai/utils"
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect, useRef } from "react"
 import styled, { useTheme } from "styled-components/macro"
 import { BREAKPOINTS, EllipsisStyle, ThemedText } from "theme"
 import { SegmentedControl, SegmentedControlOption } from "theme/components/SegmentedControl"
@@ -126,7 +126,33 @@ export default function ChartSection({
   const [chartType, setChartType] = useState<PoolsDetailsChartType>(ChartType.VOLUME)
   const refitChartContent = useAtomValue(refitChartContentAtom)
 
-  const { chartData, isLoading, error } = usePoolChart(poolId, 10000)
+  // Convert GraphQLTimePeriod enum to string for usePoolChart
+  const timePeriodString = useMemo(() => {
+    switch (timePeriod) {
+      case GraphQLTimePeriod.DAY:
+        return "DAY";
+      case GraphQLTimePeriod.WEEK:
+        return "WEEK";
+      case GraphQLTimePeriod.MONTH:
+        return "MONTH";
+      case GraphQLTimePeriod.YEAR:
+        return "YEAR";
+      default:
+        return "DAY";
+    }
+  }, [timePeriod]);
+
+  // Track previous chartData to determine if we should disable polling
+  const prevChartDataRef = useRef<any>(null);
+  const [disablePolling, setDisablePolling] = useState(false);
+  
+  const { chartData, isLoading, error } = usePoolChart(
+    poolId, 
+    300000, // 5 minutes
+    timePeriodString,
+    disablePolling // Disable polling if no data
+  )
+  
   // Convert GraphQL TimePeriod to Chart TimePeriod
   const chartTimePeriod = useMemo(() => {
     switch (timePeriod) {
@@ -155,13 +181,68 @@ export default function ChartSection({
     return { options, selected }
   }, [chartType, timePeriod])
 
+  // Check if there's no data for the selected chart type and time period
+  const hasNoData = useMemo(() => {
+    if (!chartData) return true;
+    
+    switch (chartType) {
+      case ChartType.PRICE:
+        return !chartData.price || chartData.price.length === 0;
+      case ChartType.VOLUME:
+        return !chartData.volume || chartData.volume.length === 0;
+      case ChartType.LIQUIDITY:
+        return !chartData.liquidity || !chartData.liquidity.barData || chartData.liquidity.barData.length === 0;
+      default:
+        return false;
+    }
+  }, [chartData, chartType]);
+
+  // Reset polling state when time period or chart type changes
+  useEffect(() => {
+    setDisablePolling(false);
+    prevChartDataRef.current = null;
+  }, [timePeriod, chartType]);
+
+  // Disable polling immediately when we detect no data (after first load)
+  useEffect(() => {
+    // Only update after first load is complete
+    if (!isLoading && chartData !== prevChartDataRef.current) {
+      prevChartDataRef.current = chartData;
+      
+      // Only update state if it needs to change to avoid unnecessary re-renders
+      if (hasNoData && !disablePolling) {
+        setDisablePolling(true); // Disable polling immediately when no data
+      } else if (!hasNoData && disablePolling) {
+        setDisablePolling(false); // Enable polling when data exists
+      }
+    }
+  }, [hasNoData, isLoading, chartData, disablePolling]);
+
   const ChartBody = (() => {
-    if (isLoading) {
-      return <ChartSkeleton height={PDP_CHART_HEIGHT_PX} type={chartType} />
+    // If loading but we already know there's no data, show error state
+    if (isLoading && chartData && hasNoData) {
+      return (
+        <ChartSkeleton 
+          height={PDP_CHART_HEIGHT_PX} 
+          type={chartType}
+          errorText={true}
+        />
+      )
     }
 
-    if (error || !chartData) {
-      return null
+    // Normal loading state - use dim to avoid bright colors
+    if (isLoading) {
+      return <ChartSkeleton height={PDP_CHART_HEIGHT_PX} type={chartType} dim={true} />
+    }
+
+    if (error || !chartData || hasNoData) {
+      return (
+        <ChartSkeleton 
+          height={PDP_CHART_HEIGHT_PX} 
+          type={chartType}
+          errorText={hasNoData ? true : undefined}
+        />
+      )
     }
 
     const commonProps = {

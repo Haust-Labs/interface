@@ -12,33 +12,41 @@ import { opacify } from 'theme/utils'
 const ChartErrorContainer = styled(Row)`
   position: absolute;
   width: max-content;
-  align-items: flex-start;
+  align-items: center;
   max-width: 320px;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   border-radius: 20px;
-  border: 1.3px solid ${({ theme }) => theme.accentAction};
-  background-color: ${({ theme }) => theme.accentActive};
-  padding: 12px 20px 12px 12px;
+  border: 1px solid ${({ theme }) => opacify(25, theme.textSecondary)};
+  background-color: ${({ theme }) => opacify(15, theme.backgroundModule)};
+  padding: 12px 20px;
   gap: 12px;
+  z-index: 10;
   ${textFadeIn};
+`
+
+const MutedMissingDataIcon = styled(MissingDataIcon)`
+  opacity: 0.6;
 `
 const ErrorTextColumn = styled(Column)`
   white-space: normal;
 `
 
 function ChartErrorView({ children }: PropsWithChildren) {
+  // If children is boolean true, show only "Missing Data" without additional text
+  const hasAdditionalText = children && children !== true && (typeof children !== 'string' || children.length > 0);
+  
   return (
     <ChartErrorContainer data-cy="chart-error-view">
       <div>
-        <MissingDataIcon />
+        <MutedMissingDataIcon />
       </div>
       <ErrorTextColumn gap="xs">
-        <ThemedText.SubHeader color="neutral1">
+        <ThemedText.SubHeader color="neutral2">
           Missing Data
         </ThemedText.SubHeader>
-        <ThemedText.BodySmall color="neutral2">{children}</ThemedText.BodySmall>
+        {hasAdditionalText && <ThemedText.BodySmall color="neutral3">{children}</ThemedText.BodySmall>}
       </ErrorTextColumn>
     </ChartErrorContainer>
   )
@@ -81,6 +89,9 @@ function ChartSkeletonAxes({
 
 function ChartLoadingStateMask({ type, height, id }: { type: ChartType; height: number; id: string }) {
   const theme = useTheme()
+  // Use neutral gray color instead of accentAction (turquoise), lighter for better visibility
+  const neutralGray = opacify(40, theme.textSecondary)
+  const lightGray = opacify(30, theme.textSecondary)
 
   switch (type) {
     case ChartType.TVL:
@@ -89,13 +100,13 @@ function ChartLoadingStateMask({ type, height, id }: { type: ChartType; height: 
         <>
           <defs>
             <linearGradient id={`${id}-gradient`} x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0" stopColor={theme.accentAction}>
+              <stop offset="0" stopColor={neutralGray}>
                 <animate attributeName="offset" values="-1;3" dur="1.3s" repeatCount="indefinite" />
               </stop>
-              <stop offset="0.5" stopColor={lighten(0.24, theme.accentAction)}>
+              <stop offset="0.5" stopColor={lightGray}>
                 <animate attributeName="offset" values="-0.5;3.5" dur="1.3s" repeatCount="indefinite" />
               </stop>
-              <stop offset="1" stopColor={theme.accentAction}>
+              <stop offset="1" stopColor={neutralGray}>
                 <animate attributeName="offset" values="0;4" dur="1.3s" repeatCount="indefinite" />
               </stop>
             </linearGradient>
@@ -116,13 +127,13 @@ function ChartLoadingStateMask({ type, height, id }: { type: ChartType; height: 
         <>
           <defs>
             <linearGradient id={`${id}-gradient`} x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0" stopColor={theme.accentAction}>
+              <stop offset="0" stopColor={neutralGray}>
                 <animate attributeName="offset" values="-0.2;3.3" dur="1.3s" repeatCount="indefinite" />
               </stop>
-              <stop offset="0.1" stopColor={lighten(0.05, theme.accentAction)}>
+              <stop offset="0.1" stopColor={lightGray}>
                 <animate attributeName="offset" values="-0.1;3.4" dur="1.3s" repeatCount="indefinite" />
               </stop>
-              <stop offset="0.2" stopColor={theme.accentAction}>
+              <stop offset="0.2" stopColor={neutralGray}>
                 <animate attributeName="offset" values="0;3.5" dur="1.3s" repeatCount="indefinite" />
               </stop>
             </linearGradient>
@@ -162,23 +173,35 @@ export function ChartSkeleton({
   hideYAxis?: boolean
 }) {
   const theme = useTheme()
-  const neutral3Opacified = theme.accentAction
-
-  const fillColor = errorText || dim ? neutral3Opacified : theme.accentAction
-  const tickColor = errorText ? opacify(12.5, theme.accentActive) : neutral3Opacified
+  const hasError = errorText !== undefined
+  
+  // Use neutral gray colors - no turquoise/blue tint, lighter for better visibility
+  const fillColor = hasError 
+    ? opacify(35, theme.textSecondary) 
+    : (dim ? opacify(30, theme.textSecondary) : opacify(40, theme.textSecondary))
+  const tickColor = hasError 
+    ? opacify(25, theme.textSecondary) 
+    : (dim ? opacify(25, theme.textSecondary) : opacify(30, theme.textSecondary))
 
   const maskId = `mask-${type}-${height}`
 
   return (
-    <Row style={{ position: 'relative' }}>
-      <svg width="100%" height={height} xmlns="http://www.w3.org/2000/svg" fill="none">
-        <ChartSkeletonAxes height={height} fillColor={fillColor} tickColor={tickColor} hideYAxis={hideYAxis} />
-        <ChartLoadingStateMask id={maskId} type={type} height={height} />
-        <g mask={`url(#${maskId})`}>
-          <rect width="94%" height={height} rx="4" fill={errorText ? fillColor : `url(#${maskId}-gradient)`} />
-        </g>
-      </svg>
-      {errorText && <ChartErrorView>{errorText}</ChartErrorView>}
+    <Row style={{ position: 'relative', width: '100%', height: `${height}px`, minHeight: `${height}px`, overflow: 'hidden' }}>
+      {!hasError && (
+        <svg width="100%" height={height} xmlns="http://www.w3.org/2000/svg" fill="none" style={{ opacity: dim ? 0.5 : 0.6 }}>
+          <ChartSkeletonAxes height={height} fillColor={fillColor} tickColor={tickColor} hideYAxis={hideYAxis} />
+          <ChartLoadingStateMask id={maskId} type={type} height={height} />
+          <g mask={`url(#${maskId})`}>
+            <rect width="94%" height={height} rx="4" fill={dim ? fillColor : `url(#${maskId}-gradient)`} />
+          </g>
+        </svg>
+      )}
+      {hasError && (
+        <svg width="100%" height={height} xmlns="http://www.w3.org/2000/svg" fill="none" style={{ opacity: 0.3 }}>
+          <ChartSkeletonAxes height={height} fillColor={fillColor} tickColor={tickColor} hideYAxis={hideYAxis} />
+        </svg>
+      )}
+      {errorText !== undefined && <ChartErrorView>{errorText}</ChartErrorView>}
     </Row>
   )
 }

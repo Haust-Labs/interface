@@ -1,28 +1,25 @@
-import { ReactNode, useMemo, useState } from 'react'
-
 import { ChartHeader } from 'components/ChartsV2/ChartHeader'
 import { Chart } from 'components/ChartsV2/ChartModel'
 import { ChartSkeleton } from 'components/ChartsV2/LoadingState'
 import { TVLChartModel } from 'components/ChartsV2/StackedLineChart'
 import { ChartType } from 'components/ChartsV2/utils'
-
-import { MAX_WIDTH_MEDIA_BREAKPOINT } from 'components/Tokens/constants'
-
-import { useScreenSize } from 'hooks/screenSize/useScreenSize'
-import { useTheme } from 'styled-components/macro'
-import { formatNumber, NumberType } from 'conedison/format'
-import styled from 'styled-components'
-import { Flex } from 'components/layout/Flex'
-import { Text } from 'components/Text/Text'
-import { UTCTimestamp } from 'lightweight-charts'
-import { SegmentedControl } from 'theme/components/SegmentedControl'
-import { getCumulativeSum, getCumulativeVolume, getVolumeProtocolInfo } from 'components/ChartsV2/VolumeChart/utils'
+import { formatHistoryDuration } from 'components/ChartsV2/VolumeChart'
 import { CustomVolumeChartModel } from 'components/ChartsV2/VolumeChart/CustomVolumeChartModel'
 import { StackedHistogramData } from 'components/ChartsV2/VolumeChart/renderer'
-import { formatHistoryDuration } from 'components/ChartsV2/VolumeChart'
+import { getCumulativeSum, getCumulativeVolume, getVolumeProtocolInfo } from 'components/ChartsV2/VolumeChart/utils'
+import { Flex } from 'components/layout/Flex'
+import { Text } from 'components/Text/Text'
+import { MAX_WIDTH_MEDIA_BREAKPOINT } from 'components/Tokens/constants'
+import { formatNumber, NumberType } from 'conedison/format'
 import useUniswapTvl from 'graphql/thegraph/UniswapTvlQuery'
-import ms from 'ms.macro'
 import useUniswapVolume from 'graphql/thegraph/UniswapVolumeQuery'
+import { useScreenSize } from 'hooks/screenSize/useScreenSize'
+import { UTCTimestamp } from 'lightweight-charts'
+import ms from 'ms.macro'
+import { ReactNode, useMemo, useState } from 'react'
+import { useTheme } from 'styled-components/macro'
+import styled from 'styled-components/macro'
+import { SegmentedControl } from 'theme/components/SegmentedControl'
 
 const EXPLORE_CHART_HEIGHT_PX = 368
 const PRICE_SOURCES = ['V2', 'V3']
@@ -89,7 +86,7 @@ function VolumeChartSection() {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>(TimePeriod.DAY)
   const theme = useTheme()
   const isSmallScreen = !useScreenSize()['md']
-  const { data, isLoading } = useUniswapVolume(ms`30s`)
+  const { data, isLoading } = useUniswapVolume(ms`30s`, timePeriod)
   // const refitChartContent = useAtomValue(refitChartContentAtom)
 
   function timeGranularityToHistoryDuration(timePeriod: TimePeriod): HistoryDuration {
@@ -109,15 +106,38 @@ function VolumeChartSection() {
   // Add mock data generation
   const mockEntries = useMemo(() => {
     if (!data?.uniswapDayDatas) return []
-    return data?.uniswapDayDatas?.filter(dayData => !dayData.volumeUSD || dayData.volumeUSD !== '0').map((dayData) => {
-      return {
-        time: (dayData.date) as UTCTimestamp,
-        values: {
-          V3: Number(dayData.volumeUSD),
-        },
+    // Filter data to ensure we only have data from the selected period
+    const minDate = (() => {
+      const now = Math.floor(Date.now() / 1000);
+      const oneDay = 24 * 60 * 60;
+      const todayStart = Math.floor(new Date(now * 1000).setHours(0, 0, 0, 0) / 1000);
+      switch (timePeriod) {
+        case TimePeriod.DAY:
+          return todayStart - 29 * oneDay;
+        case TimePeriod.WEEK:
+          return todayStart - 89 * oneDay;
+        case TimePeriod.MONTH:
+          return todayStart - 364 * oneDay;
+        default:
+          return todayStart - 29 * oneDay;
       }
-    })
-  }, [data])
+    })();
+    
+    return data?.uniswapDayDatas
+      ?.filter(dayData => 
+        dayData.date >= minDate && 
+        (!dayData.volumeUSD || dayData.volumeUSD !== '0')
+      )
+      .map((dayData) => {
+        return {
+          time: (dayData.date) as UTCTimestamp,
+          values: {
+            V3: Number(dayData.volumeUSD),
+          },
+        }
+      })
+      .reverse() // Reverse to get ascending order for chart
+  }, [data, timePeriod])
 
   // Replace real data with mock data
   const entries = mockEntries
@@ -133,7 +153,7 @@ function VolumeChartSection() {
       isMultichainExploreEnabled: true,
       background: theme.background,
     }),
-    [entries, theme.accentAction, theme.accentActionSoft, theme.background]
+    [entries, theme.accentActionSoft, theme.background]
   )
 
   const cumulativeVolume = useMemo(() => getCumulativeVolume(entries), [entries])

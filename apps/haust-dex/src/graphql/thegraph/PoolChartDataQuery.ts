@@ -1,11 +1,61 @@
 import { ApolloError, useQuery } from "@apollo/client";
 import gql from "graphql-tag";
 import { UTCTimestamp } from "lightweight-charts";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { apolloClient } from "./apollo";
 
-const query = gql`
-  query PoolChartData($id: ID!) {
+// Helper function to get start of day (00:00:00) as Unix timestamp
+function getStartOfDay(timestamp: number): number {
+  const date = new Date(timestamp * 1000);
+  date.setHours(0, 0, 0, 0);
+  return Math.floor(date.getTime() / 1000);
+}
+
+// Helper function to get minimum date (Unix timestamp in seconds) for time period
+function getMinDateForTimePeriod(timePeriod: string): number {
+  const now = Math.floor(Date.now() / 1000); // Current time in seconds
+  const oneDay = 24 * 60 * 60; // 1 day in seconds
+
+  switch (timePeriod) {
+    case "DAY":
+      // For DAY period, show last 24 hours
+      return now - oneDay;
+    case "WEEK":
+      // For WEEK period, show last 7 days
+      const todayStart = getStartOfDay(now);
+      return todayStart - 6 * oneDay; // 7 days total (today + 6 days back)
+    case "MONTH":
+      // For MONTH period, show last 30 days
+      const monthStart = getStartOfDay(now);
+      return monthStart - 29 * oneDay; // 30 days total (today + 29 days back)
+    case "YEAR":
+      // For YEAR period, show last 365 days
+      const yearStart = getStartOfDay(now);
+      return yearStart - 364 * oneDay; // 365 days total (today + 364 days back)
+    default:
+      return now - oneDay;
+  }
+}
+
+// Helper function to get number of records to fetch for time period
+function getFirstForTimePeriod(timePeriod: string): number {
+  switch (timePeriod) {
+    case "DAY":
+      return 24; // 24 hours
+    case "WEEK":
+      return 7; // 7 days
+    case "MONTH":
+      return 30; // 30 days
+    case "YEAR":
+      return 365; // 365 days
+    default:
+      return 7;
+  }
+}
+
+// Query for hourly data (for DAY period)
+const hourQuery = gql`
+  query PoolChartDataHour($id: ID!, $first: Int!, $periodStartUnixGte: Int!) {
     pool(id: $id) {
       tick
       liquidity
@@ -21,7 +71,51 @@ const query = gql`
         price1
         createdAtTimestamp
       }
-      poolDayData(orderBy: date, orderDirection: desc) {
+      poolHourData(
+        where: { periodStartUnix_gte: $periodStartUnixGte }
+        orderBy: periodStartUnix
+        orderDirection: desc
+        first: $first
+      ) {
+        periodStartUnix
+        tvlUSD
+        close
+        high
+        low
+        open
+        tick
+        token0Price
+        token1Price
+        volumeUSD
+      }
+    }
+  }
+`;
+
+// Query for daily data (for WEEK, MONTH, YEAR periods)
+const dayQuery = gql`
+  query PoolChartDataDay($id: ID!, $dateGte: Int!, $first: Int!) {
+    pool(id: $id) {
+      tick
+      liquidity
+      token0Price
+      token1Price
+      totalValueLockedToken0
+      totalValueLockedToken1
+      ticks(orderBy: createdAtTimestamp, orderDirection: asc) {
+        tickIdx
+        liquidityGross
+        liquidityNet
+        price0
+        price1
+        createdAtTimestamp
+      }
+      poolDayData(
+        where: { date_gte: $dateGte }
+        orderBy: date
+        orderDirection: desc
+        first: $first
+      ) {
         tvlUSD
         close
         date
@@ -161,28 +255,83 @@ interface FormattedChartData {
 
 export default function usePoolChart(
   poolId: string,
-  interval: number
+  interval: number,
+  timePeriod: string = "DAY",
+  disablePolling?: boolean
 ): {
   error: ApolloError | undefined;
   isLoading: boolean;
   chartData: FormattedChartData | undefined;
 } {
-  const {
-    data,
-    loading: isLoading,
-    error,
-  } = useQuery(query, {
+  const isDayPeriod = timePeriod === "DAY";
+  const minDate = getMinDateForTimePeriod(timePeriod);
+  const first = getFirstForTimePeriod(timePeriod);
+
+  // For DAY period, use hourly data (24 hours)
+  const hourQueryResult = useQuery(hourQuery, {
     variables: {
       id: poolId.toLowerCase(),
+      first: 24, // 24 hours for 1 day
+      periodStartUnixGte: minDate,
     },
-    pollInterval: interval,
+    pollInterval: disablePolling || interval <= 0 ? undefined : interval, // Disable polling if disabled or interval is 0
     client: apolloClient,
+    skip: !isDayPeriod || !poolId,
   });
 
-  const chartData = useMemo(() => {
-    if (!data?.pool?.poolDayData) return undefined;
+  // For other periods, use daily data with date filter
+  const dayQueryResult = useQuery(dayQuery, {
+    variables: {
+      id: poolId.toLowerCase(),
+      dateGte: minDate,
+      first: first,
+    },
+    pollInterval: disablePolling || interval <= 0 ? undefined : interval, // Disable polling if disabled or interval is 0
+    client: apolloClient,
+    skip: isDayPeriod || !poolId,
+  });
 
-    const validDayData = data.pool.poolDayData
+  const activeQuery = isDayPeriod ? hourQueryResult : dayQueryResult;
+  const { data, loading: isLoading, error, stopPolling } = activeQuery;
+
+  // Explicitly stop polling when disablePolling is true
+  useEffect(() => {
+    if (disablePolling) {
+      stopPolling();
+    }
+  }, [disablePolling, stopPolling]);
+
+  const chartData = useMemo(() => {
+    let dayData: any[] = [];
+
+    if (isDayPeriod && data?.pool?.poolHourData) {
+      // Transform hourly data to match daily data format
+      const filteredHours = data.pool.poolHourData.filter(
+        (hour: any) => hour.periodStartUnix >= minDate
+      );
+      dayData = filteredHours.map((hour: any) => ({
+        date: hour.periodStartUnix,
+        close: hour.close,
+        high: hour.high,
+        low: hour.low,
+        open: hour.open,
+        tick: hour.tick,
+        token0Price: hour.token0Price,
+        token1Price: hour.token1Price,
+        volumeUSD: hour.volumeUSD,
+        tvlUSD: hour.tvlUSD,
+      }));
+    } else if (data?.pool?.poolDayData) {
+      // Filter daily data to ensure we only have data from the selected period
+      const filteredDays = data.pool.poolDayData.filter(
+        (day: any) => day.date >= minDate
+      );
+      dayData = filteredDays;
+    }
+
+    if (!dayData || dayData.length === 0) return undefined;
+
+    const validDayData = dayData
       .filter((day: any) => day.close !== "0" && day.token0Price !== "0")
       .reverse();
 
@@ -224,7 +373,7 @@ export default function usePoolChart(
 
       liquidity: liquidityData,
     };
-  }, [data]);
+  }, [data, minDate, isDayPeriod]);
   return useMemo(
     () => ({
       error,
