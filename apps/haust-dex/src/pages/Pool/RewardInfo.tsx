@@ -66,12 +66,10 @@ export function RewardInfo({
   tokenId: string, 
   stakedInfo: V3StakingRewardInfo,
 }) {
-  console.log("stakedInfo", stakedInfo);
   const { rewardInfo: rewardAmount } = useV3StakingRewardInfo(
     stakedInfo!,
     tokenId!
   )
-  console.log("rewardAmount", rewardAmount);
   const rewardToken = useNativeCurrency()
   const rewardInfo = {
     rewardToken,

@@ -255,7 +255,7 @@ export default function PoolTable({ referenceToken }: { referenceToken?: string 
         }
       />
     )
-  } else if (filteredPools.length === 0 || filteredPools[0]?.poolDayData?.length === 0) {
+  } else if (filteredPools.length === 0) {
     return <NoTokensState message={<Trans>No pools found</Trans>} />
   } else {
     return (

@@ -47,7 +47,6 @@ export function useV3Incentive(): UseV3IncentivesCreatedResults {
     });
   }, [activeIncentives]);
 
-  console.log("incentiveEvents", incentiveEvents);
   return {
     loading,
     incentiveEvents,

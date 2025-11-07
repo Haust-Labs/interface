@@ -2,6 +2,7 @@ import { ApolloError, useQuery } from "@apollo/client";
 import gql from "graphql-tag";
 import { getCorrectName } from "hooks/useCorrectNaming";
 import { useMemo } from "react";
+import { TimePeriod } from "graphql/data/util";
 
 import { TopTokensQuery } from "./__generated__/types-and-hooks";
 import { apolloClient } from "./apollo";
@@ -14,8 +15,24 @@ export enum Duration {
   year = "year",
 }
 
+// Helper function to get number of days for time period
+function getDaysForTimePeriod(timePeriod: TimePeriod): number {
+  switch (timePeriod) {
+    case TimePeriod.DAY:
+      return 1;
+    case TimePeriod.WEEK:
+      return 7;
+    case TimePeriod.MONTH:
+      return 30;
+    case TimePeriod.YEAR:
+      return 365;
+    default:
+      return 1;
+  }
+}
+
 const query = gql`
-  query TopTokens($orderDirection: OrderDirection = asc) {
+  query TopTokens($orderDirection: OrderDirection = asc, $days: Int!) {
     tokens(orderBy: totalValueLockedUSD, orderDirection: $orderDirection) {
       id
       name
@@ -23,9 +40,10 @@ const query = gql`
       volumeUSD
       totalSupply
       decimals
-      tokenDayData(first: 2, orderBy: date, orderDirection: desc) {
+      tokenDayData(first: $days, orderBy: date, orderDirection: desc) {
         date
         priceUSD
+        volumeUSD
       }
     }
   }
@@ -77,7 +95,10 @@ export interface TopTokensData {
   sparklines: SparklineMap;
 }
 
-export default function useTopTokensQuery(interval: number): {
+export default function useTopTokensQuery(
+  interval: number,
+  timePeriod: TimePeriod = TimePeriod.DAY
+): {
   error: ApolloError | undefined;
   isLoading: boolean;
   data: TopTokensData;
@@ -94,11 +115,14 @@ export default function useTopTokensQuery(interval: number): {
     []
   );
 
+  const days = getDaysForTimePeriod(timePeriod);
+
   const {
     data: rawData,
     loading: isLoading,
     error,
   } = useQuery(query, {
+    variables: { days },
     pollInterval: interval,
     client: apolloClient,
   });
@@ -193,6 +217,19 @@ export default function useTopTokensQuery(interval: number): {
                   100
                 : 0;
 
+              // Calculate volume for the selected time period
+              // Sum up volumeUSD from tokenDayData for the selected period
+              const periodVolume = (
+                token.tokenDayData as Array<{
+                  date: number;
+                  priceUSD: any;
+                  volumeUSD?: any;
+                }>
+              ).reduce(
+                (sum, dayData) => sum + Number(dayData.volumeUSD || 0),
+                0
+              );
+
               return {
                 ...token,
                 address: token.id,
@@ -207,7 +244,7 @@ export default function useTopTokensQuery(interval: number): {
                   duration: Duration.day,
                   pricePercentChange: dayDelta.toString(),
                   hourlyPriceChange: hourDelta.toString(),
-                  volume: token.volumeUSD,
+                  volume: periodVolume.toString(),
                 },
               };
             }) || []),
@@ -240,6 +277,18 @@ export default function useTopTokensQuery(interval: number): {
                   100
                 : 0;
 
+              // Calculate volume for the selected time period
+              const periodVolume = (
+                whaustToken.tokenDayData as Array<{
+                  date: number;
+                  priceUSD: any;
+                  volumeUSD?: any;
+                }>
+              ).reduce(
+                (sum, dayData) => sum + Number(dayData.volumeUSD || 0),
+                0
+              );
+
               return {
                 ...whaustToken,
                 id: whaustToken.id + "_haust",
@@ -255,7 +304,7 @@ export default function useTopTokensQuery(interval: number): {
                   duration: Duration.day,
                   pricePercentChange: dayDelta.toString(),
                   hourlyPriceChange: hourDelta.toString(),
-                  volume: whaustToken.volumeUSD,
+                  volume: periodVolume.toString(),
                 },
               };
             }) || []),
@@ -301,6 +350,14 @@ export default function useTopTokensQuery(interval: number): {
         ),
       },
     }),
-    [rawData, hourData, error, isLoading, hourDataLoading, allowedTokenIds]
+    [
+      rawData,
+      hourData,
+      error,
+      isLoading,
+      hourDataLoading,
+      allowedTokenIds,
+      timePeriod,
+    ]
   );
 }

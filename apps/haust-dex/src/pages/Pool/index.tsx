@@ -154,7 +154,7 @@ export default function Pool() {
   const [statusFilter, setStatusFilter] = useAtom(statusFilterAtom)
 
   const { positions, loading: positionsLoading } = useV3Positions(account)
-  console.log("positions1", positions);
+  
   const isValidToken = useCallback((address: string) => {
     return Object.values(TOKEN_ADDRESSES).some(
       tokenAddress => tokenAddress?.address?.toLowerCase() === address.toLowerCase()

@@ -157,8 +157,32 @@ export class PriceChartModel extends ChartModel<PriceChartData> {
     if (hoverData) {
       // Use original data point for hover functionality rather than data that has been scaled by lowPriceRangeScaleFactor
       const originalItem = this.originalData[hoverData.logicalIndex]
-      const updatedHoverData = { ...hoverData, item: originalItem }
-      super.onSeriesHover(updatedHoverData)
+      
+      // For candlestick charts, use the candle's X and Y coordinates instead of mouse coordinates
+      // This makes the tooltip "snap" to the candle position, similar to Uniswap
+      if (this.type === PriceChartType.CANDLESTICK) {
+        const candleX = this.api.timeScale().timeToCoordinate(originalItem.time)
+        // Use close price for Y coordinate to position tooltip at the candle's close price
+        const candleY = this.series.priceToCoordinate(originalItem.close * this.lowPriceRangeScaleFactor)
+        if (candleX !== null && candleY !== null) {
+          // Update hoverData with candle's coordinates instead of mouse coordinates
+          // Note: ChartModel.onSeriesHover will add priceScale width to X, so we pass raw coordinate
+          // Set isCandlestick flag so ChartModel knows to position tooltip to the side
+          const updatedHoverData = { 
+            ...hoverData, 
+            item: originalItem,
+            x: candleX,
+            y: candleY,
+            isCandlestick: true
+          }
+          super.onSeriesHover(updatedHoverData)
+        } else {
+          super.onSeriesHover({ ...hoverData, item: originalItem })
+        }
+      } else {
+        const updatedHoverData = { ...hoverData, item: originalItem }
+        super.onSeriesHover(updatedHoverData)
+      }
     } else {
       super.onSeriesHover(undefined)
     }
@@ -202,62 +226,86 @@ interface PriceChartProps {
   stale: boolean
 }
 
-const TooltipContainer = styled.div`
-  background: rgba(0, 0, 0, 0.8);
+const TooltipContainer = styled.div<{ isCandlestick?: boolean }>`
+  background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 12px 16px;
-  z-index: 3000;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 6px 12px;
+  width: fit-content;
+  z-index: 10000;
   position: absolute;
   top: 0;
   left: 0;
-  transform: translate(-50%, -100%);
+  transform: ${({ isCandlestick }) => 
+    isCandlestick 
+      ? 'translate(-50%, -100%)' // For candlestick: center on crosshair line, position above
+      : 'translate(-50%, -100%)' // For line: center horizontally, position above
+  };
   margin-top: -8px;
+  pointer-events: none;
+  transition: transform 0.1s ease-out;
+  will-change: transform;
 `
 
-const TooltipRow = styled(Flex)`
+const TooltipContent = styled(Flex)`
   display: flex;
-  justify-content: flex-start;
-  gap: 8px;
+  flex-direction: column;
+  gap: 4px;
   font-size: 12px;
-  line-height: 14px;
-  color: white;
-  white-space: nowrap;
-  align-items: center;
-
-  &:not(:last-child) {
-    margin-bottom: 4px;
-  }
-
-  > :first-child {
-    width: 40px; // Add fixed width for labels
-  }
+  line-height: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  width: fit-content;
 `
 
-const TooltipValue = styled.div`
+const TooltipRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+`
+
+const TooltipLabel = styled.span`
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+`
+
+const TooltipValue = styled.span`
   font-feature-settings: 'tnum' on, 'lnum' on;
   font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
 `
 
 function CandlestickTooltip({ data }: { data: PriceChartData }) {
   return (
-    <TooltipContainer>
-      <TooltipRow>
-        Open <TooltipValue>$ {formatNumber(data.open)}</TooltipValue>
-      </TooltipRow>
-      <TooltipRow>
-        High
-        <TooltipValue>$ {formatNumber(data.high)}</TooltipValue>
-      </TooltipRow>
-      <TooltipRow>
-        Low
-        <TooltipValue>$ {formatNumber(data.low)}</TooltipValue>
-      </TooltipRow>
-      <TooltipRow>
-        Close
-        <TooltipValue>$ {formatNumber(data.close)}</TooltipValue>
-      </TooltipRow>
+    <TooltipContainer isCandlestick={true}>
+      <TooltipContent>
+        <TooltipRow>
+          <TooltipLabel>Open</TooltipLabel>
+          <TooltipValue>$ {formatNumber(data.open)}</TooltipValue>
+        </TooltipRow>
+        <TooltipRow>
+          <TooltipLabel>High</TooltipLabel>
+          <TooltipValue>$ {formatNumber(data.high)}</TooltipValue>
+        </TooltipRow>
+        <TooltipRow>
+          <TooltipLabel>Low</TooltipLabel>
+          <TooltipValue>$ {formatNumber(data.low)}</TooltipValue>
+        </TooltipRow>
+        <TooltipRow>
+          <TooltipLabel>Close</TooltipLabel>
+          <TooltipValue>$ {formatNumber(data.close)}</TooltipValue>
+        </TooltipRow>
+      </TooltipContent>
     </TooltipContainer>
   )
 }

@@ -1,24 +1,20 @@
 import { Trans } from '@lingui/macro'
-import {validateUrlChainParam} from "api/util";
-import { PAGE_SIZE, useTopTokens } from 'graphql/data/TopTokens'
-import { ReactNode } from 'react'
-import { AlertTriangle, ArrowUp } from 'react-feather'
-import {useParams} from "react-router-dom";
-import styled from 'styled-components/macro'
-import { useState, useEffect } from 'react'
-import React from 'react'
+import { useWeb3React } from '@web3-react/core';
+import { SupportedChainId } from 'constants/chains';
+import { PAGE_SIZE } from 'graphql/data/TopTokens'
+import useTopTokensQuery from 'graphql/thegraph/TopTokensQuery';
 import { useAtomValue } from 'jotai/utils'
-import { filterStringAtom, sortMethodAtom, sortAscendingAtom, TokenSortMethod } from '../state'
+import ms from 'ms.macro';
+import { ReactNode } from 'react'
+import { useEffect,useState } from 'react'
+import React from 'react'
+import { AlertTriangle } from 'react-feather'
+import { CornerLeftUp } from 'react-feather'
+import styled from 'styled-components/macro'
 
 import { MAX_WIDTH_MEDIA_BREAKPOINT } from '../constants'
+import { filterStringAtom, filterTimeAtom,sortAscendingAtom, sortMethodAtom, TokenSortMethod } from '../state'
 import { HeaderRow, LoadedRow, LoadingRow } from './TokenRow'
-import useTopTokensQuery from 'graphql/thegraph/TopTokensQuery';
-import ms from 'ms.macro';
-import { CornerLeftUp } from 'react-feather'
-import { isGqlSupportedChain } from 'graphql/data/util';
-import { ExplorerDataType, getExplorerLink } from 'utils/getExplorerLink';
-import { CHAIN_IDS_TO_NAMES, SupportedChainId } from 'constants/chains';
-import { useWeb3React } from '@web3-react/core';
 
 const TableContainer = styled.div`
   display: flex;
@@ -150,7 +146,8 @@ function LoadingTokenTable({ rowCount = PAGE_SIZE }: { rowCount?: number }) {
 
 export default function TokenTable() {
   const { chainId } = useWeb3React()
-  const { isLoading, error, data } = useTopTokensQuery(ms`30s`)
+  const timePeriod = useAtomValue(filterTimeAtom)
+  const { isLoading, data } = useTopTokensQuery(ms`30s`, timePeriod)
   const searchFilter = useAtomValue(filterStringAtom)
   const sortMethod = useAtomValue(sortMethodAtom)
   const sortAscending = useAtomValue(sortAscendingAtom)

@@ -66,6 +66,7 @@ export type ChartHoverData<TDataType extends SeriesDataItemType> = {
   x: number
   y: number
   logicalIndex: Logical
+  isCandlestick?: boolean // Flag to indicate if this is a candlestick chart
 }
 
 /** Util for managing lightweight-charts' state outside of the React Lifecycle. */
@@ -133,23 +134,59 @@ export abstract class ChartModel<TDataType extends SeriesDataItemType> {
     }
 
     // Tooltip positioning modified from https://github.com/tradingview/lightweight-charts/blob/master/plugin-examples/src/plugins/tooltip/tooltip.ts
-    const x = hoverData.x + this.api.priceScale('left').width() + 10
-    const deadzoneWidth = this._lastTooltipWidth ? Math.ceil(this._lastTooltipWidth) : 45
-    const xAdjusted = Math.min(x, this.api.paneSize().width - deadzoneWidth)
+    const priceScaleWidth = this.api.priceScale('left').width()
+    const chartWidth = this.api.paneSize().width
+    const tooltipWidth = this._lastTooltipWidth ? Math.ceil(this._lastTooltipWidth) : 200
+    
+    let x: number
+    let transformX: string
+    
+    if (hoverData.isCandlestick) {
+      // For candlestick charts, center tooltip on the crosshair line (vertical line)
+      // This positions it above the chart, centered on the candle
+      const candleX = hoverData.x + priceScaleWidth
+      x = candleX
+      transformX = `calc(${x}px - 50%)` // Center tooltip on the crosshair line
+    } else {
+      // For line charts, use original positioning
+      x = hoverData.x + priceScaleWidth + 10
+      const deadzoneWidth = tooltipWidth
+      const xAdjusted = Math.min(x, chartWidth - deadzoneWidth)
+      transformX = `calc(${xAdjusted}px)`
+    }
 
-    const transformX = `calc(${xAdjusted}px)`
-
-    const y = hoverData.y
-    const flip = y <= 20 + 100
-    const yPx = y + (flip ? 1 : -1) * 20
-    const yPct = flip ? '' : ' - 100%'
-    const transformY = `calc(${yPx}px${yPct})`
+    let y: number
+    let transformY: string
+    
+    if (hoverData.isCandlestick) {
+      // For candlestick charts, position tooltip above the crosshair point
+      // It should move up and down with the vertical line, but always above the chart
+      y = hoverData.y
+      // Position tooltip above the point, with some offset
+      // Ensure it doesn't go too high (minimum 20px from top)
+      const minY = 20
+      const tooltipHeight = 40 // Approximate tooltip height
+      const yPosition = Math.max(minY, y - tooltipHeight - 8)
+      transformY = `calc(${yPosition}px - 100%)`
+    } else {
+      // For line charts, use original positioning logic
+      y = hoverData.y
+      const flip = y <= 20 + 100
+      const yPx = y + (flip ? 1 : -1) * 20
+      const yPct = flip ? '' : ' - 100%'
+      transformY = `calc(${yPx}px${yPct})`
+    }
 
     const tooltip = document.getElementById(this.tooltipId)
     const legend = document.getElementById(PROTOCOL_LEGEND_ELEMENT_ID)
 
     if (tooltip) {
-      tooltip.style.transform = `translate(${transformX}, ${transformY})`
+      // Use requestAnimationFrame for smooth updates
+      requestAnimationFrame(() => {
+        if (tooltip) {
+          tooltip.style.transform = `translate(${transformX}, ${transformY})`
+        }
+      })
 
       const tooltipMeasurement = tooltip.getBoundingClientRect()
       this._lastTooltipWidth = tooltipMeasurement?.width || null
@@ -346,14 +383,12 @@ const ChartTooltip = styled(Flex)({
   position: 'absolute',
   left: 0,
   top: 0,
-  zIndex: '$tooltip',
-  backgroundColor: '$surface5',
-  backdropFilter: 'blur(8px)',
-  borderRadius: '$rounded8',
-  borderColor: '$surface3',
-  borderStyle: 'solid',
-  borderWidth: 1,
-  p: '$spacing8',
+  zIndex: 10000, // High z-index to ensure tooltip is above chart canvas
+  backgroundColor: 'transparent', // Transparent background, tooltip content has its own background
+  backdropFilter: 'none',
+  borderRadius: 0,
+  border: 'none',
+  padding: 0,
 })
 
 const StaleBannerWrapper = styled(ChartTooltip)({

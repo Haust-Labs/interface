@@ -155,15 +155,18 @@ export default function ChartSection({
   const [chartType, setChartType] = useState(ChartType.PRICE);
   const [priceChartType, setPriceChartType] = useState(initialPriceChartType);
   const isMediumScreen = window.innerWidth < 768; // простая замена useScreenSize
-  const { data: priceChartData } = useTokenPriceChart(token, 1000)
-  const { data: volumeChartData } = useTokenVolumeChart(token, 1000)
-  const { data: tvlChartData } = useTokenTVLChart(token, 1000)
+  const { data: priceChartData } = useTokenPriceChart(token, 300000, timePeriod) // 5 minutes
+  const { data: volumeChartData } = useTokenVolumeChart(token, 300000, timePeriod) // 5 minutes
+  const { data: tvlChartData } = useTokenTVLChart(token, 300000, timePeriod) // 5 minutes
   // Transform GraphQL price data into required format
   const transformedPriceData = useMemo(() => {
     if (!priceChartData?.tokenDayDatas?.length) return MOCK_PRICE_DATA;
 
+    // Reverse the array since we get data in desc order but need asc for charts
+    const sortedData = [...priceChartData.tokenDayDatas].reverse();
+
     return {
-      entries: priceChartData.tokenDayDatas.map((entry: any) => {
+      entries: sortedData.map((entry: any) => {
         const timestamp = Math.floor(entry.date) as UTCTimestamp
         return {
           time: timestamp,
@@ -175,30 +178,36 @@ export default function ChartSection({
         }
       })
     }
-  }, [priceChartData])
+  }, [priceChartData, timePeriod])
 
   const transformedVolumeData = useMemo(() => {
     if (!volumeChartData?.tokenDayDatas?.length) return MOCK_VOLUME_DATA;
 
+    // Reverse the array since we get data in desc order but need asc for charts
+    const sortedData = [...volumeChartData.tokenDayDatas].reverse();
+
     return {
-      entries: volumeChartData.tokenDayDatas.map((entry: any) => ({
+      entries: sortedData.map((entry: any) => ({
         time: Math.floor(entry.date),
         value: Number(Number(entry.volumeUSD).toFixed(3))
       }))
     }
-  }, [volumeChartData])
+  }, [volumeChartData, timePeriod])
 
   const transformedTVLData = useMemo(() => {
     if (!tvlChartData?.tokenDayDatas?.length) return MOCK_TVL_DATA;
 
+    // Reverse the array since we get data in desc order but need asc for charts
+    const sortedData = [...tvlChartData.tokenDayDatas].reverse();
+
     return {
-      entries: tvlChartData.tokenDayDatas.map((entry: any) => ({
+      entries: sortedData.map((entry: any) => ({
         time: Math.floor(entry.date),
         values: [Number(Number(entry.totalValueLockedUSD).toFixed(3))]
       })),
       categories: ['TVL']
     }
-  }, [tvlChartData])
+  }, [tvlChartData, timePeriod])
   // Use mock data if no activeQuery is provided
   const mockQuery: ActiveQuery = useMemo(() => {
     if (activeQuery) return activeQuery;
@@ -243,7 +252,7 @@ export default function ChartSection({
           dataQuality: DataQuality.VALID,
         } as ChartQueryResult<PriceChartData, ChartType.PRICE>;
     }
-  }, [activeQuery, chartType, transformedPriceData]);
+  }, [activeQuery, chartType, transformedPriceData, transformedVolumeData, transformedTVLData, timePeriod]);
 
   const finalQuery: ActiveQuery = activeQuery ?? mockQuery;
 

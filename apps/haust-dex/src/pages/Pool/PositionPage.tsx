@@ -56,7 +56,7 @@ import { useV3StakedNftTokenIds } from 'hooks/useV3StakedNftTokenIds'
 const getTokenLink = (chainId: any, address: string) => {
   if (isGqlSupportedChain(chainId)) {
     const chainName = CHAIN_IDS_TO_NAMES[chainId]
-    return `${window.location.origin}/#/explore/tokens/${chainName}/${address}`
+    return `/explore/token/${chainName}/${address}`
   } else {
     return getExplorerLink(chainId, address, ExplorerDataType.TOKEN)
   }
@@ -224,14 +224,27 @@ function LinkedCurrency({ chainId, currency }: { chainId?: number; currency?: Cu
   const address = (currency as Token)?.address
 
   if (chainId && address) {
-    return (
-      <ExternalLink href={getTokenLink(chainId, address)}>
-        <RowFixed>
-          <CurrencyLogo currency={currency} size="20px" style={{ marginRight: '0.5rem' }} />
-          <ThemedText.DeprecatedMain>{currency?.symbol} ↗</ThemedText.DeprecatedMain>
-        </RowFixed>
-      </ExternalLink>
-    )
+    const link = getTokenLink(chainId, address)
+    // If it's an external link (explorer), use ExternalLink, otherwise use Link for internal navigation
+    if (link.startsWith('http')) {
+      return (
+        <ExternalLink href={link}>
+          <RowFixed>
+            <CurrencyLogo currency={currency} size="20px" style={{ marginRight: '0.5rem' }} />
+            <ThemedText.DeprecatedMain>{currency?.symbol} ↗</ThemedText.DeprecatedMain>
+          </RowFixed>
+        </ExternalLink>
+      )
+    } else {
+      return (
+        <Link to={link} style={{ textDecoration: 'none' }}>
+          <RowFixed>
+            <CurrencyLogo currency={currency} size="20px" style={{ marginRight: '0.5rem' }} />
+            <ThemedText.DeprecatedMain>{currency?.symbol} ↗</ThemedText.DeprecatedMain>
+          </RowFixed>
+        </Link>
+      )
+    }
   }
 
   return (
@@ -653,8 +666,6 @@ function PositionPageContent() {
       </AutoColumn>
     )
   }
-
-  console.log(incentive, 'incentive2');
 
   const showCollectAsWeth = Boolean(
     ownsNFT &&
