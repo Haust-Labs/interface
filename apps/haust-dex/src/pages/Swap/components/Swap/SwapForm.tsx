@@ -27,6 +27,7 @@ import { useCurrency, useDefaultActiveTokens } from 'hooks/Tokens'
 import { useIsSwapUnsupported } from 'hooks/useIsSwapUnsupported'
 import usePermit2Allowance, { AllowanceState } from 'hooks/usePermit2Allowance'
 import { useSwapCallback } from 'hooks/useSwapCallback'
+import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
 import { useUSDPrice } from 'hooks/useUSDPrice'
 import useWrapCallback, { WrapErrorText, WrapType } from 'hooks/useWrapCallback'
 import JSBI from 'jsbi'
@@ -121,6 +122,28 @@ const DetailsSwapSection = styled.div`
   line-height: 20px;
   font-weight: 500;
   margin-top: 8px;
+`
+
+const SwitchNetworkButton = styled(ButtonPrimary)`
+  background-color: rgba(70, 255, 244, 0.2);
+  color: #4FD1C7;
+  border: none;
+  border-radius: 16px;
+  padding: 16px;
+  width: 100%;
+  font-weight: 500;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background-color: #3A6B6A;
+    color: #5FE8E0;
+  }
+  
+  &:active {
+    background-color: #2A5251;
+  }
 `
 
 function largerPercentValue(a?: Percent, b?: Percent) {
@@ -385,6 +408,8 @@ export default function SwapForm({
   )
 
   const swapIsUnsupported = useIsSwapUnsupported(currencies[Field.INPUT], currencies[Field.OUTPUT])
+  const { switchNetwork } = useSwitchNetwork()
+  const isWrongNetwork = chainId !== undefined && !isSupportedChain(chainId)
 
   const priceImpactTooHigh = priceImpactSeverity > 3 && !isExpertMode
   const showPriceImpactWarning = largerPriceImpact && priceImpactSeverity > 3
@@ -657,6 +682,12 @@ export default function SwapForm({
                     <Trans>Insufficient liquidity for this trade.</Trans>
                   </ThemedText.DeprecatedMain>
                 </GrayCard>
+              ) : isWrongNetwork ? (
+                <SwitchNetworkButton onClick={switchNetwork} id="swap-button">
+                  <Text fontSize={20} fontWeight={600}>
+                    <Trans>Switch network</Trans>
+                  </Text>
+                </SwitchNetworkButton>
               ) : (
                 <ButtonError
                   onClick={() => {
