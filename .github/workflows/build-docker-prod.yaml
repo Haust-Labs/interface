@@ -30,9 +30,20 @@ jobs:
           echo "REPO_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
           echo "REPO_NAME=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
+      - name: Mint token for private dependencies
+        id: deps-token
+        uses: actions/create-github-app-token@v3
+        with:
+          # haust-ci-bot; read-only access to the private smart-order-router fork used by the Dockerfile
+          client-id: Iv23lipOnRLr9kmJtlhH
+          private-key: ${{ secrets.INFRA_BOT_PRIVATE_KEY }}
+          owner: Haust-Labs
+          repositories: haust-dex-smart-order-router
+          permission-contents: read
+
       - name: Build Docker image
         run: |
-         docker build --build-arg GITHUB_TOKEN=${{ secrets.TOKEN }} -t cr.haust.app/dex/dex:${{ github.ref_name }} .
+         docker build --build-arg GITHUB_TOKEN=${{ steps.deps-token.outputs.token }} -t cr.haust.app/dex/dex:${{ github.ref_name }} .
 
       - name: Push Docker image to GHCR
         run: |
