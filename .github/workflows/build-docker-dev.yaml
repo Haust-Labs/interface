@@ -50,7 +50,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-         docker build --build-arg GITHUB_TOKEN=${{ steps.deps-token.outputs.token }} -t cr.haust.app/dex/dex:${{ env.DATE }} .
+         docker build --build-arg GITHUB_TOKEN=x-access-token:${{ steps.deps-token.outputs.token }} -t cr.haust.app/dex/dex:${{ env.DATE }} .
 
       - name: Push Docker image to GHCR
         run: |
