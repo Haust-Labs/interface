@@ -37,9 +37,20 @@ jobs:
         id: date
         run: echo "DATE=dev-$(TZ='Europe/Warsaw' date +%Y-%m-%d-%Hh%Mm)" >> $GITHUB_ENV
 
+      - name: Mint token for private dependencies
+        id: deps-token
+        uses: actions/create-github-app-token@v3
+        with:
+          # haust-ci-bot; read-only access to the private smart-order-router fork used by the Dockerfile
+          client-id: Iv23lipOnRLr9kmJtlhH
+          private-key: ${{ secrets.INFRA_BOT_PRIVATE_KEY }}
+          owner: Haust-Labs
+          repositories: haust-dex-smart-order-router
+          permission-contents: read
+
       - name: Build Docker image
         run: |
-         docker build --build-arg GITHUB_TOKEN=${{ secrets.TOKEN }} -t cr.haust.app/dex/dex:${{ env.DATE }} .
+         docker build --build-arg GITHUB_TOKEN=${{ steps.deps-token.outputs.token }} -t cr.haust.app/dex/dex:${{ env.DATE }} .
 
       - name: Push Docker image to GHCR
         run: |
@@ -48,11 +59,22 @@ jobs:
       - name: Logout from GitHub Container Registry
         run: docker logout cr.haust.app
         
+      - name: Mint haust-infra token
+        id: infra-token
+        uses: actions/create-github-app-token@v3
+        with:
+          # client id is a public identifier, not a secret (same app as wallet-backend)
+          client-id: Iv23lipOnRLr9kmJtlhH
+          private-key: ${{ secrets.INFRA_BOT_PRIVATE_KEY }}
+          owner: Haust-Labs
+          repositories: haust-infra
+          permission-contents: write
+
       - name: Checkout haust-infra repository
         uses: actions/checkout@v2
         with:
           repository: Haust-Labs/haust-infra
-          token: ${{ secrets.TOKEN }}
+          token: ${{ steps.infra-token.outputs.token }}
           path: haust-infra
           ref: master
             
