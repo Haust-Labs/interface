@@ -54,11 +54,14 @@ export const tokensSlice = createSlice({
       state.lastUpdated = Date.now();
       state.isLoading = false;
     },
+    updateFailed: (state, action: PayloadAction<{ lastUpdated: number }>) => {
+      state.lastUpdated = action.payload.lastUpdated;
+    },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
   },
 });
 
-export const { updateTokenPrices, setLoading } = tokensSlice.actions;
+export const { updateTokenPrices, updateFailed, setLoading } = tokensSlice.actions;
 export default tokensSlice.reducer;
