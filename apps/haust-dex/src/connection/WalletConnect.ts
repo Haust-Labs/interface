@@ -60,7 +60,15 @@ export class WalletConnectV2 extends WalletConnect {
 
   async activate(chainId?: number) {
     await this.pendingDeactivation
-    return super.activate(chainId)
+    // The wallet approved a request after its QR code was closed: nothing is connected to that session, so drop it.
+    if (this.provider?.session && !this.provider.accounts.length) {
+      await this.endSession()
+    }
+    await super.activate(chainId)
+    // The base class does not report a session that was restored during initialization.
+    if (this.provider?.session) {
+      this.actions.update({ chainId: this.provider.chainId, accounts: this.provider.accounts })
+    }
   }
 
   /**
