@@ -1,7 +1,8 @@
 import { SupportedChainId } from 'constants/chains'
+import { NETWORK } from 'constants/network'
 
 const BLOCK_EXPLORER_PREFIXES: { [chainId: number]: string } = {
-  [SupportedChainId.HAUST_TESTNET]: 'https://haust-devnet-blockscout.eu-north-2.gateway.fm/',
+  [SupportedChainId.HAUST_TESTNET]: `${NETWORK.explorerUrl}/`,
   [SupportedChainId.HAUST]: 'https://bscscan.com',
 }
 

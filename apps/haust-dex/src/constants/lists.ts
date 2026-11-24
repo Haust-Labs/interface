@@ -1,3 +1,5 @@
+import { NETWORK } from 'constants/network'
+
 export const UNI_EXTENDED_LIST = 'https://gateway.ipfs.io/ipns/extendedtokens.uniswap.org'
 const UNI_UNSUPPORTED_LIST = 'https://gateway.ipfs.io/ipns/unsupportedtokens.uniswap.org'
 const AAVE_LIST = 'tokenlist.aave.eth'
@@ -14,7 +16,7 @@ const GEMINI_LIST = 'https://www.gemini.com/uniswap/manifest.json'
 const KLEROS_LIST = 't2crtokens.eth'
 const SET_LIST = 'https://raw.githubusercontent.com/SetProtocol/uniswap-tokenlist/main/set.tokenlist.json'
 const WRAPPED_LIST = 'wrapped.tokensoft.eth'
-export const HAUST_TOKENLIST = 'https://raw.githubusercontent.com/Haust-Labs/haust-dex-tokenlist/devnet/tokenlist.json'
+export const HAUST_TOKENLIST = NETWORK.tokenListUrl
 
 export const UNSUPPORTED_LIST_URLS: string[] = [BA_LIST, UNI_UNSUPPORTED_LIST]
 

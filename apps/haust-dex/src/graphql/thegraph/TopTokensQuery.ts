@@ -1,4 +1,5 @@
 import { ApolloError, useQuery } from "@apollo/client";
+import { NATIVE_TOKEN_ROW_ID, NETWORK, TRACKED_TOKEN_ADDRESSES } from "constants/network";
 import gql from "graphql-tag";
 import { getCorrectName } from "hooks/useCorrectNaming";
 import { useMemo } from "react";
@@ -104,14 +105,7 @@ export default function useTopTokensQuery(
   data: TopTokensData;
 } {
   const allowedTokenIds = useMemo(
-    () => [
-      "0x2c990daddaf3b760443b512da9f001f721951438".toLowerCase(),
-      "0x1a1af9c78704d3a0ab9e031c92e7bd808711a582".toLowerCase(),
-      "0x75b69949d11013856e60b7386c28163daed1de81".toLowerCase(),
-      "0xb9882bc4f209d6bb26e971874779aa7447f82aa7".toLowerCase(),
-      "0xad73118d8a179c17a2653e7342977e82e54cc4a7".toLowerCase(),
-      "0x2c990daddaf3b760443b512da9f001f721951438_haust".toLowerCase(),
-    ],
+    () => [...TRACKED_TOKEN_ADDRESSES, NATIVE_TOKEN_ROW_ID],
     []
   );
 
@@ -253,7 +247,7 @@ export default function useTopTokensQuery(
             .filter(
               (token: TopTokensQuery["tokens"][number]) =>
                 token.id.toLowerCase() ===
-                "0x2c990daddaf3b760443b512da9f001f721951438".toLowerCase()
+                NETWORK.tokens.whaust
             )
             .map((whaustToken: TopTokensQuery["tokens"][number]) => {
               const currentDayPrice = Number(
@@ -340,7 +334,7 @@ export default function useTopTokensQuery(
             acc[token.id] = sparklineData;
             if (
               token.id.toLowerCase() ===
-              "0x2c990daddaf3b760443b512da9f001f721951438".toLowerCase()
+              NETWORK.tokens.whaust
             ) {
               acc[token.id + "_haust"] = sparklineData;
             }

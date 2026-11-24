@@ -1,6 +1,7 @@
 /* eslint-env node */
 
-require('dotenv').config({ path: '.env.production' })
+// Docker builds pass REACT_APP_NETWORK explicitly; a local install falls back to devnet.
+require('dotenv').config({ path: '.env.development' })
 const child_process = require('child_process')
 const fs = require('fs/promises')
 const { promisify } = require('util')
@@ -24,4 +25,6 @@ function fetchSchema(url, outputFile) {
     })
 }
 
-fetchSchema(process.env.REACT_APP_THE_GRAPH_SCHEMA_ENDPOINT, thegraphConfig.schema)
+const { subgraphUrl } = require(`../src/constants/network/${process.env.REACT_APP_NETWORK}.json`)
+
+fetchSchema(subgraphUrl, thegraphConfig.schema)

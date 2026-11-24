@@ -1,20 +1,15 @@
-/*
- * SupportedChainId must be defined inline, without using @uniswap/sdk-core, so that its members are their own types
- * {@see https://www.typescriptlang.org/docs/handbook/enums.html#union-enums-and-enum-member-types}. This allows the
- * derived const arrays and their types (eg {@link L1_CHAIN_IDS}, {@link SupportedL1ChainId}) to be narrowed and used
- * to enforce chain typing.
- *
- * Because this is not explicitly derived from @uniswap/sdk-core, there is a unit test to enforce conformance.
- */
+import { NETWORK } from 'constants/network'
+
 export enum SupportedChainId {
-  HAUST_TESTNET = 1008818835,
-  // TODO: add chain id when mainnet is ready
+  // The live chain of this build: Haust devnet or mainnet, depending on REACT_APP_NETWORK.
+  HAUST_TESTNET = NETWORK.chainId,
+  // Placeholder, never connected to.
   HAUST = 0,
 }
 
 export const CHAIN_IDS_TO_NAMES = {
-  [SupportedChainId.HAUST_TESTNET]: 'haust_testnet',
-  [SupportedChainId.HAUST]: 'haust_mainnet',
+  [SupportedChainId.HAUST_TESTNET]: NETWORK.slug,
+  [SupportedChainId.HAUST]: NETWORK.placeholderSlug,
 }
 
 /**

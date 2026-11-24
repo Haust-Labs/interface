@@ -1,0 +1,30 @@
+{
+  "chainId": 1008818835,
+  "slug": "haust_testnet",
+  "placeholderSlug": "haust_mainnet",
+  "label": "Haust Network Testnet",
+  "walletChainName": "HAUST Devnet Network",
+  "rpcUrl": "https://haust-devnet-rpc.eu-north-2.gateway.fm",
+  "explorerUrl": "https://haust-devnet-blockscout.eu-north-2.gateway.fm",
+  "subgraphUrl": "https://graph.wdev.haust.app/subgraphs/name/haust-devnet/uniswap-v3",
+  "tokenListUrl": "https://raw.githubusercontent.com/Haust-Labs/haust-dex-tokenlist/devnet/tokenlist.json",
+  "contracts": {
+    "v2Router": "0x6536B5dDb0e083A295c3c0C80393f3d30344b9DC",
+    "v3Factory": "0xCf209F334474f339bBf388BC3F4454AD5A35A058",
+    "v3Migrator": "0x0dA5c71F4F526F4F8e024d8B386C14e3b47a28dB",
+    "multicall": "0x77Bc54CA09f3a133045556CE9A5a972be0B7bA6a",
+    "quoter": "0xa8B5f7331DE4500aF040cE98FE1cCC464b44b7EA",
+    "nonfungiblePositionManager": "0x39432828082E1ecB7E2079Cf66a8E44c3a15037f",
+    "v3Staker": "0xA34dCBA1CFef869A1f3696c4AFC3810877F72f9a",
+    "tickLens": "0x6B5eeE86941520A75C72538DF802D4a02B28b1Ad",
+    "poolDeployer": "0xCf209F334474f339bBf388BC3F4454AD5A35A058",
+    "universalRouter": "0xC5170d07B9DDB24aF1587ecBB89da69a39Ef49f4"
+  },
+  "tokens": {
+    "whaust": "0x2c990daddaf3b760443b512da9f001f721951438",
+    "usdt": "0xb9882bc4f209d6bb26e971874779aa7447f82aa7",
+    "usdc": "0xad73118d8a179c17a2653e7342977e82e54cc4a7",
+    "weth": "0x1a1af9c78704d3a0ab9e031c92e7bd808711a582",
+    "wbtc": "0x75b69949d11013856e60b7386c28163daed1de81"
+  }
+}

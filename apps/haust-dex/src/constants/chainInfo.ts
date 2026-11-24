@@ -1,5 +1,6 @@
 import haustLogo from 'assets/svg/haust-logo.svg'
 import { SupportedChainId } from 'constants/chains'
+import { NETWORK } from 'constants/network'
 import ms from 'ms.macro'
 
 import { SupportedL1ChainId, SupportedL2ChainId } from './chains'
@@ -51,9 +52,9 @@ const CHAIN_INFO: ChainInfoMap = {
     blockWaitMsBeforeWarning: ms`10m`,
     bridge: '',
     docs: 'https://haust.network/',
-    explorer: 'https://haust-devnet-blockscout.eu-north-2.gateway.fm/',
+    explorer: `${NETWORK.explorerUrl}/`,
     infoLink: '',
-    label: 'Haust Network Testnet',
+    label: NETWORK.label,
     logoUrl: haustLogo,
     circleLogoUrl: haustLogo,
     squareLogoUrl: haustLogo,

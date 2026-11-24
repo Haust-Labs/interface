@@ -17,6 +17,7 @@ import TokenDetailsSkeleton, {
 } from 'components/Tokens/TokenDetails/Skeleton'
 import StatsSection from 'components/Tokens/TokenDetails/StatsSection'
 import TokenSafetyModal from 'components/TokenSafety/TokenSafetyModal'
+import { NETWORK } from 'constants/network'
 import { NATIVE_CHAIN_ID, nativeOnChain } from 'constants/tokens'
 import { useOnGlobalChainSwitch } from 'hooks/useGlobalChainSwitch'
 import { UNKNOWN_TOKEN_SYMBOL, useTokenFromActiveNetwork } from 'lib/hooks/useCurrency'
@@ -151,9 +152,9 @@ export default function TokenDetails({
   const navigateToTokenForChain = useCallback(
     (update: Chain) => {
       if (!urlAddress) return
-      startTokenTransition(() => navigate(getTokenDetailsURL({ address: urlAddress, chain: chain.toLowerCase() })))
+      startTokenTransition(() => navigate(getTokenDetailsURL({ address: urlAddress })))
     },
-    [urlAddress, chain, navigate]
+    [urlAddress, navigate]
   )
   useOnGlobalChainSwitch(navigateToTokenForChain)
 
@@ -191,7 +192,7 @@ export default function TokenDetails({
             </TokenNameCell>
           </TokenInfoContainer>
           
-          <ChartSection token={detailedToken.symbol === 'HAUST' ? '0x2c990daddaf3b760443b512da9f001f721951438' : urlAddress} />
+          <ChartSection token={detailedToken.symbol === 'HAUST' ? NETWORK.tokens.whaust : urlAddress} />
 
           <StatsSection
             chainId={pageChainId}

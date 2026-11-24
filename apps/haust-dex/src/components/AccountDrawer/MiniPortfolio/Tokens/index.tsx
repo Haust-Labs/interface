@@ -5,6 +5,7 @@ import { DeltaArrow } from 'components/Tokens/Delta'
 import { formatDelta } from 'components/Tokens/TokenDetails/PriceChart'
 import { formatNumber, NumberType } from 'conedison/format'
 import { isSupportedChain } from 'constants/chains'
+import { NETWORK } from 'constants/network'
 import { useDefaultActiveTokens } from 'hooks/Tokens'
 import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
 import { useAtomValue } from 'jotai/utils'
@@ -146,7 +147,7 @@ function TokenRow({ token, hideSmallBalances, onLoaded }: { token: Token | Nativ
       : token.address 
 
     if (address) {
-      navigate(`/explore/token/haust_testnet/${address}`)
+      navigate(`/explore/token/${NETWORK.slug}/${address}`)
       toggleWalletDrawer()
     }
   }, [token, navigate, toggleWalletDrawer])

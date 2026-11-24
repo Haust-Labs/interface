@@ -1,23 +1,16 @@
 import { ApolloError, useQuery } from "@apollo/client";
+import { TRACKED_TOKEN_ADDRESSES } from "constants/network";
 import gql from "graphql-tag";
 import { useMemo } from "react";
 
 import { apolloClient } from "./apollo";
-
-const TRACKED_TOKENS = [
-  "0x2c990daddaf3b760443b512da9f001f721951438", // WHAUST
-  "0xb9882bc4f209d6bb26e971874779aa7447f82aa7", // USDT
-  "0xad73118d8a179c17a2653e7342977e82e54cc4a7", // USDC
-  "0x1a1af9c78704d3a0ab9e031c92e7bd808711a582", // WETH
-  "0x75b69949d11013856e60b7386c28163daed1de81", // WBTC
-].map((address) => address.toLowerCase());
 
 const query = gql`
   query TokensData {
     bundle(id: "1") {
       ethPriceUSD
     }
-    tokens(where: { id_in: ${JSON.stringify(TRACKED_TOKENS)} }) {
+    tokens(where: { id_in: ${JSON.stringify(TRACKED_TOKEN_ADDRESSES)} }) {
       id
       name
       symbol

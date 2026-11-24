@@ -1,5 +1,6 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { useWeb3React } from '@web3-react/core'
+import { NETWORK } from 'constants/network'
 import useIsWindowVisible from 'hooks/useIsWindowVisible'
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
@@ -13,7 +14,7 @@ const BlockNumberContext = createContext<
 >(MISSING_PROVIDER)
 
 // RPC URL for fallback provider
-const FALLBACK_RPC_URL = 'https://haust-devnet-rpc.eu-north-2.gateway.fm'
+const FALLBACK_RPC_URL = NETWORK.rpcUrl
 
 function useBlockNumberContext() {
   const blockNumber = useContext(BlockNumberContext)

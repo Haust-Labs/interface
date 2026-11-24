@@ -1,13 +1,12 @@
 import { ApolloClient, ApolloLink, concat, HttpLink, InMemoryCache } from '@apollo/client'
 import { SupportedChainId } from 'constants/chains'
+import { NETWORK } from 'constants/network'
 
 import store from '../../state/index'
 
 const CHAIN_SUBGRAPH_URL: Record<number, string> = {
-  // TODO: change subgraph path when mainnet is ready
-  [SupportedChainId.HAUST]: 'https://graph.wdev.haust.app/subgraphs/name/haust-devnet/uniswap-v3',
-  [SupportedChainId.HAUST_TESTNET]:
-    'https://graph.wdev.haust.app/subgraphs/name/haust-devnet/uniswap-v3',
+  [SupportedChainId.HAUST]: NETWORK.subgraphUrl,
+  [SupportedChainId.HAUST_TESTNET]: NETWORK.subgraphUrl,
 }
 
 const httpLink = new HttpLink({ uri: CHAIN_SUBGRAPH_URL[SupportedChainId.HAUST_TESTNET] })

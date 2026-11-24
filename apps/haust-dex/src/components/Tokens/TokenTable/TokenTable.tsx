@@ -1,6 +1,7 @@
 import { Trans } from '@lingui/macro'
 import { useWeb3React } from '@web3-react/core';
 import { SupportedChainId } from 'constants/chains';
+import { NATIVE_TOKEN_ROW_ID, TRACKED_TOKEN_ADDRESSES } from 'constants/network'
 import { PAGE_SIZE } from 'graphql/data/TopTokens'
 import useTopTokensQuery from 'graphql/thegraph/TopTokensQuery';
 import { useAtomValue } from 'jotai/utils'
@@ -155,14 +156,7 @@ export default function TokenTable() {
   const processedData = React.useMemo(() => {
     if (!data?.tokens) return { tokens: [], sparklines: {} }
     
-    const allowedTokenIds = [
-      '0x2c990daddaf3b760443b512da9f001f721951438',
-      "0x1a1af9c78704d3a0ab9e031c92e7bd808711a582",
-      "0x75b69949d11013856e60b7386c28163daed1de81",
-      "0xb9882bc4f209d6bb26e971874779aa7447f82aa7",
-      "0xad73118d8a179c17a2653e7342977e82e54cc4a7",
-      '0x2c990daddaf3b760443b512da9f001f721951438_haust'
-    ]
+    const allowedTokenIds = [...TRACKED_TOKEN_ADDRESSES, NATIVE_TOKEN_ROW_ID]
     
     let filteredTokens = data.tokens.filter((token: any) => 
       allowedTokenIds.map(id => id.toLowerCase()).includes(token.address.toLowerCase())

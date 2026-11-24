@@ -1,3 +1,4 @@
+import { NETWORK } from "constants/network";
 import { useCallback, useState } from "react";
 
 interface SwitchNetworkHookResult {
@@ -20,17 +21,17 @@ export const useSwitchNetwork = (): SwitchNetworkHookResult => {
     setIsLoading(true);
     setError(null);
 
-    const chainIdHex = "0x3C215A93";
+    const chainIdHex = `0x${NETWORK.chainId.toString(16).toUpperCase()}`;
     const networkParams = {
       chainId: chainIdHex,
-      chainName: "HAUST Devnet Network",
+      chainName: NETWORK.walletChainName,
       nativeCurrency: {
         name: "Haust",
         symbol: "HAUST",
         decimals: 18,
       },
-      rpcUrls: ["https://haust-devnet-rpc.eu-north-2.gateway.fm"],
-      blockExplorerUrls: ["https://haust-devnet-blockscout.eu-north-2.gateway.fm"],
+      rpcUrls: [NETWORK.rpcUrl],
+      blockExplorerUrls: [NETWORK.explorerUrl],
     };
 
     try {

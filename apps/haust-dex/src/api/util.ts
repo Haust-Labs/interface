@@ -1,4 +1,5 @@
 import {SupportedChainId} from "constants/chains";
+import { NETWORK } from "constants/network";
 import {NATIVE_CHAIN_ID} from "constants/tokens";
 import {CHAIN_ID_TO_BACKEND_NAME} from "graphql/data/util";
 
@@ -15,8 +16,8 @@ export const CHAIN_NAME_TO_CHAIN_ID: { [key in Chain]: SupportedChainId } = {
 }
 
 const URL_CHAIN_PARAM_TO_BACKEND: { [key: string]: Chain } = {
-  haust_mainnet: Chain.HAUST,
-  haust_testnet: Chain.HAUST_TESTNET,
+  [NETWORK.placeholderSlug]: Chain.HAUST,
+  [NETWORK.slug]: Chain.HAUST_TESTNET,
 }
 
 export function chainIdToBackendName(chainId: number | undefined) {
@@ -31,21 +32,17 @@ export function validateUrlChainParam(chainName: string | undefined) {
 
 export function getTokenDetailsURL({
    address,
-   chain,
  }: {
   address?: string | null
-  chain?: string
 }) {
   const tokenAddress = address ?? NATIVE_CHAIN_ID
-  return `/explore/token/${chain ?? 'haust_testnet'}/${tokenAddress}`
+  return `/explore/token/${NETWORK.slug}/${tokenAddress}`
 }
 
 export function getPoolDetailsURL({
   address,
-  chain,
 }: {
  address?: string | null
- chain?: string
 }) {
- return `/explore/pools/${chain ?? 'haust_testnet'}/${address}`
+ return `/explore/pools/${NETWORK.slug}/${address}`
 }
