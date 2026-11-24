@@ -138,26 +138,20 @@ export function BlockNumberProvider({ children }: { children: ReactNode }) {
 
       
       // Set up listeners for both providers
-      const setupBlockListener = (provider: JsonRpcProvider | typeof web3Provider, isFallback = false) => {
-        const prefix = isFallback ? '[Fallback] ' : ''
-        provider?.on('block', (block: number) => {
-          if (!stale) onBlock(block || 0)
-        })
+      const blockListener = (block: number) => {
+        if (!stale) onBlock(block || 0)
       }
 
-      setupBlockListener(provider)
-      if (fallbackProvider) {
-        setupBlockListener(fallbackProvider, true)
+      provider.on('block', blockListener)
+      if (fallbackProvider && fallbackProvider !== provider) {
+        fallbackProvider.on('block', blockListener)
       }
 
       return () => {
         stale = true
-        if (provider) {
-          provider.removeListener('block', onBlock)
-        }
-        if (fallbackProvider) {
-          fallbackProvider.removeListener('block', onBlock)
-        }
+        // The same function that was subscribed, or the provider keeps polling forever.
+        provider.removeListener('block', blockListener)
+        fallbackProvider?.removeListener('block', blockListener)
       }
     }
 

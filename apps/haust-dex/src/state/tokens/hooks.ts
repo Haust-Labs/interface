@@ -7,11 +7,12 @@ import useTokensData from "graphql/thegraph/TokensDataQuery";
 import { useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "state/hooks";
 
-import { setLoading, TokenData, updateTokenPrices } from "./slice";
+import { setLoading, TokenData, updateFailed, updateTokenPrices } from "./slice";
 
 const WHAUST_ADDRESS = NETWORK.tokens.whaust;
 const HAUST_SYMBOL = "HAUST";
 const CACHE_DURATION = 30000;
+const ERROR_RETRY_DELAY = 5000;
 const POLLING_INTERVAL = 5000;
 
 export function useTokensWithBalances() {
@@ -194,6 +195,8 @@ export function useTokensWithBalances() {
       };
     } catch (error) {
       console.error("Error updating token data:", error);
+      // Without a delay the effect below would retry immediately, flooding the RPC and freezing the page.
+      dispatch(updateFailed({ lastUpdated: Date.now() - CACHE_DURATION + ERROR_RETRY_DELAY }));
       return null;
     } finally {
       dispatch(setLoading(false));
@@ -201,10 +204,10 @@ export function useTokensWithBalances() {
   }, [account, provider, tokensData, dispatch]);
 
   useEffect(() => {
-    const now = Date.now();
-    if (tokensData && !isLoading && now - lastUpdated > CACHE_DURATION) {
-      updateTokensData();
-    }
+    if (!tokensData || isLoading) return;
+    const delay = Math.max(0, lastUpdated + CACHE_DURATION - Date.now());
+    const timer = setTimeout(updateTokensData, delay);
+    return () => clearTimeout(timer);
   }, [lastUpdated, updateTokensData, tokensData, isLoading]);
 
   if (isLoading || isLoadingTokens) {
