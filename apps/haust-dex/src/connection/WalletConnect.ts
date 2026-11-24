@@ -13,6 +13,8 @@ const RPC_URLS_WITHOUT_FALLBACKS = Object.entries(RPC_URLS).reduce(
   {}
 )
 
+const DISCONNECT_TIMEOUT_MS = 5_000
+
 export class WalletConnectV2 extends WalletConnect {
   ANALYTICS_EVENT = 'Wallet Connect QR Scan'
   constructor({
@@ -54,7 +56,46 @@ export class WalletConnectV2 extends WalletConnect {
     })
   }
 
-  activate(chainId?: number) {
-    return super.activate(chainId)
+  private pendingDeactivation?: Promise<void>
+
+  async activate(chainId?: number) {
+    await this.pendingDeactivation
+    // The wallet approved a request after its QR code was closed: nothing is connected to that session, so drop it.
+    if (this.provider?.session && !this.provider.accounts.length) {
+      await this.endSession()
+    }
+    await super.activate(chainId)
+    // The base class does not report a session that was restored during initialization.
+    if (this.provider?.session) {
+      this.actions.update({ chainId: this.provider.chainId, accounts: this.provider.accounts })
+    }
+  }
+
+  /**
+   * Ends the session but keeps the WalletConnect client. The base class drops the client and creates a new one on the next
+   * connection, while the old one stays alive with the same client id and shared subscriptions: once it reconnects to the
+   * relay, it receives (and cannot decrypt) the wallet's responses to the new client, so the connection hangs.
+   */
+  async deactivate() {
+    this.actions.resetState()
+    this.pendingDeactivation = this.endSession()
+    await this.pendingDeactivation
+  }
+
+  private async endSession() {
+    let timer: number | undefined
+    try {
+      await Promise.race([
+        this.provider?.disconnect(),
+        new Promise((_, reject) => {
+          timer = window.setTimeout(() => reject(new Error('WalletConnect disconnect timed out')), DISCONNECT_TIMEOUT_MS)
+        }),
+      ])
+    } catch (error) {
+      console.warn('Failed to end the WalletConnect session', error)
+      await super.deactivate()
+    } finally {
+      window.clearTimeout(timer)
+    }
   }
 }

@@ -4,7 +4,7 @@ import { initializeConnector, Web3ReactHooks } from "@web3-react/core";
 import { GnosisSafe } from "@web3-react/gnosis-safe";
 import { MetaMask } from "@web3-react/metamask";
 import { Network } from "@web3-react/network";
-import { Actions, Connector } from "@web3-react/types";
+import { Connector } from "@web3-react/types";
 import COINBASE_ICON from "assets/images/coinbaseWalletIcon.svg";
 import GNOSIS_ICON from "assets/images/gnosis.png";
 import METAMASK_ICON from "assets/images/metamask.svg";
@@ -13,7 +13,7 @@ import WALLET_CONNECT_ICON from "assets/images/walletConnectIcon.svg";
 import RABBY_ICON from "assets/images/logo-rabby.svg";
 import HAUST_ICON from "assets/svg/wallet.svg";
 import { SupportedChainId } from "constants/chains";
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback } from "react";
 import { isMobile } from "utils/userAgent";
 
 import { RPC_URLS } from "../constants/networks";
@@ -101,75 +101,25 @@ export const gnosisSafeConnection: Connection = {
   shouldDisplay: () => false,
 };
 
-export const walletConnectV2Connection: Connection = new (class
-  implements Connection
-{
-  private initializer = (
-    actions: Actions,
-    defaultChainId = SupportedChainId.HAUST_TESTNET
-  ) => new WalletConnectV2({ actions, defaultChainId, onError });
-
-  type = ConnectionType.WALLET_CONNECT_V2;
-  getName = () => "WalletConnect";
-  getIcon = () => WALLET_CONNECT_ICON;
-  shouldDisplay = () => !getIsInjectedMobileBrowser();
-
-  private activeConnector = initializeConnector<WalletConnectV2>(
-    this.initializer
+// A single connector for the page lifetime: every new one would add another live WalletConnect client (see WalletConnectV2).
+const [web3WalletConnectV2, web3WalletConnectV2Hooks] =
+  initializeConnector<WalletConnectV2>(
+    (actions) =>
+      new WalletConnectV2({
+        actions,
+        defaultChainId: SupportedChainId.HAUST_TESTNET,
+        onError,
+      })
   );
-  // The web3-react Provider requires referentially stable connectors, so we use proxies to allow lazy connections
-  // whilst maintaining referential equality.
-  private proxyConnector = new Proxy(
-    {},
-    {
-      get: (target, p, receiver) =>
-        Reflect.get(this.activeConnector[0], p, receiver),
-      getOwnPropertyDescriptor: (target, p) =>
-        Reflect.getOwnPropertyDescriptor(this.activeConnector[0], p),
-      getPrototypeOf: () => WalletConnectV2.prototype,
-      set: (target, p, receiver) =>
-        Reflect.set(this.activeConnector[0], p, receiver),
-    }
-  ) as (typeof this.activeConnector)[0];
-  private proxyHooks = new Proxy(
-    {},
-    {
-      get: (target, p, receiver) => {
-        return () => {
-          // Because our connectors are referentially stable (through proxying), we need a way to trigger React renders
-          // from outside of the React lifecycle when our connector is re-initialized. This is done via 'change' events
-          // with `useSyncExternalStore`:
-          const hooks = useSyncExternalStore(
-            (onChange) => {
-              this.onActivate = onChange;
-              return () => (this.onActivate = undefined);
-            },
-            () => this.activeConnector[1]
-          );
-          return Reflect.get(hooks, p, receiver)();
-        };
-      },
-    }
-  ) as (typeof this.activeConnector)[1];
 
-  private onActivate?: () => void;
-
-  overrideActivate = (chainId?: SupportedChainId) => {
-    // Always re-create the connector, so that the chainId is updated.
-    this.activeConnector = initializeConnector((actions) =>
-      this.initializer(actions, chainId)
-    );
-    this.onActivate?.();
-    return false;
-  };
-
-  get connector() {
-    return this.proxyConnector;
-  }
-  get hooks() {
-    return this.proxyHooks;
-  }
-})();
+export const walletConnectV2Connection: Connection = {
+  getName: () => "WalletConnect",
+  connector: web3WalletConnectV2,
+  hooks: web3WalletConnectV2Hooks,
+  type: ConnectionType.WALLET_CONNECT_V2,
+  getIcon: () => WALLET_CONNECT_ICON,
+  shouldDisplay: () => !getIsInjectedMobileBrowser(),
+};
 
 const [web3CoinbaseWallet, web3CoinbaseWalletHooks] =
   initializeConnector<CoinbaseWallet>(
