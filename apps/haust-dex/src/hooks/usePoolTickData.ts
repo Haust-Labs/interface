@@ -2,6 +2,7 @@ import { Currency } from '@uniswap/sdk-core'
 import { FeeAmount, nearestUsableTick, Pool, TICK_SPACINGS, tickToPrice } from '@uniswap/v3-sdk'
 import { useWeb3React } from '@web3-react/core'
 import { ZERO_ADDRESS } from 'constants/misc'
+import { NETWORK } from 'constants/network'
 import { useAllV3TicksQuery } from 'graphql/thegraph/__generated__/types-and-hooks'
 import { TickData, Ticks } from 'graphql/thegraph/AllV3TicksQuery'
 import { apolloClient } from 'graphql/thegraph/apollo'
@@ -58,7 +59,7 @@ function useTicksFromTickLens(
           currencyB?.wrapped,
           feeAmount,
           undefined,
-          chainId ? V3_CORE_FACTORY_ADDRESSES[chainId] : undefined
+          chainId ? V3_CORE_FACTORY_ADDRESSES[chainId] : NETWORK.contracts.v3Factory
         )
       : undefined
 
@@ -151,7 +152,7 @@ function useTicksFromSubgraph(
           currencyB?.wrapped,
           feeAmount,
           undefined,
-          chainId ? V3_CORE_FACTORY_ADDRESSES[chainId] : undefined
+          chainId ? V3_CORE_FACTORY_ADDRESSES[chainId] : NETWORK.contracts.v3Factory
         )
       : undefined
 
