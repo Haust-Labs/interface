@@ -1,6 +1,0 @@
-overrideExisting: false
-schema: 'https://graph.wdev.haust.app/subgraphs/name/haust-devnet/uniswap-v3'
-generates:
-  ./src/graphql/thegraph/schema/schema.graphql:
-    plugins:
-      - schema-ast

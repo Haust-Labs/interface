@@ -76,6 +76,11 @@ module.exports = {
   webpack: {
     plugins: [new VanillaExtractPlugin({ identifiers: 'short' })],
     configure: (webpackConfig) => {
+      // The network is baked into the bundle. There is no default, so that a build can never silently target the wrong one.
+      if (!['devnet', 'mainnet'].includes(process.env.REACT_APP_NETWORK)) {
+        throw new Error('REACT_APP_NETWORK must be set to "devnet" or "mainnet"')
+      }
+
       webpackConfig.plugins = webpackConfig.plugins
         .map((plugin) => {
           // Extend process.env with dynamic values (eg commit hash).

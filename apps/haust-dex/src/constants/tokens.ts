@@ -1,5 +1,6 @@
 import {Currency, Ether, NativeCurrency, Token} from '@uniswap/sdk-core'
 import { SupportedChainId } from 'constants/chains'
+import { NETWORK } from 'constants/network'
 import invariant from "tiny-invariant";
 
 export const NATIVE_CHAIN_ID = 'NATIVE'
@@ -11,7 +12,7 @@ export const DEFAULT_ERC20_DECIMALS = 18
 //TODO
 export const USDT_HAUST_TESTNET = new Token(
   SupportedChainId.HAUST_TESTNET,
-  '0xb9882bc4f209d6bb26e971874779aa7447f82aa7',
+  NETWORK.tokens.usdt,
   6,
   'USDT',
   'Tether'
@@ -27,7 +28,7 @@ export const MYR_HAUST_TESTNET = new Token(
 
 export const USDC_HAUST_TESTNET = new Token(
   SupportedChainId.HAUST_TESTNET,
-  '0xad73118d8a179c17a2653e7342977e82e54cc4a7',
+  NETWORK.tokens.usdc,
   6,
   'USDC',
   'USD Coin'
@@ -35,7 +36,7 @@ export const USDC_HAUST_TESTNET = new Token(
 
 export const WETH_HAUST_TESTNET = new Token(
   SupportedChainId.HAUST_TESTNET,
-  '0x1a1af9c78704d3a0ab9e031c92e7bd808711a582',
+  NETWORK.tokens.weth,
   18,
   'WETH',
   'Wrapped ETH'
@@ -43,7 +44,7 @@ export const WETH_HAUST_TESTNET = new Token(
 
 export const WBTC_HAUST_TESTNET = new Token(
   SupportedChainId.HAUST_TESTNET,
-  '0x75b69949d11013856e60b7386c28163daed1de81',
+  NETWORK.tokens.wbtc,
   8,
   'WBTC',
   'Wrapped BTC'
@@ -53,14 +54,14 @@ export const WBTC_HAUST_TESTNET = new Token(
 export const WRAPPED_NATIVE_CURRENCY: { [chainId: number]: Token | undefined } = {
   [SupportedChainId.HAUST]: new Token(
     SupportedChainId.HAUST,
-    '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+    NETWORK.tokens.whaust,
     18,
     'WBNB',
     'Wrapped BNB'
   ),
   [SupportedChainId.HAUST_TESTNET]: new Token(
     SupportedChainId.HAUST_TESTNET,
-    '0x2c990daddaf3b760443b512da9f001f721951438',
+    NETWORK.tokens.whaust,
     18,
     'WHAUST',
     'Wrapped Haust'
@@ -76,7 +77,7 @@ export const TOKEN_ADDRESSES = {
   'MYR': MYR_HAUST_TESTNET
 }
 
-function isHaust(chainId: number): chainId is SupportedChainId.HAUST {
+function isHaust(chainId: number): boolean {
   return chainId === SupportedChainId.HAUST
 }
 
@@ -98,7 +99,7 @@ class HaustNativeCurrency extends NativeCurrency {
   }
 }
 
-function isHaustTestnet(chainId: number): chainId is SupportedChainId.HAUST_TESTNET {
+function isHaustTestnet(chainId: number): boolean {
   return chainId === SupportedChainId.HAUST_TESTNET
 }
 
@@ -124,7 +125,7 @@ class ExtendedEther extends Ether {
   public get wrapped(): Token {
     const wrapped = WRAPPED_NATIVE_CURRENCY[this.chainId]
     if (wrapped) return wrapped
-    return new Token(this.chainId, '0x2c990daddaf3b760443b512da9f001f721951438', 18, 'WHAUST', 'Wrapped Haust')
+    return new Token(this.chainId, NETWORK.tokens.whaust, 18, 'WHAUST', 'Wrapped Haust')
   }
 
   private static _cachedExtendedEther: { [chainId: number]: NativeCurrency } = {}

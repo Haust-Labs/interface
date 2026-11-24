@@ -2,6 +2,10 @@ FROM node:22 AS build
 
 WORKDIR /app
 
+# devnet or mainnet; the build fails without it
+ARG REACT_APP_NETWORK
+ENV REACT_APP_NETWORK=$REACT_APP_NETWORK
+
 COPY ./apps/haust-dex ./
 
 RUN yarn install

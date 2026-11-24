@@ -51,6 +51,17 @@ Replace <YOUR_GITHUB_USERNAME> and <YOUR_GITHUB_TOKEN> with your actual GitHub u
     yarn
     ```
 
+## Networks
+
+Everything that differs between devnet and mainnet lives in `src/constants/network/{devnet,mainnet}.json`; never hardcode such values elsewhere.
+`REACT_APP_NETWORK` (`devnet` or `mainnet`) selects the network at build time. `yarn start` and `yarn test` use devnet, a build requires it explicitly:
+
+```bash
+REACT_APP_NETWORK=mainnet yarn build
+```
+
+Work lands in `main` (deployed to dev). To release, merge `main` into `mainnet` and push a `release-v*` tag. Use merge commits, never squash or rebase, and never commit to `mainnet` directly.
+
 ## Start the local development
 
 5. Run the web:

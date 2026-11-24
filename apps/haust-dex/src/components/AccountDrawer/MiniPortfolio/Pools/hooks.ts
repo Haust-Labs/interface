@@ -7,6 +7,7 @@ import {
   NONFUNGIBLE_POSITION_MANAGER_ADDRESSES as V3NFT_ADDRESSES,
 } from "constants/addresses";
 import { isSupportedChain, SupportedChainId } from "constants/chains";
+import { NETWORK } from "constants/network";
 import { RPC_PROVIDERS } from "constants/providers";
 import { BaseContract } from "ethers/lib/ethers";
 import {
@@ -35,7 +36,7 @@ import { PositionInfo } from "./cache";
 
 type ContractMap<T extends BaseContract> = { [key: number]: T };
 
-const FALLBACK_RPC_URL = "https://haust-devnet-rpc.eu-north-2.gateway.fm";
+const FALLBACK_RPC_URL = NETWORK.rpcUrl;
 
 // Constructs a chain-to-contract map, using the wallet's provider when available
 function useContractMultichain<T extends BaseContract>(

@@ -5,6 +5,7 @@ import { DeltaArrow } from 'components/Tokens/Delta'
 import { formatDelta } from 'components/Tokens/TokenDetails/PriceChart'
 import { formatNumber, NumberType } from 'conedison/format'
 import { isSupportedChain } from 'constants/chains'
+import { NETWORK } from 'constants/network'
 import { useDefaultActiveTokens } from 'hooks/Tokens'
 import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
 import { useAtomValue } from 'jotai/utils'
@@ -47,13 +48,21 @@ export default function Tokens({ totalBalance }: { totalBalance?: number }) {
   const [isLoading, setIsLoading] = useState(isFirstLoad)
   const { chainId } = useWeb3React()
   const { switchNetwork } = useSwitchNetwork()
+  const { tokens: tokensWithBalances } = useTokensWithBalances()
 
   const tokensList = useMemo(() => {
     const allTokens = [nativeCurrency, ...Object.values(tokens)]
       .filter(token => token?.symbol !== 'MYR' && token?.symbol?.toLocaleUpperCase() !== 'WHAUST')
 
-      return allTokens
+    return allTokens
       .filter(Boolean)
+      .filter(token => {
+        const tokenData = tokensWithBalances.find(t => {
+          const searchId = token.isNative ? 'native' : token.wrapped.address.toLowerCase();
+          return t.id.toLowerCase() === searchId;
+        });
+        return !!tokenData;
+      })
       .sort((a, b) => {
         const aSymbol = (a as Token | NativeCurrency).symbol
         const bSymbol = (b as Token | NativeCurrency).symbol
@@ -67,7 +76,7 @@ export default function Tokens({ totalBalance }: { totalBalance?: number }) {
         if (bIndex !== -1) return 1
         return 0
       })
-  }, [nativeCurrency, tokens])
+  }, [nativeCurrency, tokens, tokensWithBalances])
   const [loadedTokens, setLoadedTokens] = useState<Set<string>>(new Set())
   
   useEffect(() => {
@@ -138,16 +147,12 @@ function TokenRow({ token, hideSmallBalances, onLoaded }: { token: Token | Nativ
       : token.address 
 
     if (address) {
-      navigate(`/explore/token/haust_testnet/${address}`)
+      navigate(`/explore/token/${NETWORK.slug}/${address}`)
       toggleWalletDrawer()
     }
   }, [token, navigate, toggleWalletDrawer])
 
-  if (!tokenData) {
-    return null;
-  }
-
-  if (hideSmallBalances && tokenData.balanceUSD < HIDE_SMALL_USD_BALANCES_THRESHOLD) {
+  if (hideSmallBalances && tokenData?.balanceUSD && tokenData.balanceUSD < HIDE_SMALL_USD_BALANCES_THRESHOLD) {
     return null;
   }
 
@@ -158,7 +163,7 @@ function TokenRow({ token, hideSmallBalances, onLoaded }: { token: Token | Nativ
       title={<ThemedText.SubHeader fontSize='14px' fontWeight={500}>{token.name}</ThemedText.SubHeader>}
       descriptor={
         <TokenBalanceText fontSize='13px'>
-          {formatNumber(tokenData.balance, NumberType.TokenNonTx)}{' '}
+          {formatNumber(tokenData?.balance, NumberType.TokenNonTx)}{' '}
           {token.symbol}
         </TokenBalanceText>
       }

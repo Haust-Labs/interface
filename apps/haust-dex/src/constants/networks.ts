@@ -1,4 +1,5 @@
 import { SupportedChainId } from 'constants/chains'
+import { NETWORK } from 'constants/network'
 
 /**
  * Fallback JSON-RPC endpoints.
@@ -21,5 +22,5 @@ export const FALLBACK_URLS = {
  */
 export const RPC_URLS = {
   [SupportedChainId.HAUST]: ['https://bsc-dataseed.binance.org', ...FALLBACK_URLS[SupportedChainId.HAUST]],
-  [SupportedChainId.HAUST_TESTNET]: ['https://haust-devnet-rpc.eu-north-2.gateway.fm', ...FALLBACK_URLS[SupportedChainId.HAUST_TESTNET]],
+  [SupportedChainId.HAUST_TESTNET]: [NETWORK.rpcUrl, ...FALLBACK_URLS[SupportedChainId.HAUST_TESTNET]],
 }

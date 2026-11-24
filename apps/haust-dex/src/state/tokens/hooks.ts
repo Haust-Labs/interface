@@ -2,13 +2,14 @@ import { Contract } from "@ethersproject/contracts";
 import { formatUnits } from "@ethersproject/units";
 import { useWeb3React } from "@web3-react/core";
 import ERC20_ABI from "abis/erc20.json";
+import { NETWORK } from "constants/network";
 import useTokensData from "graphql/thegraph/TokensDataQuery";
 import { useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "state/hooks";
 
 import { setLoading, TokenData, updateTokenPrices } from "./slice";
 
-const WHAUST_ADDRESS = "0x2c990daddaf3b760443b512da9f001f721951438";
+const WHAUST_ADDRESS = NETWORK.tokens.whaust;
 const HAUST_SYMBOL = "HAUST";
 const CACHE_DURATION = 30000;
 const POLLING_INTERVAL = 5000;

@@ -4,6 +4,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        REACT_APP_NETWORK: devnet
     ports:
       - "3000:80"
     volumes:

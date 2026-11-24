@@ -5,6 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
+        REACT_APP_NETWORK: devnet
         GITHUB_TOKEN: ${GITHUB_TOKEN}
     ports:
       - "3000:80"

@@ -1,4 +1,5 @@
 import { SupportedChainId } from 'constants/chains'
+import { NETWORK } from 'constants/network'
 import useHttpLocations from 'hooks/useHttpLocations'
 import { useMemo } from 'react'
 import { isAddress } from 'utils'
@@ -6,14 +7,12 @@ import { isAddress } from 'utils'
 import HaustLogo from '../../assets/images/haust.svg'
 import { NATIVE_CHAIN_ID } from '../../constants/tokens'
 
-type Network = 'haust_mainnet' | 'haust_testnet'
-
-export function chainIdToNetworkName(networkId: SupportedChainId): Network {
+export function chainIdToNetworkName(networkId: SupportedChainId): string {
   switch (networkId) {
     case SupportedChainId.HAUST:
-      return 'haust_mainnet'
+      return NETWORK.placeholderSlug
     case SupportedChainId.HAUST_TESTNET:
-      return 'haust_testnet'
+      return NETWORK.slug
     default:
       return 'haust_mainnet'
   }
