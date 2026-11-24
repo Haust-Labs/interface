@@ -45,7 +45,7 @@ with your GitHub credentials. Use environment variables to store your credential
     ```
 Replace <YOUR_GITHUB_USERNAME> and <YOUR_GITHUB_TOKEN> with your actual GitHub username and personal access token.
 
-4. Install dependencies, requires NodeJS <=16.0.0:
+4. Install dependencies, requires NodeJS 22:
 
     ```bash
     yarn

@@ -111,6 +111,12 @@ module.exports = {
       webpackConfig.resolve.alias['@uniswap/conedison'] = '@uniswap/conedison/dist'
       webpackConfig.resolve.alias['@uniswap/sdk-core'] = '@uniswap/sdk-core/dist'
 
+      // Webpack 4 resolves some dependencies (eg destr, via WalletConnect's storage) to .cjs files, which CRA's file-loader
+      // fallback would otherwise emit as static assets instead of bundling as JavaScript.
+      webpackConfig.module.rules
+        .find((rule) => Array.isArray(rule.oneOf))
+        .oneOf.unshift({ test: /\.cjs$/, include: /node_modules/, type: 'javascript/auto' })
+
       return webpackConfig
     },
   },
